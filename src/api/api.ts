@@ -1,6 +1,16 @@
 import type { UserType } from "../contexts/AuthContext";
 
 export async function loginApi(user: UserType, password: string): Promise<{ token: string }> {
+  await new Promise((resolve) => setTimeout(resolve, 700));
+
+  // Removemos completamente a lógica insegura.
+  // A função agora sempre retorna um erro, desativando o login mock.
+  throw new Error("Funcionalidade de login em desenvolvimento. API real pendente.");
+}
+
+/*import type { UserType } from "../contexts/AuthContext";
+
+export async function loginApi(user: UserType, password: string): Promise<{ token: string }> {
   // Simula um atraso da API
   await new Promise((resolve) => setTimeout(resolve, 700));
 
@@ -11,3 +21,4 @@ export async function loginApi(user: UserType, password: string): Promise<{ toke
     throw new Error("Usuário ou senha inválidos");
   }
 }
+*/
