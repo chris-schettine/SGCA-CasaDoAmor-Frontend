@@ -1,4 +1,6 @@
 import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { apiGateway } from '../api/api.gateway';
+
 export interface UserType {
   username: string;
   roles: string[]; // ex.: ["Médica", "Recepcionista"]
@@ -23,47 +25,59 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserType | null>(null);
+  // O estado 'token' pode ser removido, pois o frontend não o gerencia mais.
+  // Vamos mantê-lo nulo por enquanto para evitar quebrar outras partes do código.
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // verificar o token no localStorage/sessionStorage ao carregar a aplicação
+  // Verifica a sessão com o backend ao carregar a aplicação
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('authUsername');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
+    const checkAuthStatus = async () => {
       try {
-        const parsedUser: UserType = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } catch {
+        // Supondo que exista um endpoint para buscar dados do usuário logado
+        const response = await apiGateway.get('/api/user/me'); 
+        if (response.data) {
+          setUser(response.data);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        // Se a requisição falhar (ex: 401 Unauthorized), o usuário não está logado
         setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
+    };
+
+    checkAuthStatus();
   }, []);
 
-  const login = (newToken: string, userData: UserType) => {
-    localStorage.setItem('authToken', newToken);
-    localStorage.setItem('authUsername', JSON.stringify(userData));
-    setToken(newToken);
+  // O login agora apenas atualiza o estado após a chamada da API ter sido bem-sucedida
+  const login = (userData: UserType) => {
+    // A API de login foi responsável por setar o cookie HttpOnly.
+    // Esta função só precisa atualizar o estado da UI.
     setUser(userData);
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUsername');
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
+  // O logout chama um endpoint no backend para invalidar o cookie
+  const logout = async () => {
+    try {
+      // Supondo que exista um endpoint de logout
+      await apiGateway.post('/auth/logout'); 
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    } finally {
+      // Limpa o estado local independentemente do resultado da API
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
-  // fornecer o valor do contexto para os componentes filhos
   const contextValue = {
     isAuthenticated,
     user,
-    token,
+    token, // Ainda aqui, mas como null
     login,
     logout,
     isLoading,
