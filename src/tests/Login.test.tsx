@@ -68,7 +68,7 @@ describe('Login page', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders username and password fields and login button', () => {
+  it('renderiza campos de nome de usuário e senha e botão de login', () => {
     render(
       <BrowserRouter>
         <AuthProvider>
@@ -82,7 +82,7 @@ describe('Login page', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
 
-  it('shows an error snackbar when loginApi throws', async () => {
+  it('Exibe um snackbar de erro quando loginApi lança uma exceção', async () => {
     const spy = vi.spyOn(api, 'loginApi').mockRejectedValue(new Error('API down'))
 
     render(
