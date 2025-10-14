@@ -52,10 +52,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkAuthStatus();
   }, []);
 
-  // O login agora apenas atualiza o estado após a chamada da API ter sido bem-sucedida
-  const login = (userData: UserType) => {
-    // A API de login foi responsável por setar o cookie HttpOnly.
-    // Esta função só precisa atualizar o estado da UI.
+  // O login agora atualiza o token e o usuário no estado
+  const login = (newToken: string, userData: UserType) => {
+    // A API de login pode retornar um token (ex: para uso em headers) e
+    // o backend pode também setar cookies HttpOnly. Salvamos o token
+    // em memória por enquanto para evitar uso de storage inseguro.
+    setToken(newToken);
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -71,6 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Limpa o estado local independentemente do resultado da API
       setUser(null);
       setIsAuthenticated(false);
+      setToken(null);
     }
   };
 

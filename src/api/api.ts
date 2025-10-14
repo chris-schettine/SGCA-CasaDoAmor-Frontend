@@ -1,6 +1,6 @@
 import type { UserType } from "../contexts/AuthContext";
 
-export async function loginApi(user: UserType, password: string): Promise<{ token: string }> {
+export async function loginApi(_user: UserType, _password: string): Promise<{ token: string }> {
   await new Promise((resolve) => setTimeout(resolve, 700));
 
   // Removemos completamente a lógica insegura.

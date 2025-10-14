@@ -44,6 +44,15 @@ class ApiGateway {
   public logout() {
     return this.gateway.post('/auth/logout');
   }
+
+  // Generic convenience methods used by various parts of the app
+  public get(path: string, config?: any) {
+    return this.gateway.get(path, config);
+  }
+
+  public post(path: string, data?: any, config?: any) {
+    return this.gateway.post(path, data, config);
+  }
 }
 
 
