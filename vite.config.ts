@@ -11,7 +11,9 @@ export default defineConfig({
       //Impedi o navegador de executar um arquivo de texto que pode conter um script
       'X-Content-Type-Options': 'nosniff',
       //Politica de Segurança de Conteúdo para previni sobre ataques de XSS (Cross-Site Scripting)
-      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'sefl' data:; front-src 'self';"
+      // Relaxed for local development so Vite's HMR and injected inline scripts/images work.
+      // In production you should set a stricter CSP (and avoid 'unsafe-inline').
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://localhost:5173; font-src 'self'; connect-src 'self' ws://localhost:5173;"
     }
   }
 })
