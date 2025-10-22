@@ -2,7 +2,7 @@ import { Alert, Button, CircularProgress, css, Snackbar, type AlertColor, type S
 import { useLocation, useNavigate } from "react-router-dom";
 import { recordStyles, stylesContainer, TitleStyles } from "./styles";
 import { useCallback, useEffect, useState } from "react";
-import { apiGateway } from "../../api/api.gateway";
+import { pessoaFisicaService } from "../../api/pessoa-fisica.service";
 
 interface Endereco {
   bairro: string | null;
@@ -91,7 +91,7 @@ const PatientInformation = () => {
         try {
           setLoading(true);
           // Aqui seria seu fetch real:
-          const response = await apiGateway.getPessoaFisicaById(patientId);
+          const response = await pessoaFisicaService.getPessoaFisicaById(patientId);
 
           console.log("yes", response.data)
           // setPatient(response.data);

@@ -3,7 +3,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography } from "@mui/material"
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGateway } from "../../../api/api.gateway";
+import { pessoaFisicaService } from "../../../api/pessoa-fisica.service";
 
 interface Patient {
   id: number;
@@ -41,7 +41,7 @@ const TablePatients = () => {
     const fetchPatients = async () => {
       try {
         setLoading(true);
-        const response = await apiGateway.getAllPessoaFisica(); // Call your API method]
+        const response = await pessoaFisicaService.getAllPessoaFisica(); // Call your API method]
         console.log("Response: ", response)
         setPatients(response.data); // Assuming the list of patients is in response.data
         setError(null); // Clear any previous errors

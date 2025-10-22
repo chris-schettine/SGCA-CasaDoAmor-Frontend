@@ -15,7 +15,7 @@ import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import type { PessoaFisicaDTO } from "../../api/api.gateway.dto";
-import { apiGateway } from "../../api/api.gateway";
+import { pessoaFisicaService } from "../../api/pessoa-fisica.service";
 import { useAuth } from "../../hooks/useAuth";
 import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 
@@ -109,7 +109,7 @@ const PatientRegisterPage = () => {
         },
       };
 
-      await apiGateway.createPessoaFisica(token, paciente); // chamada real
+      await pessoaFisicaService.createPessoaFisica(token, paciente); // chamada real
       setOpenSaveDialog(false);
       showSnackbar("Paciente cadastrado com sucesso!", "success");
       setTimeout(() => {
