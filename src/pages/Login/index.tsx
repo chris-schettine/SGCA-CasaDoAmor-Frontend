@@ -5,14 +5,16 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
-import { loginApi } from "../../api/api";
+import { authService } from "../../api/auth.service";
+import { Link as RouterLink } from 'react-router-dom'; 
+import { Link as MuiLink } from '@mui/material'; 
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [username, setUsername] = useState('');
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,24 +41,24 @@ const Login = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { token } = await loginApi({ username, roles: [] }, password);
-      login(token, { username, roles: [] });
-      showSnackbar("Login realizado com sucesso!", "success");
-      const from = location.state?.from?.pathname || "/";
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 2000);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        showSnackbar(error.message, "error");
-      } else {
-        showSnackbar("Ocorreu um erro desconhecido.", "error");
-      }
-    }
-  };
+  e.preventDefault();
+  try {
+   
+    const { token, user } = await authService.login(cpf, password);
 
+    login(token, user); 
+
+    showSnackbar("Login realizado com sucesso!", "success");
+    const from = location.state?.from?.pathname || "/";
+    setTimeout(() => {
+      navigate(from, { replace: true });
+    }, 2000);
+
+  } catch (error: any) { 
+    const message = error.response?.data?.message || "CPF ou senha inválidos";
+    showSnackbar(message, "error");
+  }
+};
   return (
     <Box css={BoxStyles}>
       <Container css={ContainerLoginStyles}>
@@ -68,11 +70,11 @@ const Login = () => {
 
         {/* Campo de Username */}
         <TextField
-          label="Nome"
+          label="CPF"
           variant="outlined"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          css={TextFieldStyles} // Passa o tema para a função de estilo
+          value={cpf}
+          onChange={(e) => setCpf(e.target.value)}
+          css={TextFieldStyles} 
         />
 
         {/* Campo de Password */}
@@ -109,6 +111,16 @@ const Login = () => {
         >
           Login
         </Button>
+         <Box sx={{ textAlign: 'center', marginTop: '1rem' }}>
+          <MuiLink
+            component={RouterLink}
+            to="/forgot-password" 
+            variant="body2"
+            underline="hover"
+          >
+            Esqueci minha senha
+          </MuiLink>
+        </Box>
       </Container>
 
       <Snackbar

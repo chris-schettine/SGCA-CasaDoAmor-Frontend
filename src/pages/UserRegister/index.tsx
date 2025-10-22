@@ -7,6 +7,7 @@ import UserForm from "../../components/UserForm";
 import { userSchema, type UserFormInputs } from "../../schemas/userSchema";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { adminService } from '../../api/admin.service';
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -80,18 +81,25 @@ const UserRegisterPage = () => {
   });
 
   const handleSaveUser = async (data: UserFormInputs) => {
-    console.log("Formulário Válido, Dados do Usuario:", data);
+    
     try {
+    
+      await adminService.createUser(data);
+      
       setOpenSaveDialog(false);
+      showSnackbar("Profissional cadastrado com sucesso!", "success");
+
       setTimeout(() => {
         navigate('/users');
-      }, 3000);
-    } catch (error) {
-      console.error("Erro ao processar usuário:", error);
-      showSnackbar("Erro ao processar usuário. Tente novamente.", "error");
+      }, 2000); 
+
+    } catch (error: any) {
+      console.error("Erro ao cadastrar profissional:", error);
+      const message = error.response?.data?.message || "Erro ao processar usuário. Tente novamente.";
+      showSnackbar(message, "error");
+      setOpenSaveDialog(false);
     }
   };
-
   const onError = (errors: FieldErrors<UserFormInputs>) => {
     console.log("Erros de validação do usuário:", errors);
     showSnackbar("Por favor, corrija os erros no formulário do usuário.", "error");

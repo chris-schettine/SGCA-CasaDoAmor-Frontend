@@ -1,10 +1,14 @@
 import { createContext, useState, useEffect, type ReactNode } from 'react';
-import { apiGateway } from '../api/api.gateway';
+
+import { authService } from '../api/auth.service'; 
 
 export interface UserType {
-  username: string;
-  roles: string[]; // ex.: ["Médica", "Recepcionista"]
+  nome: string; 
+  email: string;
+  cpf: string;
+  roles: string[]; 
 }
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: UserType | null;
@@ -14,10 +18,8 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
-// criando o context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// criando o provider para envolver sua aplicação
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -25,23 +27,22 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserType | null>(null);
-  // O estado 'token' pode ser removido, pois o frontend não o gerencia mais.
-  // Vamos mantê-lo nulo por enquanto para evitar quebrar outras partes do código.
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Verifica a sessão com o backend ao carregar a aplicação
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Supondo que exista um endpoint para buscar dados do usuário logado
-        const response = await apiGateway.get('/api/user/me'); 
-        if (response.data) {
-          setUser(response.data);
+        // 👇 CORREÇÃO: Usa o método limpo do authService
+        const userData = await authService.getActiveSession();
+
+        if (userData) {
+          setUser(userData);
           setIsAuthenticated(true);
+        } else {
+           throw new Error("Sessão não encontrada");
         }
       } catch (error) {
-        // Se a requisição falhar (ex: 401 Unauthorized), o usuário não está logado
         setUser(null);
         setIsAuthenticated(false);
       } finally {
@@ -52,25 +53,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkAuthStatus();
   }, []);
 
-  // O login agora atualiza o token e o usuário no estado
+ 
   const login = (newToken: string, userData: UserType) => {
-    // A API de login pode retornar um token (ex: para uso em headers) e
-    // o backend pode também setar cookies HttpOnly. Salvamos o token
-    // em memória por enquanto para evitar uso de storage inseguro.
+    // Esta função está correta, ela só atualiza o estado
     setToken(newToken);
     setUser(userData);
     setIsAuthenticated(true);
   };
 
-  // O logout chama um endpoint no backend para invalidar o cookie
   const logout = async () => {
     try {
-      // Supondo que exista um endpoint de logout
-      await apiGateway.post('/auth/logout'); 
+      // 👇 CORREÇÃO: Usa o método limpo do authService
+      await authService.logout(); 
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     } finally {
-      // Limpa o estado local independentemente do resultado da API
       setUser(null);
       setIsAuthenticated(false);
       setToken(null);
@@ -80,7 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const contextValue = {
     isAuthenticated,
     user,
-    token, // Ainda aqui, mas como null
+    token,
     login,
     logout,
     isLoading,

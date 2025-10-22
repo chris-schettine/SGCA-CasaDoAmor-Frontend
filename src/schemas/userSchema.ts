@@ -18,11 +18,14 @@ export const userSchema = z.object({
   cbo: requiredString,
   rqe: requiredString,
   cnes: requiredString,
-  senha: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").max(255, "Senha muito longa."),
-  confirmarSenha: z.string().min(6, "A confirmação de senha deve ter pelo menos 6 caracteres.").max(255, "Confirmação de senha muito longa."),
+  
+  
+  perfisIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil de acesso"),
+
+ 
   pergunta1: requiredString,
   pergunta2: requiredString,
 });
 
-// --- Exporta o tipo TypeScript inferido a partir do schema ---
+
 export type UserFormInputs = z.infer<typeof userSchema>;

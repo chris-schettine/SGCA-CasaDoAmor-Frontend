@@ -11,10 +11,19 @@ import PrivateRoute from './components/PrivateRoute';
 import PatientInformation from './pages/PatientInformation';
 import MedicalRecordPage from './pages/MedicalRecord';
 
+
+import ForgotPasswordPage from './pages/ForgotPassword';
+import ResetPasswordPage from './pages/ResetPassword'; 
+
 const AppRoutes = () => (
   <Routes>
+    {/* Rotas Públicas */}
     <Route path="login" element={<LoginPage />} />
+    
+    <Route path="forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="reset-password/:token" element={<ResetPasswordPage />} />
 
+    {/* Rotas Privadas */}
     <Route
       path="/"
       element={
