@@ -21,7 +21,7 @@ import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -85,7 +85,7 @@ const PatientRegisterPage = () => {
   const handleSavePatient = async (data: PatientFormInputs) => {
     console.log("Formulário Válido, Dados:", data);
     try {
-      if (!token) {
+      if (!isAuthenticated) {
         showSnackbar("Usuário não autenticado. Faça login novamente.", "error");
         setTimeout(() => {
           navigate('/login'); // Redireciona para a página de login
@@ -109,7 +109,7 @@ const PatientRegisterPage = () => {
         },
       };
 
-      await pessoaFisicaService.createPessoaFisica(token, paciente); // chamada real
+      await pessoaFisicaService.createPessoaFisica(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
       showSnackbar("Paciente cadastrado com sucesso!", "success");
       setTimeout(() => {
