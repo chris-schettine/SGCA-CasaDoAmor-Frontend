@@ -109,15 +109,11 @@ const UserRegisterPage = () => {
         dadosPessoais: {
           sexo: data.sexo,
           dataNascimento: data.dataNascimento,
-          rg: data.rg,
-          orgaoEmissor: data.orgaoEmissor,
           naturalidade: data.naturalidade,
           estadoCivil: data.estadoCivil,
           nomeMae: data.nomeMae,
           nomePai: data.nomePai,
           profissao: data.profissao,
-          
-          
           // @ts-ignore 
           conselho: data.conselho,
           // @ts-ignore 

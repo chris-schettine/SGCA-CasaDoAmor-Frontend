@@ -15,8 +15,6 @@ export interface DadosPessoaisDTO {
   dataNascimento?: string | null; // ISO date
   sexo?: string | null;
   genero?: string | null;
-  rg?: string | null;
-  orgaoEmissor?: string | null;
   naturalidade?: string | null;
   estadoCivil?: string | null;
   nomeMae?: string | null;

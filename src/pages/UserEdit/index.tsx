@@ -81,8 +81,6 @@ const UserEditPage = () => {
         const personal = (res as any).dadosPessoais || {
           dataNascimento: (res as any).dataNascimento,
           sexo: (res as any).sexo,
-          rg: (res as any).rg,
-          orgaoEmissor: (res as any).orgaoEmissor,
           naturalidade: (res as any).naturalidade,
           estadoCivil: (res as any).estadoCivil,
           nomeMae: (res as any).nomeMae,
@@ -122,8 +120,6 @@ const UserEditPage = () => {
           complemento: address?.complemento || '',
           // personal data
           dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
-          rg: personal?.rg || '',
-          orgaoEmissor: personal?.orgaoEmissor || '',
           naturalidade: personal?.naturalidade || '',
           estadoCivil: personal?.estadoCivil || '',
           nomeMae: personal?.nomeMae || '',
@@ -197,8 +193,6 @@ const UserEditPage = () => {
         dadosPessoais: {
           dataNascimento: data.dataNascimento || undefined,
           sexo: data.sexo || undefined,
-          rg: data.rg || undefined,
-          orgaoEmissor: data.orgaoEmissor || undefined,
           naturalidade: data.naturalidade || undefined,
           estadoCivil: data.estadoCivil || undefined,
           nomeMae: data.nomeMae || undefined,

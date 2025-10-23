@@ -2,10 +2,9 @@ import { Box, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, 
 import MaskedTextField from "../MaskedTextField";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch, type UseFormSetValue, type UseFormSetError, type UseFormClearErrors } from "react-hook-form";
 import type { UserFormInputs } from "../../schemas/userSchema";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { adminService } from '../../api/admin.service';
 import type { PerfilDTO } from '../../api/admin.dto';
-import { fetchAddressByCep } from '../../utils/cepService';
 
 interface UserFormProps {
   register: UseFormRegister<UserFormInputs>;
@@ -45,56 +44,84 @@ const UserForm = (
   // CEP auto-fill: watch cep and populate address fields when valid
   const cepValue = watch('cep');
 
-  useEffect(() => {
-    const handleCepSearch = async (cep: string) => {
-      clearErrors('cep');
-      // only clear / autofill if we don't already have address data (avoid overwriting prefilled values)
-      const hasEndereco = !!watch('endereco');
-      const hasBairro = !!watch('bairro');
-      const hasCidade = !!watch('cidade');
-      const hasUf = !!watch('uf');
-      const hasComplemento = !!watch('complemento');
-      if (!hasEndereco && !hasBairro && !hasCidade && !hasUf && !hasComplemento) {
-        setValue('endereco', '');
-        setValue('bairro', '');
-        setValue('cidade', '');
-        setValue('uf', '');
-        setValue('complemento', '');
-      }
+  // track previous/initial CEP so we can decide whether to overwrite prefilled address fields
+  const prevCepRef = useRef<string | null>(null);
+  const initialCepCapturedRef = useRef(false);
 
-      const cleanedCep = cep.replace(/\D/g, '');
-      if (cleanedCep.length === 8) {
-        try {
-          const addressData = await fetchAddressByCep(cleanedCep);
-          if (addressData) {
-            // only set fields that are currently empty to avoid clobbering backend-provided values
-            if (!hasEndereco) setValue('endereco', addressData.logradouro || '');
-            if (!hasBairro) setValue('bairro', addressData.bairro || '');
-            if (!hasCidade) setValue('cidade', addressData.localidade || '');
-            if (!hasUf) setValue('uf', addressData.uf || '');
-            if (!hasComplemento) setValue('complemento', addressData.complemento || '');
-          } else {
-            setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
-          }
-        } catch (err) {
-          console.error('Erro ao buscar CEP:', err);
-          setError('cep', { type: 'manual', message: 'Erro ao buscar CEP. Tente novamente.' });
+  // capture initial CEP value once (useful when editing and form was reset with backend data)
+  useEffect(() => {
+    if (!initialCepCapturedRef.current && cepValue) {
+      const cleaned = String(cepValue).replace(/\D/g, '');
+      if (cleaned.length > 0) {
+        prevCepRef.current = cleaned;
+      }
+      initialCepCapturedRef.current = true;
+    }
+  }, [cepValue]);
+
+  useEffect(() => {
+    // Debounced CEP lookup: wait 500ms after the user stops typing the full CEP
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const doLookup = async (rawCep: string) => {
+      const cleanedCep = rawCep.replace(/\D/g, '');
+      if (cleanedCep.length !== 8) return;
+
+      try {
+        const mod = await import('../../utils/cepService');
+        const addressData = await mod.fetchAddressByCep(cleanedCep);
+
+        if (!addressData) {
+          setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
+          return;
         }
-      } else if (cleanedCep.length > 0 && cleanedCep.length < 8) {
-        if (!hasEndereco) setValue('endereco', '');
-        if (!hasBairro) setValue('bairro', '');
-        if (!hasCidade) setValue('cidade', '');
-        if (!hasUf) setValue('uf', '');
-        if (!hasComplemento) setValue('complemento', '');
+
+        // clear any previous CEP error
+        clearErrors('cep');
+
+        const prev = prevCepRef.current;
+        const isFirstLookup = prev === null;
+        const isDifferent = prev !== null && prev !== cleanedCep;
+
+        // If this is the first time we look up CEP in this lifecycle, prefer not to overwrite backend-provided values.
+        // But if the user changed the CEP (isDifferent), overwrite address fields with fresh lookup data.
+        if (isFirstLookup) {
+          const currentEndereco = watch('endereco');
+          const currentBairro = watch('bairro');
+          const currentCidade = watch('cidade');
+          const currentUf = watch('uf');
+          const currentComplemento = watch('complemento');
+
+          if (!currentEndereco) setValue('endereco', addressData.logradouro || '');
+          if (!currentBairro) setValue('bairro', addressData.bairro || '');
+          if (!currentCidade) setValue('cidade', addressData.localidade || '');
+          if (!currentUf) setValue('uf', addressData.uf || '');
+          if (!currentComplemento) setValue('complemento', addressData.complemento || '');
+        } else if (isDifferent) {
+          // user explicitly changed CEP -> replace all address fields with fetched values
+          setValue('endereco', addressData.logradouro || '');
+          setValue('bairro', addressData.bairro || '');
+          setValue('cidade', addressData.localidade || '');
+          setValue('uf', addressData.uf || '');
+          setValue('complemento', addressData.complemento || '');
+        }
+
+        // remember last CEP we fetched
+        prevCepRef.current = cleanedCep;
+      } catch (err) {
+        console.error('Erro ao buscar CEP:', err);
+        setError('cep', { type: 'manual', message: 'Erro ao buscar CEP. Tente novamente.' });
       }
     };
 
-    // If CEP changed and we don't already have address info, trigger lookup
-    const hasAnyAddress = !!watch('endereco') || !!watch('bairro') || !!watch('cidade') || !!watch('uf') || !!watch('complemento');
-    if (cepValue && !hasAnyAddress) {
-      handleCepSearch(cepValue);
+    if (cepValue) {
+      timer = setTimeout(() => doLookup(cepValue), 500);
     }
-  }, [cepValue, setValue, setError, clearErrors]);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [cepValue, setValue, setError, clearErrors, watch]);
 
   
 
@@ -416,28 +443,7 @@ const UserForm = (
           />
         </Grid>
 
-        {/* TERCEIRA LINHA: Nome e Sexo (Sem alterações) */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <TextField
-            id="nomeUsuario"
-            label="Nome completo"
-            variant="outlined"
-            fullWidth
-            placeholder="Digite o nome completo"
-            {...register("nomeUsuario")}
-            error={!!errors.nomeUsuario}
-            helperText={errors.nomeUsuario?.message}
-            InputLabelProps={{ shrink: !!watch('nomeUsuario') }}
-            slotProps={{
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
-            }}
-          />
-        </Grid>
+        {/* TERCEIRA LINHA: Sexo (Nome já renderizado acima) */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Controller
             name="sexo"
