@@ -25,7 +25,11 @@ const TitleStyles = css({
 });
 
 const buttonStyles = css({
-  marginLeft: "86%",
+ 
+  marginLeft: "auto",
+  flexShrink: 0, 
+  whiteSpace: "nowrap", 
+
   backgroundColor: "#000",
   color: "#fff",
   "&:hover": {
@@ -58,7 +62,7 @@ const Users = () => {
             />
           </FormControl>
           {/* Esse botão só deverá aparecer se o users tiver permissão */}
-          {Array.isArray(user?.roles) && user?.roles.includes("ADMIN") && (
+          {user?.tipoUsuario === "ADMINISTRADOR" && (
             <Button
               component={Link}
               to="/user/register"

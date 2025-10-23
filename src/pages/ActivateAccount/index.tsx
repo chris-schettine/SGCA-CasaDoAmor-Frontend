@@ -1,11 +1,9 @@
 import { Alert, Box, Button, Container, Snackbar, TextField, Typography } from "@mui/material";
-// 👇 Importações de hooks alteradas:
 import { useState, useEffect } from "react";
-// 👇 Removemos 'useParams' e adicionamos 'useLocation'
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 
-// (Estilos - sem alterações)
+
 const BoxStyles = {
   display: 'flex',
   alignItems: 'center',
@@ -25,26 +23,37 @@ const ContainerFormStyles = {
   width: { xs: '90%', sm: '400px' },
 };
 
-// 👇 Hook para ler parâmetros de busca (ex: ?token=...)
+// Hook para ler parâmetros de busca (ex: ?token=...)
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const ResetPasswordPage = () => {
+const ActivateAccountPage = () => {
   const navigate = useNavigate();
-  const query = useQuery(); // Hook para ler os query params
-
-  // 👇 'token' agora vem de um 'useState'
+  const query = useQuery();
+  
   const [token, setToken] = useState<string | null>(null);
-
+  
+  const [email, setEmail] = useState('');
+  const [senhaTemporaria, setSenhaTemporaria] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
 
-  // (Estados do Snackbar - sem alterações)
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
+
+  // Pega o token da URL assim que a página carrega
+  useEffect(() => {
+    const urlToken = query.get('token');
+    if (urlToken) {
+      setToken(urlToken);
+    } else {
+      showSnackbar("Token de ativação não encontrado na URL.", "error");
+    }
+  }, [query]);
 
   const showSnackbar = (message: string, severity: "success" | "error") => {
     setSnackbarMessage(message);
@@ -56,45 +65,40 @@ const ResetPasswordPage = () => {
     setSnackbarOpen(false);
   };
 
-  // 👇 Adicionado useEffect para ler o token da URL na inicialização
-  useEffect(() => {
-    const urlToken = query.get('token');
-    if (urlToken) {
-      setToken(urlToken);
-    } else {
-      showSnackbar("Token de redefinição inválido ou ausente na URL.", "error");
-    }
-  }, [query]); // Executa quando 'query' mudar
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (novaSenha !== confirmarSenha) {
-      showSnackbar("As senhas não coincidem.", "error");
+      showSnackbar("As novas senhas não coincidem.", "error");
       return;
     }
-
-    // A validação do token agora usa o estado 'token'
+    
     if (!token) {
-      showSnackbar("Token de redefinição inválido ou ausente.", "error");
+      showSnackbar("Token de ativação inválido.", "error");
       return;
     }
 
     setIsLoading(true);
     
     try {
-      // Esta chamada continua correta
-      await authService.resetPassword({ token, novaSenha }); 
+      // Chama o serviço correto
+      await authService.activateAccount({
+        token,
+        email,
+        senhaTemporaria,
+        novaSenha,
+        confirmarSenha,
+      });
       
-      showSnackbar("Senha redefinida com sucesso! Você já pode fazer login.", "success");
+      showSnackbar("Conta ativada com sucesso! Você já pode fazer login com sua nova senha.", "success");
       
       setTimeout(() => {
-        navigate('/login'); 
+        navigate('/login'); // Redireciona para o login
       }, 3000);
 
     } catch (error: any) {
-      console.error("Erro ao redefinir senha:", error);
-      const message = error.response?.data?.message || "Erro ao processar a solicitação. O token pode estar expirado.";
+      console.error("Erro ao ativar conta:", error);
+      const message = error.response?.data?.message || "Erro ao processar a ativação. O token pode estar expirado ou os dados incorretos.";
       showSnackbar(message, "error");
       setIsLoading(false);
     }
@@ -102,14 +106,31 @@ const ResetPasswordPage = () => {
 
   return (
     <Box sx={BoxStyles}>
-      <Container sx={ContainerFormStyles}>
+      <Container sx={ContainerFormStyles} component="form" onSubmit={handleSubmit}>
         <Typography variant="h5" component="h1" sx={{ textAlign: 'center' }}>
-          Redefinir Senha
-        </Typography>
-        <Typography variant="body2" sx={{ textAlign: 'center' }}>
-          Digite sua nova senha.
+          Ativar Conta e Definir Senha
         </Typography>
 
+        <TextField
+          label="Email"
+          variant="outlined"
+          fullWidth
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          required
+        />
+        
+        <TextField
+          label="Senha Temporária (do email)"
+          variant="outlined"
+          fullWidth
+          value={senhaTemporaria}
+          onChange={(e) => setSenhaTemporaria(e.target.value)}
+          type="password"
+          required
+        />
+        
         <TextField
           label="Nova Senha"
           variant="outlined"
@@ -117,8 +138,9 @@ const ResetPasswordPage = () => {
           value={novaSenha}
           onChange={(e) => setNovaSenha(e.target.value)}
           type="password"
+          required
         />
-
+        
         <TextField
           label="Confirmar Nova Senha"
           variant="outlined"
@@ -126,19 +148,20 @@ const ResetPasswordPage = () => {
           value={confirmarSenha}
           onChange={(e) => setConfirmarSenha(e.target.value)}
           type="password"
+          required
         />
 
         <Button
+          type="submit"
           variant="contained"
-          onClick={handleSubmit}
-          // 👇 Botão fica desabilitado se não houver token
-          disabled={isLoading || !token} 
+          disabled={isLoading || !token}
           fullWidth
         >
-          {isLoading ? "Salvando..." : "Salvar Nova Senha"}
+          {isLoading ? "Ativando..." : "Ativar Conta"}
         </Button>
       </Container>
-      
+
+      {/* Snackbar */}
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         open={snackbarOpen}
@@ -158,4 +181,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export default ResetPasswordPage;
+export default ActivateAccountPage;

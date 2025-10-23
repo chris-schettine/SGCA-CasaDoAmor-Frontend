@@ -8,6 +8,7 @@ import { userSchemaConditional as userSchema, type UserFormInputs } from "../../
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
+import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -88,7 +89,8 @@ const UserRegisterPage = () => {
 
   const handleSaveUser = async (data: UserFormInputs) => {
     try {
-      const userDTO = {
+    
+      const createDTO: CreateUserDTO = {
         nome: data.nomeUsuario,
         email: data.email,
         cpf: data.cpfUsuario,
@@ -97,14 +99,59 @@ const UserRegisterPage = () => {
         perfisIds: data.perfisIds,
       };
 
-      await adminService.createUser(userDTO);
+     
+      const newUserResponse = await adminService.createUser(createDTO);
+      const newUserId = newUserResponse.id; 
 
+     
+      const updateDTO: UpdateUserDTO = {
+       
+        dadosPessoais: {
+          sexo: data.sexo,
+          dataNascimento: data.dataNascimento,
+          rg: data.rg,
+          orgaoEmissor: data.orgaoEmissor,
+          naturalidade: data.naturalidade,
+          estadoCivil: data.estadoCivil,
+          nomeMae: data.nomeMae,
+          nomePai: data.nomePai,
+          profissao: data.profissao,
+          
+          
+          // @ts-ignore 
+          conselho: data.conselho,
+          // @ts-ignore 
+          registro: data.registro,
+          // @ts-ignore 
+          cbo: data.cbo,
+          // @ts-ignore 
+          rqe: data.rqe,
+          // @ts-ignore 
+          cnes: data.cnes,
+        },
+       
+        endereco: {
+          cep: data.cep,
+          logradouro: data.endereco, 
+          numero: data.numero,
+          bairro: data.bairro,
+          cidade: data.cidade,
+          uf: data.uf, 
+          complemento: data.complemento,
+        }
+      };
+
+      
+      await adminService.updateUser(newUserId, updateDTO);
+
+     
       setOpenSaveDialog(false);
       showSnackbar("Profissional cadastrado com sucesso!", "success");
 
       setTimeout(() => {
         navigate('/users');
       }, 2000);
+
     } catch (error: any) {
       console.error("Erro ao cadastrar profissional:", error);
       const message =

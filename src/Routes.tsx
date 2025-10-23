@@ -13,10 +13,10 @@ import PrivateRoute from './components/PrivateRoute';
 import PatientInformation from './pages/PatientInformation';
 import MedicalRecordPage from './pages/MedicalRecord';
 import PatientEditPage from './pages/PatientEdit';
-
-
+import VerifyEmailPage from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPassword';
 import ResetPasswordPage from './pages/ResetPassword'; 
+import ActivateAccountPage from './pages/ActivateAccount';
 
 const AppRoutes = () => (
   <Routes>
@@ -24,8 +24,9 @@ const AppRoutes = () => (
     <Route path="login" element={<LoginPage />} />
     
     <Route path="forgot-password" element={<ForgotPasswordPage />} />
-    <Route path="reset-password/:token" element={<ResetPasswordPage />} />
-
+    <Route path="reset-password" element={<ResetPasswordPage />} />
+    <Route path="verify-email/:token" element={<VerifyEmailPage />} />
+    <Route path="activate-account" element={<ActivateAccountPage />} />
     {/* Rotas Privadas */}
     <Route
       path="/"
@@ -40,7 +41,7 @@ const AppRoutes = () => (
       <Route path="patients" element={<Patients />} />
       <Route path="patient/information" element={<PatientInformation />} />
       <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
-  <Route path="patient/edit/:id" element={<PatientEditPage />} />
+      <Route path="patient/edit/:id" element={<PatientEditPage />} />
 
       <Route path="users" element={
         <AdminRoute>
@@ -52,7 +53,7 @@ const AppRoutes = () => (
       <Route path="patient/register" element={<PatientRegisterPage />} />
       <Route path="patient/companion/register" element={<CompanionRegisterPage />} />
       <Route path="user/register" element={<UserRegisterPage />} />
-  <Route path="user/edit/:id" element={<UserEditPage />} />
+      <Route path="user/edit/:id" element={<UserEditPage />} />
 
       <Route path="*" element={<NotFoundPage />} />
     </Route>
