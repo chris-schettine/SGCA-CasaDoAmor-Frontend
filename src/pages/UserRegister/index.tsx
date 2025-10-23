@@ -4,7 +4,7 @@ import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useState } from "react";
 import UserForm from "../../components/UserForm";
-import { userSchema, type UserFormInputs } from "../../schemas/userSchema";
+import { userSchemaConditional as userSchema, type UserFormInputs } from "../../schemas/userSchema";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
@@ -57,11 +57,15 @@ const UserRegisterPage = () => {
     handleSubmit,
     formState: { errors },
     control,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
     defaultValues: {
-      tipo: "",
+      tipo: undefined as any,
       cpfUsuario: "",
       email: "",
       telefone: "",
@@ -73,10 +77,12 @@ const UserRegisterPage = () => {
       cbo: "",
       rqe: "",
       cnes: "",
-      senha: "",
-      confirmarSenha: "",
-      pergunta1: "",
-      pergunta2: "",
+      cep: "",
+      endereco: "",
+      bairro: "",
+      cidade: "",
+      numero: "",
+      complemento: "",
     },
   });
 
@@ -125,6 +131,10 @@ const UserRegisterPage = () => {
           register={register}
           errors={errors}
           control={control}
+          watch={watch}
+          setValue={setValue}
+          setError={setError}
+          clearErrors={clearErrors}
         />
 
         {/* Botões Salvar e Cancelar */}

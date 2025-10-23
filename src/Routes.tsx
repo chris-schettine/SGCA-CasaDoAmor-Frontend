@@ -1,10 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Users from './pages/Users';
+import AdminRoute from './components/AdminRoute';
 import CompanionRegisterPage from './pages/CompanionRegister';
 import Patients from './pages/Patients';
 import PatientRegisterPage from './pages/PatientRegister';
 import UserRegisterPage from './pages/UserRegister';
+import UserEditPage from './pages/UserEdit';
 import LoginPage from './pages/Login';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -40,12 +42,17 @@ const AppRoutes = () => (
       <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
   <Route path="patient/edit/:id" element={<PatientEditPage />} />
 
-      <Route path="users" element={<Users />} />
+      <Route path="users" element={
+        <AdminRoute>
+          <Users />
+        </AdminRoute>
+      } />
 
       {/* Cadastros */}
       <Route path="patient/register" element={<PatientRegisterPage />} />
       <Route path="patient/companion/register" element={<CompanionRegisterPage />} />
       <Route path="user/register" element={<UserRegisterPage />} />
+  <Route path="user/edit/:id" element={<UserEditPage />} />
 
       <Route path="*" element={<NotFoundPage />} />
     </Route>

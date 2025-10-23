@@ -57,3 +57,26 @@ export const formatRG = (rg?: string | null): string => {
   // se já estiver formatado ou tiver outro tamanho, retorne limpando espaços
   return rg;
 };
+
+export const formatCPF = (cpf?: string | null): string => {
+  if (!cpf) return '';
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length === 11) {
+    return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  }
+  return cpf;
+};
+
+export const formatPhone = (phone?: string | null): string => {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  // 11 dígitos (DDD + 9) -> 00 00000-0000
+  if (digits.length === 11) {
+    return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, "$1 $2-$3");
+  }
+  // 10 dígitos (DDD + 8) -> 00 0000-0000 (still acceptable)
+  if (digits.length === 10) {
+    return digits.replace(/^(\d{2})(\d{4})(\d{4})$/, "$1 $2-$3");
+  }
+  return phone;
+};

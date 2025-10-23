@@ -5,6 +5,34 @@ export interface UpdateUserDTO {
   email?: string;
   ativo?: boolean;
   tipo?: string;
+  cpf?: string | null;
+  dadosPessoais?: DadosPessoaisDTO | null;
+  endereco?: EnderecoDTO | null;
+}
+
+export interface DadosPessoaisDTO {
+  id?: number | null;
+  dataNascimento?: string | null; // ISO date
+  sexo?: string | null;
+  genero?: string | null;
+  rg?: string | null;
+  orgaoEmissor?: string | null;
+  naturalidade?: string | null;
+  estadoCivil?: string | null;
+  nomeMae?: string | null;
+  nomePai?: string | null;
+  profissao?: string | null;
+}
+
+export interface EnderecoDTO {
+  id?: number | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
+  cep?: string | null;
 }
 
 export interface CreatePerfilDTO {
@@ -35,6 +63,7 @@ export interface Pageable {
   page?: number;
   size?: number;
   sort?: string[];
+  searchText?: string;
 }
 
 export interface PageUserResponseDTO {
@@ -64,6 +93,19 @@ export interface UserResponseDTO {
   ultimoLoginEm: string;
   criadoEm: string;
   atualizadoEm: string;
+  // Optional professional/address fields (may be absent depending on backend)
+  conselho?: string;
+  registro?: string;
+  uf?: string;
+  cbo?: string;
+  rqe?: string;
+  cnes?: string;
+  cep?: string;
+  endereco?: string;
+  bairro?: string;
+  cidade?: string;
+  numero?: string;
+  complemento?: string;
   perfis: PerfilDTO[];
 }
 

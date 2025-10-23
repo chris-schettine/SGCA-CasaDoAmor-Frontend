@@ -6,7 +6,9 @@ export interface UserType {
   nome: string; 
   email: string;
   cpf: string;
-  roles: string[]; 
+  roles: string[];
+  // tipoUsuario é o campo vindo do backend: e.g. 'ADMINISTRADOR' ou outro tipo
+  tipoUsuario?: string;
 }
 
 interface AuthContextType {
@@ -47,21 +49,44 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(parsedUser);
             setIsAuthenticated(true);
             
-            // Valida a sessão com o backend
+            // Valida a sessão com o backend. Se a validação falhar com 401 (token inválido/expirado)
+            // limpamos a sessão local. Para 403 (acesso negado) ou outros erros transitórios,
+            // mantemos o token/usuário restaurados do localStorage para evitar que o usuário
+            // perca a sessão ao atualizar a página.
             try {
-              const userData = await authService.getActiveSession();
-              if (userData) {
-                setUser(userData);
-                localStorage.setItem('authUser', JSON.stringify(userData));
+              const rawUser: any = await authService.getActiveSession();
+              if (rawUser) {
+                // Normalize backend user shape to our frontend UserType
+                const normalizedUser: UserType = {
+                  nome: rawUser.nome || rawUser.user?.nome || '',
+                  email: rawUser.email || rawUser.user?.email || '',
+                  cpf: rawUser.cpf || rawUser.user?.cpf || '',
+                  roles: (rawUser.perfis && Array.isArray(rawUser.perfis))
+                    ? rawUser.perfis.map((p: any) => p.nome)
+                    : (rawUser.roles || rawUser.user?.roles || []),
+                  tipoUsuario: rawUser.tipo || rawUser.tipoUsuario || rawUser.user?.tipoUsuario,
+                };
+
+                setUser(normalizedUser);
+                localStorage.setItem('authUser', JSON.stringify(normalizedUser));
               }
-            } catch (error) {
-              console.warn('[AuthContext] Falha ao validar sessão:', error);
-              // Se falhar a validação, limpa tudo
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('authUser');
-              setToken(null);
-              setUser(null);
-              setIsAuthenticated(false);
+            } catch (error: any) {
+              const status = error?.response?.status;
+              console.warn('[AuthContext] Falha ao validar sessão:', status || error);
+              if (status === 401) {
+                // Token inválido ou expirado - limpa sessão
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authUser');
+                setToken(null);
+                setUser(null);
+                setIsAuthenticated(false);
+              } else {
+                // Para 403 (acesso negado) ou outros erros, mantemos o usuário localmente
+                // (evita que admins percam permissões ao recarregar a página quando /auth/me
+                // não estiver disponível para retornar o perfil por políticas do backend).
+                console.warn('[AuthContext] Mantendo sessão local apesar do erro de validação');
+                setIsAuthenticated(true);
+              }
             }
           } catch (parseError) {
             // Erro ao fazer parse do JSON - dados corrompidos

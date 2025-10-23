@@ -44,9 +44,21 @@ const Login = () => {
   e.preventDefault();
   try {
    
-    const { token, user } = await authService.login(cpf, password);
 
-    login(token, user); 
+    // backend returns an object like:
+    // { token, tipo, email, nome, tipoUsuario, expiresIn }
+    const resp = await authService.login(cpf, password);
+
+    const token = resp.token;
+    const user = {
+      nome: resp.nome || resp.user?.nome || '',
+      email: resp.email || resp.user?.email || '',
+      cpf: resp.cpf || resp.user?.cpf || '',
+      roles: resp.roles || resp.user?.roles || [],
+      tipoUsuario: resp.tipoUsuario || resp.user?.tipoUsuario || resp.tipo || undefined,
+    };
+
+    login(token, user);
 
     showSnackbar("Login realizado com sucesso!", "success");
     const from = location.state?.from?.pathname || "/";

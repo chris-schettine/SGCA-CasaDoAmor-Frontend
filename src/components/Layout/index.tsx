@@ -91,6 +91,8 @@ export default function Layout() {
     }, 1000)
   };
 
+  const { user } = useAuth();
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -190,30 +192,32 @@ export default function Layout() {
             maxWidth: '230px',
             margin: '0 auto',
           }} />
-          <ListItem disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/users"
-              sx={{
-                maxWidth: '280px',
-                margin: '0 auto',
-                padding: '8px 75px',
-              }}
-            >
-              <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
-                <PeopleAltIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Usuários"
-                sx={{ textAlign: 'center' }}
-                slotProps={{
-                  primary: {
-                    sx: { color: '#000000da', fontWeight: 'bold' }
-                  }
+          {user?.tipoUsuario === 'ADMINISTRADOR' && (
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                to="/users"
+                sx={{
+                  maxWidth: '280px',
+                  margin: '0 auto',
+                  padding: '8px 75px',
                 }}
-              />
-            </ListItemButton>
-          </ListItem>
+              >
+                <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
+                  <PeopleAltIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Usuários"
+                  sx={{ textAlign: 'center' }}
+                  slotProps={{
+                    primary: {
+                      sx: { color: '#000000da', fontWeight: 'bold' }
+                    }
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          )}
           <ListItem disablePadding>
             <ListItemButton
               component={Link}

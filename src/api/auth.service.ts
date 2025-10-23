@@ -1,7 +1,6 @@
 import { api } from './api.gateway'; // Importa a instância 'api'
 import type { UserType } from '../contexts/AuthContext'; // Importa o tipo de usuário
 import type {
-  LoginResponse,
   ForgotPasswordDTO,
   ResetPasswordDTO,
   VerifyEmailRequestDTO,
@@ -19,7 +18,7 @@ import type {
 
 class AuthService {
   
-  async login(cpf: string, senha: string): Promise<LoginResponse> {
+  async login(cpf: string, senha: string): Promise<any> {
     const response = await api.post('/auth/login', { cpf, senha });
     return response.data;
   }
