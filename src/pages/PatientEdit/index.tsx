@@ -1,5 +1,5 @@
-import { Button, type AlertColor } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Button, type AlertColor, CircularProgress } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { patientSchema, type PatientFormInputs } from '../../schemas/patientSchema';
@@ -9,18 +9,22 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
-import { buttonStyles, cancelButtonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "./styles";
+import { buttonStyles, cancelButtonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "../PatientRegister/styles";
 import Snackbar from '@mui/material/Snackbar';
 import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
-import type { RegistrarPacienteDTO } from "../../api/paciente.dto";
+import type { EditarPacienteDTO, PacienteDTO } from "../../api/paciente.dto";
 import { useAuth } from "../../hooks/useAuth";
-import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
+import { useLocation } from 'react-router-dom';
+import { formatDateToISO, removeNonNumeric, formatISOToDDMMYYYY } from "../../utils/formatters";
 
-const PatientRegisterPage = () => {
+const PatientEditPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const passedPatient = (location.state as any)?.patient as PacienteDTO | undefined;
   const { isAuthenticated } = useAuth();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -29,6 +33,7 @@ const PatientRegisterPage = () => {
 
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -85,17 +90,21 @@ const PatientRegisterPage = () => {
   });
 
   const handleSavePatient = async (data: PatientFormInputs) => {
-    console.log("Formulário Válido, Dados:", data);
     try {
       if (!isAuthenticated) {
         showSnackbar("Usuário não autenticado. Faça login novamente.", "error");
         setTimeout(() => {
-          navigate('/login'); // Redireciona para a página de login
+          navigate('/login');
         }, 2000)
         return;
       }
 
-      const paciente: RegistrarPacienteDTO = {
+      if (!id) {
+        showSnackbar("ID do paciente não fornecido.", "error");
+        return;
+      }
+
+      const paciente: EditarPacienteDTO = {
         dadoPessoal: {
           nome: data.nomeCompletoPaciente,
           telefone: removeNonNumeric(data.telefone),
@@ -117,15 +126,19 @@ const PatientRegisterPage = () => {
         },
       };
 
-      await pacienteService.registrarPaciente(paciente); // chamada real com token automático
+      setLoading(true);
+      await pacienteService.editarPaciente(id, paciente);
+      setLoading(false);
+
       setOpenSaveDialog(false);
-      showSnackbar("Paciente cadastrado com sucesso!", "success");
+      showSnackbar("Paciente atualizado com sucesso!", "success");
       setTimeout(() => {
-        navigate('/patient/companion/register');
-      }, 2000)
+        navigate('/patients');
+      }, 1500);
     } catch (error) {
-      console.error("Erro ao cadastrar paciente:", error);
-      showSnackbar("Erro ao cadastrar paciente. Tente novamente.", "error");
+      console.error("Erro ao editar paciente:", error);
+      setLoading(false);
+      showSnackbar("Erro ao editar paciente. Tente novamente.", "error");
       setOpenSaveDialog(false);
     }
   };
@@ -166,8 +179,8 @@ const PatientRegisterPage = () => {
         if (addressData) {
           setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, addressData.logradouro);
           setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, addressData.bairro);
-          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, addressData.localidade);
-          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, addressData.uf);
+          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, (addressData as any).localidade);
+          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, (addressData as any).uf);
           setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, addressData.complemento || "");
         } else {
           setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
@@ -199,9 +212,64 @@ const PatientRegisterPage = () => {
     }
   }, [cepValue, handleCepSearch]);
 
+  // Carregar paciente por id quando a página monta
+  useEffect(() => {
+    if (!id) return;
+
+    const fillWithPatient = (p: PacienteDTO) => {
+      setValue('nomeCompletoPaciente', p.nome || '');
+      setValue('cpfPaciente', p.cpf || '');
+      setValue('dataNascimento', p.dataNascimento ? formatISOToDDMMYYYY(p.dataNascimento) : '');
+      setValue('naturalidade', p.naturalidade || '');
+  setValue('nomeMae', p.nomeMae || '');
+  setValue('profissao', p.profissao || '');
+      setValue('rg', p.rg || '');
+      setValue('telefone', p.telefone || '');
+      setValue('endereco', p.logradouro || '');
+      setValue('numero', p.numero?.toString() || '');
+      setValue('complemento', p.complemento || '');
+      setValue('bairro', p.bairro || '');
+      setValue('cidade', p.cidade || '');
+      setValue('estado', p.estado || '');
+      setValue('cep', p.cep || '');
+    };
+
+    if (passedPatient) {
+      fillWithPatient(passedPatient);
+      return;
+    }
+
+    const fetchPatientFallback = async () => {
+      try {
+        setLoading(true);
+        const response = await pacienteService.listarPacientes(10, 0, id);
+        if (response.nodes.length > 0) {
+          fillWithPatient(response.nodes[0]);
+        } else {
+          showSnackbar('Paciente não encontrado', 'warning');
+          setTimeout(() => navigate('/patients'), 1500);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Erro ao buscar paciente:', err);
+        showSnackbar('Erro ao carregar dados do paciente', 'error');
+        setLoading(false);
+        setTimeout(() => navigate('/patients'), 1500);
+      }
+    };
+
+    fetchPatientFallback();
+  }, [id, navigate, setValue, showSnackbar, passedPatient]);
+
+  if (loading) return (
+    <div css={stylesContainer} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <CircularProgress />
+    </div>
+  );
+
   return (
     <div css={stylesContainer}>
-      <h1 css={TitleStyles}>Cadastrar Paciente</h1>
+      <h1 css={TitleStyles}>Editar Paciente</h1>
       <form noValidate>
 
         {/* Dados Pessoais */}
@@ -212,6 +280,7 @@ const PatientRegisterPage = () => {
           setValue={setValue}
           handleCepSearch={handleCepSearch}
           control={control}
+          disabledFields={["nomeCompletoPaciente", "dataNascimento", "cpfPaciente", "rg", "naturalidade", "nomeMae"]}
         />
 
         {/* Mais detalhes do paciente */}
@@ -225,12 +294,13 @@ const PatientRegisterPage = () => {
         {/* Botões Salvar e Cancelar */}
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
           <Button
-            variant="contained"
-            css={[buttonStyles, saveButtonStyles]}
-            onClick={handleOpenSaveDialog}
-          >
-            Salvar
-          </Button>
+              variant="contained"
+              css={[buttonStyles, saveButtonStyles]}
+              onClick={handleOpenSaveDialog}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={20} color="inherit" /> : 'Salvar'}
+            </Button>
           <Button
             variant="contained"
             css={[buttonStyles, cancelButtonStyles]}
@@ -283,4 +353,4 @@ const PatientRegisterPage = () => {
   );
 }
 
-export default PatientRegisterPage;
+export default PatientEditPage;

@@ -12,6 +12,7 @@ interface PatientPersonalDataFormProps {
   setValue: UseFormSetValue<PatientFormInputs>;
   control: Control<PatientFormInputs>;
   handleCepSearch: (cep: string, targetFieldPrefix: "" | "acompanhante") => Promise<void>;
+  disabledFields?: (keyof PatientFormInputs)[];
 }
 
 const PatientPersonalDataForm = (
@@ -22,12 +23,19 @@ const PatientPersonalDataForm = (
     setValue,
     handleCepSearch,
     control,
+    disabledFields,
   }: PatientPersonalDataFormProps
 ) => {
+
+  const isDisabled = (fieldName: keyof PatientFormInputs) => {
+    return Array.isArray(disabledFields) && disabledFields.includes(fieldName);
+  };
 
   const dataNascimentoValue = watch("dataNascimento");
   const enderecoValue = watch("endereco");
   const bairroValue = watch("bairro");
+  const cidadeValue = watch("cidade");
+  const estadoValue = watch("estado");
   const complementoValue = watch("complemento");
 
   // Efeito para calcular e preencher a idade automaticamente
@@ -54,6 +62,7 @@ const PatientPersonalDataForm = (
             fullWidth
             placeholder="Digite o nome completo do paciente"
             {...register("nomeCompletoPaciente")}
+            disabled={isDisabled('nomeCompletoPaciente')}
             error={!!errors.nomeCompletoPaciente}
             helperText={errors.nomeCompletoPaciente?.message}
             slotProps={{
@@ -84,6 +93,7 @@ const PatientPersonalDataForm = (
                 helperText={errors.cpfPaciente?.message}
                 mask="000.000.000-00"
                 lazy={true}
+                disabled={isDisabled('cpfPaciente')}
               />
             )}
           />
@@ -106,6 +116,7 @@ const PatientPersonalDataForm = (
                 helperText={errors.dataNascimento?.message}
                 mask="00/00/0000"
                 lazy={true}
+                disabled={isDisabled('dataNascimento')}
               />
             )}
           />
@@ -143,6 +154,7 @@ const PatientPersonalDataForm = (
             fullWidth
             placeholder="Brasileiro"
             {...register("naturalidade")}
+            disabled={isDisabled('naturalidade')}
             error={!!errors.naturalidade}
             helperText={errors.naturalidade?.message}
             slotProps={{
@@ -169,8 +181,9 @@ const PatientPersonalDataForm = (
                 placeholder="00.000.000-00"
                 error={!!errors.rg}
                 helperText={errors.rg?.message}
-                mask="00.000.000-00"
+                mask="00.000.000-0"
                 lazy={true}
+                disabled={isDisabled('rg')}
               />
             )}
           />
@@ -185,6 +198,7 @@ const PatientPersonalDataForm = (
             fullWidth
             placeholder="Digite o nome da mãe do paciente"
             {...register("nomeMae")}
+            disabled={isDisabled('nomeMae')}
             error={!!errors.nomeMae}
             helperText={errors.nomeMae?.message}
             slotProps={{
@@ -302,6 +316,52 @@ const PatientPersonalDataForm = (
             slotProps={{
               inputLabel: {
                 shrink: !!bairroValue,
+              },
+              formHelperText: {
+                sx: {
+                  maxHeight: 0,
+                  margin: '0 0.2em',
+                },
+              },
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="cidade"
+            label="Cidade"
+            variant="outlined"
+            fullWidth
+            placeholder="Cidade"
+            {...register("cidade")}
+            error={!!errors.cidade}
+            helperText={errors.cidade?.message}
+            slotProps={{
+              inputLabel: {
+                shrink: !!cidadeValue,
+              },
+              formHelperText: {
+                sx: {
+                  maxHeight: 0,
+                  margin: '0 0.2em',
+                },
+              },
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="estado"
+            label="Estado"
+            variant="outlined"
+            fullWidth
+            placeholder="Estado"
+            {...register("estado")}
+            error={!!errors.estado}
+            helperText={errors.estado?.message}
+            slotProps={{
+              inputLabel: {
+                shrink: !!estadoValue,
               },
               formHelperText: {
                 sx: {

@@ -35,3 +35,25 @@ export const formatDateToISO = (dateString: string): string => {
 
   return dateString; // Retorna a string original se não puder ser formatada
 };
+
+export const formatISOToDDMMYYYY = (isoString: string | undefined | null): string => {
+  if (!isoString) return '';
+  const datePart = isoString.split('T')[0];
+  const parts = datePart.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  return isoString;
+};
+
+export const formatRG = (rg?: string | null): string => {
+  if (!rg) return '';
+  const digits = rg.replace(/\D/g, '');
+  // formato comum: 9 dígitos -> 00.000.000-0
+  if (digits.length === 9) {
+    return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{1})$/, "$1.$2.$3-$4");
+  }
+  // se já estiver formatado ou tiver outro tamanho, retorne limpando espaços
+  return rg;
+};

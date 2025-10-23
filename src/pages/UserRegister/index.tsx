@@ -81,21 +81,29 @@ const UserRegisterPage = () => {
   });
 
   const handleSaveUser = async (data: UserFormInputs) => {
-    
     try {
-    
-      await adminService.createUser(data);
-      
+      const userDTO = {
+        nome: data.nomeUsuario,
+        email: data.email,
+        cpf: data.cpfUsuario,
+        telefone: data.telefone,
+        tipo: data.tipo,
+        perfisIds: data.perfisIds,
+      };
+
+      await adminService.createUser(userDTO);
+
       setOpenSaveDialog(false);
       showSnackbar("Profissional cadastrado com sucesso!", "success");
 
       setTimeout(() => {
         navigate('/users');
-      }, 2000); 
-
+      }, 2000);
     } catch (error: any) {
       console.error("Erro ao cadastrar profissional:", error);
-      const message = error.response?.data?.message || "Erro ao processar usuário. Tente novamente.";
+      const message =
+        error.response?.data?.message ||
+        "Erro ao processar usuário. Tente novamente.";
       showSnackbar(message, "error");
       setOpenSaveDialog(false);
     }

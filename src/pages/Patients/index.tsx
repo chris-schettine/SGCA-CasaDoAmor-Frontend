@@ -17,6 +17,7 @@ import { buttonStyles, stylesContainer, searchContainer, TitleStyles } from "./s
 
 const Patients = () => {
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     // Simular requisição
@@ -57,9 +58,11 @@ const Patients = () => {
           <Input
             id="search"
             type="search"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
             endAdornment={
               <InputAdornment position="end">
-                <IconButton>
+                <IconButton onClick={() => { /* opcional: foco ou busca imediata */ }}>
                   <SearchIcon />
                 </IconButton>
               </InputAdornment>
@@ -77,7 +80,7 @@ const Patients = () => {
         </Button>
       </Box>
 
-      <TablePatients />
+      <TablePatients searchText={searchText} />
     </div>
   );
 };

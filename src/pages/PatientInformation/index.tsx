@@ -2,30 +2,9 @@ import { Alert, Button, CircularProgress, css, Snackbar, type AlertColor, type S
 import { useLocation, useNavigate } from "react-router-dom";
 import { recordStyles, stylesContainer, TitleStyles } from "./styles";
 import { useCallback, useEffect, useState } from "react";
-import { pessoaFisicaService } from "../../api/pessoa-fisica.service";
-
-interface Endereco {
-  bairro: string | null;
-  cep: string | null;
-  cidade: string | null;
-  complemento: string | null;
-  endereco: string | null;
-  estado: string | null;
-  numero: number | null;
-}
-
-interface PatientData {
-  id: number;
-  nome: string;
-  cpf: string;
-  dataNascimento: string;
-  email: string;
-  endereco: Endereco;
-  naturalidade: string;
-  profissao: string;
-  rg: string;
-  telefone: string;
-}
+import { pacienteService } from "../../api/paciente.service";
+import type { PacienteDTO } from "../../api/paciente.dto";
+import { formatISOToDDMMYYYY } from '../../utils/formatters';
 
 const btnStyles = css({
   backgroundColor: '#09244B',
@@ -51,7 +30,7 @@ const pContainer = css({
 const PatientInformation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patientId } = location.state || {};
+  const { patientId, patient: passedPatient } = location.state || {};
   const delay = 3000;
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -59,7 +38,7 @@ const PatientInformation = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
 
   const [loading, setLoading] = useState(false);
-  const [patient, setPatient] = useState<PatientData | null>(null);
+  const [patient, setPatient] = useState<PacienteDTO | null>(null);
 
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -74,33 +53,35 @@ const PatientInformation = () => {
     setSnackbarOpen(false);
   };
 
-  // Se acessar direto sem patientId
+  // Se acessar direto sem patientId nem paciente passado
   useEffect(() => {
-    if (!patientId) {
+    if (!patientId && !passedPatient) {
       showSnackbar("Você precisa selecionar o paciente", "warning");
       setTimeout(() => {
         navigate("/patients");
       }, delay);
     }
-  }, [patientId, navigate, showSnackbar]);
+  }, [patientId, passedPatient, navigate, showSnackbar]);
 
   // Buscar dados do paciente
   useEffect(() => {
+    if (passedPatient) {
+      setPatient(passedPatient as PacienteDTO);
+      return;
+    }
+
     if (patientId) {
       const fetchPatient = async () => {
         try {
           setLoading(true);
-          // Aqui seria seu fetch real:
-          const response = await pessoaFisicaService.getPessoaFisicaById(patientId);
-
-          console.log("yes", response.data)
-          // setPatient(response.data);
-
-          // Simulação de fetch com delay
-          setTimeout(() => {
-            setPatient(response.data);
-            setLoading(false);
-          }, 1500);
+          // Fallback: buscar por listagem usando searchText = id
+          const response = await pacienteService.listarPacientes(10, 0, patientId as string);
+          if (response.nodes.length > 0) {
+            setPatient(response.nodes[0]);
+          } else {
+            showSnackbar('Paciente não encontrado', 'warning');
+          }
+          setLoading(false);
         } catch (error) {
           console.error(error);
           showSnackbar("Erro ao buscar dados do paciente", "error");
@@ -110,7 +91,7 @@ const PatientInformation = () => {
 
       fetchPatient();
     }
-  }, [patientId, showSnackbar]);
+  }, [patientId, passedPatient, showSnackbar]);
 
   const handleNavigate = (record: string) => {
     navigate(`/patient/information/${record}`, {
@@ -132,18 +113,14 @@ const PatientInformation = () => {
         <>
           <h1 css={TitleStyles}>{patient.nome}</h1>
           <div css={pContainer}>
-            <p css={pStyles}><strong>CPF:</strong> {patient.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4') ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Data de nascimento:</strong> {patient.dataNascimento.split('-').join('/') ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>E-mail:</strong> {patient.email ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}><strong>Data de nascimento:</strong> {formatISOToDDMMYYYY(patient.dataNascimento) || 'Dado não encontrado'}</p>
             <p css={pStyles}><strong>Naturalidade:</strong> {patient.naturalidade ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Profissão: </strong>{patient.profissao ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>RG:</strong> {patient.rg.replace(/^(\d{2})(\d{3})(\d{3})(\d{1})$/, '$1.$2.$3-$4') ?? 'Dado não encontrado'}</p>
             <p css={pStyles}><strong>Telefone:</strong> {patient.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}> <strong>Endereço:</strong> {patient.endereco.endereco ?? 'Dado não encontrado'}, n° {patient.endereco.numero ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Bairro:</strong> {patient.endereco.bairro ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Cidade:</strong> {patient.endereco.cidade ?? 'Dado não encontrado'} - {patient.endereco.estado ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>CEP:</strong> {patient.endereco.cep ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Complemento:</strong> {patient.endereco.complemento ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}> <strong>Endereço:</strong> {patient.logradouro ?? 'Dado não encontrado'}, n° {patient.numero ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}><strong>Bairro:</strong> {patient.bairro ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}><strong>Cidade:</strong> {patient.cidade ?? 'Dado não encontrado'} - {patient.estado ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}><strong>CEP:</strong> {patient.cep ?? 'Dado não encontrado'}</p>
+            <p css={pStyles}><strong>Complemento:</strong> {patient.complemento ?? 'Dado não encontrado'}</p>
           </div>
         </>
       )}

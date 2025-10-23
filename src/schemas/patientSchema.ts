@@ -21,6 +21,8 @@ export const patientSchema = z.object({
   cep: cepSchema,
   endereco: requiredString,
   bairro: requiredString,
+  cidade: requiredString,
+  estado: requiredString,
   numero: requiredString,
   complemento: z.string().trim().optional(),
   tratamento: z.string().trim().optional(),

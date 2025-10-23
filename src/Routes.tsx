@@ -10,6 +10,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
 import PatientInformation from './pages/PatientInformation';
 import MedicalRecordPage from './pages/MedicalRecord';
+import PatientEditPage from './pages/PatientEdit';
 
 
 import ForgotPasswordPage from './pages/ForgotPassword';
@@ -37,6 +38,7 @@ const AppRoutes = () => (
       <Route path="patients" element={<Patients />} />
       <Route path="patient/information" element={<PatientInformation />} />
       <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
+  <Route path="patient/edit/:id" element={<PatientEditPage />} />
 
       <Route path="users" element={<Users />} />
 

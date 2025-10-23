@@ -3,17 +3,12 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography } from "@mui/material"
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { pessoaFisicaService } from "../../../api/pessoa-fisica.service";
-
-interface Patient {
-  id: number;
-  nome: string;
-  cpf: string;
-  nomeDaMae: string;
-}
+import { pacienteService } from "../../../api/paciente.service";
+import type { PacienteDTO } from "../../../api/paciente.dto";
+import { formatRG } from '../../../utils/formatters';
 
 interface Column {
-  id: 'nome' | 'cpf' | 'nome-da-mae' | 'acoes';
+  id: 'nome' | 'cpf' | 'rg' | 'acoes';
   label: string;
   minWidth?: number;
   align?: 'center';
@@ -22,39 +17,50 @@ interface Column {
 const columns: readonly Column[] = [
   { id: 'nome', label: 'Nome', minWidth: 170 },
   { id: 'cpf', label: 'CPF', minWidth: 170 },
-  { id: 'nome-da-mae', label: 'Nome da mãe', minWidth: 170 },
+  { id: 'rg', label: 'RG', minWidth: 150 },
   { id: 'acoes', label: 'Ações', minWidth: 170, align: 'center' },
 ]
 
-const TablePatients = () => {
+interface TablePatientsProps {
+  searchText?: string;
+}
+
+const TablePatients = ({ searchText }: TablePatientsProps) => {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients, setPatients] = useState<PacienteDTO[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const delay = 1000;
+  const searchDebounce = 500;
 
   // Fetch data from the API when the component mounts
   useEffect(() => {
-    const fetchPatients = async () => {
+    let mounted = true;
+    const timeout = setTimeout(async () => {
       try {
         setLoading(true);
-        const response = await pessoaFisicaService.getAllPessoaFisica(); // Call your API method]
-        console.log("Response: ", response)
-        setPatients(response.data); // Assuming the list of patients is in response.data
-        setError(null); // Clear any previous errors
+        const response = await pacienteService.listarPacientes(rowsPerPage, page * rowsPerPage, searchText);
+        if (!mounted) return;
+        setPatients(response.nodes);
+        setTotalCount(response.totalCount);
+        setError(null);
       } catch (err) {
         console.error("Error fetching patients:", err);
         setError("Não foi possível carregar os pacientes. Tente novamente mais tarde.");
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
-    };
+    }, searchDebounce);
 
-    fetchPatients();
-  }, []); // Empty dependency array means this effect runs once when the component mounts
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
+  }, [page, rowsPerPage, searchText]);
 
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -67,17 +73,19 @@ const TablePatients = () => {
   }
 
   // Passar o paciente a partir do id 
-  const handleViewMedicalRecords = (id: number) => {
-    console.log('Visualizar ID: ', id);
+  const handleViewMedicalRecords = (id: string) => {
+    // find patient object to pass via state
+    const patientObj = patients.find((p) => p.id === id);
     setTimeout(() => {
       navigate("/patient/information", {
-        state: { patientId: id }
+        state: { patient: patientObj }
       });
     }, delay);
   }
 
-  const handleEdit = (id: number) => {
-    console.log('Editar ID: ', id);
+  const handleEdit = (id: string) => {
+    const patientObj = patients.find((p) => p.id === id);
+    navigate(`/patient/edit/${id}`, { state: { patient: patientObj } });
   }
 
   if (loading) {
@@ -123,13 +131,11 @@ const TablePatients = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              patients
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((patient) => (
+              patients.map((patient) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={patient.id}>
-                    <TableCell>{patient.nome}</TableCell>
-                    <TableCell>{patient.cpf}</TableCell>
-                    <TableCell>{patient.nomeDaMae}</TableCell>
+                      <TableCell>{patient.nome}</TableCell>
+                      <TableCell>{patient.cpf}</TableCell>
+                      <TableCell>{formatRG(patient.rg) || '—'}</TableCell>
                     <TableCell align="center">
                       <IconButton color="primary"
                         onClick={() => handleViewMedicalRecords(patient.id)}
@@ -153,7 +159,7 @@ const TablePatients = () => {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={patients.length}
+        count={totalCount}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
