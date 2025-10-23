@@ -7,6 +7,7 @@ import Patients from './pages/Patients';
 import PatientRegisterPage from './pages/PatientRegister';
 import UserRegisterPage from './pages/UserRegister';
 import UserEditPage from './pages/UserEdit';
+import MyProfilePage from './pages/MyProfile';
 import LoginPage from './pages/Login';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -48,6 +49,8 @@ const AppRoutes = () => (
           <Users />
         </AdminRoute>
       } />
+
+      <Route path="profile" element={<MyProfilePage />} />
 
       {/* Cadastros */}
       <Route path="patient/register" element={<PatientRegisterPage />} />

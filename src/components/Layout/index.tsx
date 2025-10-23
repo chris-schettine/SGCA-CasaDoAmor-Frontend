@@ -9,6 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -19,6 +20,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -126,6 +128,17 @@ export default function Layout() {
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Botão de Logout */}
+          {/* Botão Meu Perfil */}
+          <Tooltip title={user?.nome ? `Meu perfil — ${user.nome}` : 'Meu perfil'}>
+            <IconButton
+              color="inherit"
+              onClick={() => navigate('/profile')}
+              aria-label="perfil"
+              sx={{ mr: 1 }}
+            >
+              <AccountCircleIcon />
+            </IconButton>
+          </Tooltip>
           <IconButton
             color="inherit"
             onClick={handleLogout}
