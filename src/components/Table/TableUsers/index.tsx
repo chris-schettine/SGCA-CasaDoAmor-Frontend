@@ -1,5 +1,7 @@
 import EditIcon from "@mui/icons-material/Edit";
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress } from "@mui/material"
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CheckIcon from '@mui/icons-material/Check';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../../api/admin.service';
@@ -31,7 +33,8 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   // keep the full DTOs from the backend so other properties are available if needed
   const [rows, setRows] = useState<UserResponseDTO[]>([]);
-  const [total, setTotal] = useState(0);
+  
+  const [filterTipo, setFilterTipo] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchText || '');
 
@@ -49,7 +52,6 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const res: PageUserResponseDTO = await adminService.listUsers(pageable);
   // store the full user DTOs; rendering below will read the fields it needs
   setRows(res.content || []);
-        setTotal(res.totalElements);
       } catch (err) {
         console.error('Erro ao buscar usuários', err);
       } finally {
@@ -58,6 +60,19 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
     }
     fetch();
   }, [page, rowsPerPage, debouncedSearch]);
+
+  // derive unique tipos from loaded rows for the filter options
+  const tipos = Array.from(new Set(rows.map(r => r.tipo).filter(Boolean))).sort();
+
+  // apply client-side filter by tipo
+  const filteredRows = filterTipo ? rows.filter(r => r.tipo === filterTipo) : rows;
+  const displayRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // filter menu state
+  const [anchorElFilter, setAnchorElFilter] = useState<null | HTMLElement>(null);
+  const openFilter = Boolean(anchorElFilter);
+  const handleOpenFilter = (e: React.MouseEvent<HTMLElement>) => setAnchorElFilter(e.currentTarget);
+  const handleCloseFilter = () => setAnchorElFilter(null);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -90,13 +105,49 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                   align={column.align}
                   style={{ minWidth: column.minWidth, backgroundColor: '#ccc' }}
                 >
-                  {column.label}
+                  {column.id === 'function' ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box component="span" sx={{ fontWeight: 600 }}>{column.label}</Box>
+                      <Tooltip title="Filtrar por função">
+                        <IconButton size="small" onClick={handleOpenFilter} aria-label="filtrar-funcao">
+                          <FilterListIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Menu
+                        anchorEl={anchorElFilter}
+                        open={openFilter}
+                        onClose={handleCloseFilter}
+                        MenuListProps={{ 'aria-labelledby': 'filter-tipo' }}
+                      >
+                        <MenuItem
+                          selected={filterTipo === ''}
+                          onClick={() => { setFilterTipo(''); setPage(0); handleCloseFilter(); }}
+                        >
+                          {filterTipo === '' && <CheckIcon fontSize="small" sx={{ mr: 1 }} />}
+                          Todos
+                        </MenuItem>
+                        {tipos.map((t) => (
+                          <MenuItem
+                            key={t}
+                            selected={filterTipo === t}
+                            onClick={() => { setFilterTipo(t); setPage(0); handleCloseFilter(); }}
+                          >
+                            {filterTipo === t && <CheckIcon fontSize="small" sx={{ mr: 1 }} />}
+                            {t}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </Box>
+                  ) : (
+                    column.label
+                  )}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {displayRows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.nome}</TableCell>
                 <TableCell>{row.tipo}</TableCell>
@@ -119,7 +170,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={total}
+  count={filteredRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
