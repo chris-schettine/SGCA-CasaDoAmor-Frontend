@@ -8,6 +8,7 @@ export interface UpdateUserDTO {
   cpf?: string | null;
   dadosPessoais?: DadosPessoaisDTO | null;
   endereco?: EnderecoDTO | null;
+  registroProfissional?: RegistroProfissionalDTO | null;
 }
 
 export interface DadosPessoaisDTO {
@@ -51,6 +52,15 @@ export interface CreateUserDTO {
   telefone?: string;
   tipo: string;
   perfisIds?: number[];
+  dadosPessoais?: DadosPessoaisDTO | null;
+  endereco?: EnderecoDTO | null;
+  registroProfissional?: RegistroProfissionalDTO | null;
+}
+
+export interface RegistroProfissionalDTO {
+  tipoProfissional?: string | null;
+  numeroRegistro?: string | null;
+  rqe?: string | null;
 }
 
 export interface AtribuirRolesDTO {
@@ -92,12 +102,11 @@ export interface UserResponseDTO {
   criadoEm: string;
   atualizadoEm: string;
   // Optional professional/address fields (may be absent depending on backend)
-  conselho?: string;
   registro?: string;
   uf?: string;
-  cbo?: string;
   rqe?: string;
-  cnes?: string;
+  registroProfissional?: RegistroProfissionalDTO;
+  // CNES removed from the client model
   cep?: string;
   endereco?: string;
   bairro?: string;

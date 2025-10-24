@@ -2,13 +2,13 @@ import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReaso
 import { buttonStyles, cancelButtonStyles, saveButtonStyles, stylesContainer, TitleStyles } from "./styles";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate } from "react-router-dom";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
 import { userSchemaConditional as userSchema, type UserFormInputs } from "../../schemas/userSchema";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
-import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
+import type { CreateUserDTO } from '../../api/admin.dto';
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -23,12 +23,8 @@ const UserRegisterPage = () => {
     setSnackbarOpen(true);
   }, []);
 
-  const handleSnackbarClose = (
-    reason: SnackbarCloseReason
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
+  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
+    if (reason === "clickaway") return;
     setSnackbarOpen(false);
   };
 
@@ -40,16 +36,12 @@ const UserRegisterPage = () => {
   };
 
   const handleCloseSaveDialog = () => setOpenSaveDialog(false);
-
   const handleOpenCancelDialog = () => setOpenCancelDialog(true);
-
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
 
   const handleConfirmCancel = () => {
     showSnackbar("Profissional não salvo", "error");
-    setTimeout(() => {
-      navigate('/users');
-    }, 1000);
+    setTimeout(() => navigate('/users'), 1000);
     setOpenCancelDialog(false);
   };
 
@@ -62,6 +54,7 @@ const UserRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
+    
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
@@ -72,12 +65,9 @@ const UserRegisterPage = () => {
       telefone: "",
       nomeUsuario: "",
       sexo: "",
-      conselho: "",
       registro: "",
-      uf: "",
-      cbo: "",
+      estado: "",
       rqe: "",
-      cnes: "",
       cep: "",
       endereco: "",
       bairro: "",
@@ -87,79 +77,107 @@ const UserRegisterPage = () => {
     },
   });
 
+  // CEP auto-fill logic (similar to edit page)
+  const cepValue = watch('cep');
+  useEffect(() => {
+    const handleCepSearch = async (cep: string) => {
+      clearErrors('cep');
+
+      const hasEndereco = !!watch('endereco');
+      const hasBairro = !!watch('bairro');
+      const hasCidade = !!watch('cidade');
+      const hasEstado = !!watch('estado');
+      const hasComplemento = !!watch('complemento');
+
+      const cleanedCep = cep.replace(/\D/g, '');
+      if (cleanedCep.length === 8) {
+        try {
+          const addressData = await (await import('../../utils/cepService')).fetchAddressByCep(cleanedCep);
+          if (addressData) {
+            if (!hasEndereco) setValue('endereco', addressData.logradouro || '');
+            if (!hasBairro) setValue('bairro', addressData.bairro || '');
+            if (!hasCidade) setValue('cidade', addressData.localidade || '');
+            if (!hasEstado) setValue('estado', addressData.uf || '');
+            if (!hasComplemento) setValue('complemento', addressData.complemento || '');
+          } else {
+            setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
+            showSnackbar('CEP não encontrado ou inválido.', 'warning');
+          }
+        } catch (err) {
+          console.error('Erro ao buscar CEP:', err);
+          setError('cep', { type: 'manual', message: 'Erro ao buscar CEP. Tente novamente.' });
+          showSnackbar('Erro ao buscar CEP. Tente novamente.', 'error');
+        }
+      }
+    };
+
+    if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
+      handleCepSearch(cepValue);
+    }
+  }, [cepValue, setValue, setError, clearErrors, showSnackbar, watch]);
+
   const handleSaveUser = async (data: UserFormInputs) => {
     try {
-    
+      const { removeNonNumeric } = await import('../../utils/formatters');
+
       const createDTO: CreateUserDTO = {
         nome: data.nomeUsuario,
         email: data.email,
-        cpf: data.cpfUsuario,
-        telefone: data.telefone,
-        tipo: data.tipo,
+        cpf: data.cpfUsuario ? removeNonNumeric(data.cpfUsuario) : '',
+        telefone: data.telefone || undefined,
+        tipo: data.tipo || '',
         perfisIds: data.perfisIds,
-      };
-
-     
-      const newUserResponse = await adminService.createUser(createDTO);
-      const newUserId = newUserResponse.id; 
-
-     
-      const updateDTO: UpdateUserDTO = {
-       
         dadosPessoais: {
-          sexo: data.sexo,
-          dataNascimento: data.dataNascimento,
-          naturalidade: data.naturalidade,
-          estadoCivil: data.estadoCivil,
-          nomeMae: data.nomeMae,
-          nomePai: data.nomePai,
-          profissao: data.profissao,
-          // @ts-ignore 
-          conselho: data.conselho,
-          // @ts-ignore 
-          registro: data.registro,
-          // @ts-ignore 
-          cbo: data.cbo,
-          // @ts-ignore 
-          rqe: data.rqe,
-          // @ts-ignore 
-          cnes: data.cnes,
+          dataNascimento: data.dataNascimento || undefined,
+          sexo: data.sexo || undefined,
+          naturalidade: data.naturalidade || undefined,
+          estadoCivil: data.estadoCivil || undefined,
+          nomeMae: data.nomeMae || undefined,
+          nomePai: data.nomePai || undefined,
+          profissao: data.profissao || undefined,
         },
-       
         endereco: {
-          cep: data.cep,
-          logradouro: data.endereco, 
-          numero: data.numero,
-          bairro: data.bairro,
-          cidade: data.cidade,
-          uf: data.uf, 
-          complemento: data.complemento,
-        }
+          cep: data.cep ? removeNonNumeric(data.cep) : undefined,
+          logradouro: data.endereco || undefined,
+          numero: data.numero || undefined,
+          bairro: data.bairro || undefined,
+          cidade: data.cidade || undefined,
+          uf: data.estado || undefined,
+          complemento: data.complemento || undefined,
+        },
+        registroProfissional: {
+          tipoProfissional: data.tipo || undefined,
+          numeroRegistro: data.registro || undefined,
+          rqe: data.rqe || undefined,
+        },
       };
 
-      
-      await adminService.updateUser(newUserId, updateDTO);
+      const created = await adminService.createUser(createDTO);
 
-     
+      // If perfisIds was not included in creation or backend requires separate assign, try to assign roles
+      if ((!createDTO.perfisIds || createDTO.perfisIds.length === 0) && Array.isArray(data.perfisIds) && data.perfisIds.length > 0) {
+        try {
+          await adminService.assignRoles(created.id, { perfisIds: data.perfisIds });
+        } catch (err) {
+          // Non-blocking: roles assignment failed
+          console.warn('Falha ao atribuir perfis ao usuário criado', err);
+        }
+      }
+
       setOpenSaveDialog(false);
-      showSnackbar("Profissional cadastrado com sucesso!", "success");
-
-      setTimeout(() => {
-        navigate('/users');
-      }, 2000);
-
+      showSnackbar('Profissional cadastrado com sucesso!', 'success');
+      setTimeout(() => navigate('/users'), 1200);
     } catch (error: any) {
-      console.error("Erro ao cadastrar profissional:", error);
-      const message =
-        error.response?.data?.message ||
-        "Erro ao processar usuário. Tente novamente.";
-      showSnackbar(message, "error");
+      console.error('Erro ao cadastrar profissional:', error);
+      const message = error.response?.data?.message || 'Erro ao processar usuário. Tente novamente.';
+      showSnackbar(message, 'error');
       setOpenSaveDialog(false);
     }
   };
+
   const onError = (errors: FieldErrors<UserFormInputs>) => {
-    console.log("Erros de validação do usuário:", errors);
-    showSnackbar("Por favor, corrija os erros no formulário do usuário.", "error");
+    console.log('Erros de validação do usuário:', errors);
+    showSnackbar('Por favor, corrija os erros no formulário do usuário.', 'error');
     setOpenSaveDialog(false);
   };
 

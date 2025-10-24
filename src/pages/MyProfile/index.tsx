@@ -53,19 +53,19 @@ const MyProfilePage = () => {
           const currentEndereco = watch('endereco');
           const currentBairro = watch('bairro');
           const currentCidade = watch('cidade');
-          const currentUf = watch('uf');
+          const currentEstado = watch('estado');
           const currentComplemento = watch('complemento');
 
           if (!currentEndereco) setValue('endereco', addressData.logradouro || '');
           if (!currentBairro) setValue('bairro', addressData.bairro || '');
           if (!currentCidade) setValue('cidade', addressData.localidade || '');
-          if (!currentUf) setValue('uf', addressData.uf || '');
+          if (!currentEstado) setValue('estado', addressData.uf || '');
           if (!currentComplemento) setValue('complemento', addressData.complemento || '');
         } else if (isDifferent) {
           setValue('endereco', addressData.logradouro || '');
           setValue('bairro', addressData.bairro || '');
           setValue('cidade', addressData.localidade || '');
-          setValue('uf', addressData.uf || '');
+          setValue('estado', addressData.uf || '');
           setValue('complemento', addressData.complemento || '');
         }
 
@@ -94,7 +94,7 @@ const MyProfilePage = () => {
       try {
         const me: any = await authService.getActiveSession();
         setRawUser(me);
-        const personal = me.dadosPessoais || { sexo: me.sexo };
+  const personal = me.dadosPessoais || { sexo: me.sexo };
         const address = me.endereco || {
           cep: me.cep,
           endereco: me.endereco,
@@ -117,7 +117,9 @@ const MyProfilePage = () => {
           endereco: address?.logradouro || address?.endereco || '',
           bairro: address?.bairro || '',
           cidade: address?.cidade || '',
-          uf: address?.uf || '',
+          estado: address?.uf || '',
+          registro: personal?.registro || me.registro || '',
+          rqe: personal?.rqe || me.rqe || '',
           numero: address?.numero || '',
           complemento: address?.complemento || '',
         });
@@ -145,14 +147,24 @@ const MyProfilePage = () => {
       const payload: any = {
         email: data.email,
         telefone: data.telefone,
+        // include nested personal/registration info for medical/professional users
+        dadosPessoais: {
+          registro: data.registro || undefined,
+          sexo: data.sexo || undefined,
+        },
         endereco: {
           logradouro: data.endereco || undefined,
           numero: data.numero || undefined,
           complemento: data.complemento || undefined,
           bairro: data.bairro || undefined,
           cidade: data.cidade || undefined,
-          uf: data.uf || undefined,
+          uf: data.estado || undefined,
           cep: data.cep ? removeNonNumeric(data.cep) : undefined,
+        },
+        registroProfissional: {
+          tipoProfissional: rawUser?.tipo || undefined,
+          numeroRegistro: data.registro || undefined,
+          rqe: data.rqe || undefined,
         },
       };
 
@@ -290,6 +302,20 @@ const MyProfilePage = () => {
             />
           </Grid>
 
+          {/* Registro profissional / RQE (shown conditionally based on user tipo) */}
+          {(rawUser && ["DENTISTA", "MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA", "NUTRICIONISTA"].includes(rawUser.tipo)) && (
+            <>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
+                <TextField id="registro" label="Registro" variant="outlined" fullWidth placeholder="Registro" {...register('registro')} InputLabelProps={{ shrink: !!watch('registro') }} />
+              </Grid>
+              {rawUser.tipo === 'MEDICO' && (
+                <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
+                  <TextField id="rqe" label="RQE" variant="outlined" fullWidth placeholder="RQE" {...register('rqe')} InputLabelProps={{ shrink: !!watch('rqe') }} />
+                </Grid>
+              )}
+            </>
+          )}
+
           {/* Address fields */}
           <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ mt: 1 }}>
             <Controller
@@ -318,7 +344,7 @@ const MyProfilePage = () => {
             <TextField id="cidade" label="Cidade" variant="outlined" fullWidth placeholder="Cidade" {...register('cidade')} InputLabelProps={{ shrink: !!watch('cidade') }} />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField id="uf" label="UF" variant="outlined" fullWidth placeholder="UF" {...register('uf')} InputLabelProps={{ shrink: !!watch('uf') }} />
+            <TextField id="estado" label="Estado" variant="outlined" fullWidth placeholder="Estado" {...register('estado')} InputLabelProps={{ shrink: !!watch('estado') }} />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField id="numero" label="Número" variant="outlined" fullWidth placeholder="Número" {...register('numero')} InputLabelProps={{ shrink: !!watch('numero') }} />

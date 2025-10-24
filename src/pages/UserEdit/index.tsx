@@ -35,6 +35,13 @@ const UserEditPage = () => {
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
+  const [lockedFields, setLockedFields] = useState<{
+    nomeUsuario?: boolean;
+    cpfUsuario?: boolean;
+    sexo?: boolean;
+    registro?: boolean;
+    rqe?: boolean;
+  }>({});
 
   const handleOpenSaveDialog = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
@@ -106,12 +113,11 @@ const UserEditPage = () => {
           nomeUsuario: res.nome || '',
           // prefer nested personal.sexo, fallback to top-level
           sexo: personal?.sexo || (res as any).sexo || '',
-          conselho: (res as any).conselho || '',
-          registro: (res as any).registro || '',
-          uf: address?.uf || (res as any).uf || '',
-          cbo: (res as any).cbo || '',
-          rqe: (res as any).rqe || '',
-          cnes: (res as any).cnes || '',
+          // prefer registro from nested dadosPessoais, then top-level registro, then registroProfissional
+          registro: personal?.registro || (res as any).registro || (res as any).registroProfissional?.numeroRegistro || '',
+          estado: address?.uf || (res as any).uf || '',
+          // rqe may live under dadosPessoais, top-level rqe, or registroProfissional.rqe
+          rqe: personal?.rqe || (res as any).rqe || (res as any).registroProfissional?.rqe || '',
           cep: address?.cep ? (address.cep.includes('-') ? address.cep : (address.cep.length === 8 ? address.cep.replace(/(\d{5})(\d{3})/, "$1-$2") : address.cep)) : '',
           endereco: address?.logradouro || address?.endereco || '',
           bairro: address?.bairro || '',
@@ -127,6 +133,17 @@ const UserEditPage = () => {
           profissao: personal?.profissao || '',
           perfisIds: (res.perfis || []).map((p: any) => p.id),
         };
+        // determine which fields should be locked for admin edits
+        const existingRegistro = !!(personal?.registro || (res as any).registro || (res as any).registroProfissional?.numeroRegistro);
+        const existingRqe = !!(personal?.rqe || (res as any).rqe || (res as any).registroProfissional?.rqe);
+        setLockedFields({
+          nomeUsuario: true, // admin cannot edit name
+          cpfUsuario: true, // admin cannot edit cpf
+          sexo: true, // admin cannot edit sexo
+          registro: existingRegistro,
+          rqe: existingRqe,
+        });
+
         reset(defaultValues);
       } catch (error: any) {
         console.error('Erro ao buscar usuário', error);
@@ -145,21 +162,21 @@ const UserEditPage = () => {
       clearErrors('cep');
 
       // don't overwrite existing address values coming from backend; only populate empties
-      const hasEndereco = !!watch('endereco');
-      const hasBairro = !!watch('bairro');
-      const hasCidade = !!watch('cidade');
-      const hasUf = !!watch('uf');
-      const hasComplemento = !!watch('complemento');
+  const hasEndereco = !!watch('endereco');
+  const hasBairro = !!watch('bairro');
+  const hasCidade = !!watch('cidade');
+  const hasEstado = !!watch('estado');
+  const hasComplemento = !!watch('complemento');
 
       const cleanedCep = cep.replace(/\D/g, '');
       if (cleanedCep.length === 8) {
         try {
           const addressData = await (await import('../../utils/cepService')).fetchAddressByCep(cleanedCep);
-          if (addressData) {
+            if (addressData) {
             if (!hasEndereco) setValue('endereco', addressData.logradouro || '');
             if (!hasBairro) setValue('bairro', addressData.bairro || '');
             if (!hasCidade) setValue('cidade', addressData.localidade || '');
-            if (!hasUf) setValue('uf', addressData.uf || '');
+            if (!hasEstado) setValue('estado', addressData.uf || '');
             if (!hasComplemento) setValue('complemento', addressData.complemento || '');
           } else {
             setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
@@ -198,6 +215,9 @@ const UserEditPage = () => {
           nomeMae: data.nomeMae || undefined,
           nomePai: data.nomePai || undefined,
           profissao: data.profissao || undefined,
+          // keep registro/rqe in dadosPessoais for backward compatibility
+          registro: data.registro || undefined,
+          rqe: data.rqe || undefined,
         },
         endereco: {
           logradouro: data.endereco || undefined,
@@ -205,8 +225,14 @@ const UserEditPage = () => {
           complemento: data.complemento || undefined,
           bairro: data.bairro || undefined,
           cidade: data.cidade || undefined,
-          uf: data.uf || undefined,
+          uf: data.estado || undefined,
           cep: data.cep ? removeNonNumeric(data.cep) : undefined,
+        },
+        // include registroProfissional object as well so backend receives structured professional data
+        registroProfissional: {
+          tipoProfissional: data.tipo || undefined,
+          numeroRegistro: data.registro || undefined,
+          rqe: data.rqe || undefined,
         },
       };
 
@@ -253,6 +279,7 @@ const UserEditPage = () => {
           setValue={setValue}
           setError={setError}
           clearErrors={clearErrors}
+          disabledFields={lockedFields}
         />
 
         {/* Botões Salvar e Cancelar */}

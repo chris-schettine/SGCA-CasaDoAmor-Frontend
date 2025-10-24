@@ -14,6 +14,13 @@ interface UserFormProps {
   setValue: UseFormSetValue<UserFormInputs>;
   setError: UseFormSetError<UserFormInputs>;
   clearErrors: UseFormClearErrors<UserFormInputs>;
+  disabledFields?: {
+    nomeUsuario?: boolean;
+    cpfUsuario?: boolean;
+    sexo?: boolean;
+    registro?: boolean;
+    rqe?: boolean;
+  };
 }
 
 
@@ -28,6 +35,7 @@ const UserForm = (
     setValue,
     setError,
     clearErrors,
+    disabledFields,
   }: UserFormProps
 ) => {
   const [roles, setRoles] = useState<PerfilDTO[]>([]);
@@ -89,20 +97,20 @@ const UserForm = (
           const currentEndereco = watch('endereco');
           const currentBairro = watch('bairro');
           const currentCidade = watch('cidade');
-          const currentUf = watch('uf');
+          const currentEstado = watch('estado');
           const currentComplemento = watch('complemento');
 
           if (!currentEndereco) setValue('endereco', addressData.logradouro || '');
           if (!currentBairro) setValue('bairro', addressData.bairro || '');
           if (!currentCidade) setValue('cidade', addressData.localidade || '');
-          if (!currentUf) setValue('uf', addressData.uf || '');
+          if (!currentEstado) setValue('estado', addressData.uf || '');
           if (!currentComplemento) setValue('complemento', addressData.complemento || '');
         } else if (isDifferent) {
           // user explicitly changed CEP -> replace all address fields with fetched values
           setValue('endereco', addressData.logradouro || '');
           setValue('bairro', addressData.bairro || '');
           setValue('cidade', addressData.localidade || '');
-          setValue('uf', addressData.uf || '');
+          setValue('estado', addressData.uf || '');
           setValue('complemento', addressData.complemento || '');
         }
 
@@ -138,10 +146,8 @@ const UserForm = (
             render={({ field }) => {
               const tipoValue = field.value as string;
               // decide which additional fields to show
-              const showConselho = ["DENTISTA", "MEDICO", "ENFERMEIRO"].includes(tipoValue);
-              const showCbo = ["ENFERMEIRO", "FISIOTERAPEUTA", "MEDICO", "NUTRICIONISTA"].includes(tipoValue);
-              const showRqe = ["DENTISTA"].includes(tipoValue);
-              const showCnes = ["MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA"].includes(tipoValue);
+              const showRegistro = ["DENTISTA", "MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA", "NUTRICIONISTA"].includes(tipoValue);
+              const showRqe = ["MEDICO"].includes(tipoValue);
 
               return (
                 <>
@@ -169,48 +175,29 @@ const UserForm = (
                   </FormControl>
 
                   {/* conditional fields based on tipo */}
-                  {showConselho && (
+                  {showRegistro && (
                     <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="conselho" label="Conselho" variant="outlined" fullWidth placeholder="Conselho" {...register('conselho')} error={!!errors.conselho} helperText={errors.conselho?.message} InputLabelProps={{ shrink: !!watch('conselho') }} />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="registro" label="Registro" variant="outlined" fullWidth placeholder="Registro" {...register('registro')} error={!!errors.registro} helperText={errors.registro?.message} InputLabelProps={{ shrink: !!watch('registro') }} />
+                          <TextField id="registro" label="Registro" variant="outlined" fullWidth placeholder="Registro" {...register('registro')} error={!!errors.registro} helperText={errors.registro?.message} InputLabelProps={{ shrink: !!watch('registro') }} disabled={!!disabledFields?.registro} />
                         </Grid>
                       </Grid>
                     </Grid>
                   )}
 
-                  {showCbo && (
-                    <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                      <Grid container spacing={2}>
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="cbo" label="CBO" variant="outlined" fullWidth placeholder="CBO" {...register('cbo')} error={!!errors.cbo} helperText={errors.cbo?.message} InputLabelProps={{ shrink: !!watch('cbo') }} />
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  )}
+                  {/* CBO field removed */}
 
                   {showRqe && (
                     <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="rqe" label="RQE" variant="outlined" fullWidth placeholder="RQE" {...register('rqe')} error={!!errors.rqe} helperText={errors.rqe?.message} InputLabelProps={{ shrink: !!watch('rqe') }} />
+                          <TextField id="rqe" label="RQE" variant="outlined" fullWidth placeholder="RQE" {...register('rqe')} error={!!errors.rqe} helperText={errors.rqe?.message} InputLabelProps={{ shrink: !!watch('rqe') }} disabled={!!disabledFields?.rqe} />
                         </Grid>
                       </Grid>
                     </Grid>
                   )}
 
-                  {showCnes && (
-                    <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                      <Grid container spacing={2}>
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="cnes" label="CNES" variant="outlined" fullWidth placeholder="CNES" {...register('cnes')} error={!!errors.cnes} helperText={errors.cnes?.message} InputLabelProps={{ shrink: !!watch('cnes') }} />
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  )}
+                  {/* CNES removed per request */}
                 </>
               );
             }}
@@ -308,6 +295,7 @@ const UserForm = (
             fullWidth
             placeholder="Digite o nome completo"
             {...register("nomeUsuario")}
+            disabled={!!disabledFields?.nomeUsuario}
             error={!!errors.nomeUsuario}
             helperText={errors.nomeUsuario?.message}
             InputLabelProps={{ shrink: !!watch('nomeUsuario') }}
@@ -338,6 +326,7 @@ const UserForm = (
                 helperText={errors.cpfUsuario?.message}
                 mask="000.000.000-00"
                 lazy={true}
+                disabled={!!disabledFields?.cpfUsuario}
               />
             )}
           />
@@ -405,15 +394,15 @@ const UserForm = (
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
           <TextField
-            id="uf"
-            label="UF"
+            id="estado"
+            label="Estado"
             variant="outlined"
             fullWidth
-            placeholder="UF"
-            {...register("uf")}
-            error={!!errors.uf}
-            helperText={errors.uf?.message}
-            InputLabelProps={{ shrink: !!watch('uf') }}
+            placeholder="Estado"
+            {...register("estado")}
+            error={!!errors.estado}
+            helperText={errors.estado?.message}
+            InputLabelProps={{ shrink: !!watch('estado') }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
@@ -460,6 +449,7 @@ const UserForm = (
                   onChange={(e) => field.onChange((e.target as HTMLInputElement).value as any)}
                   onBlur={field.onBlur}
                   name={field.name}
+                  disabled={!!disabledFields?.sexo}
                 >
                   <MenuItem value={"MASCULINO"}>Masculino</MenuItem>
                   <MenuItem value={"FEMININO"}>Feminino</MenuItem>
@@ -472,7 +462,7 @@ const UserForm = (
 
         {/* removed duplicate UF — UF is now inside the address group */}
 
-        {/* CBO, RQE, CNES are rendered conditionally above based on `tipo` */}
+  {/* RQE, CNES are rendered conditionally above based on `tipo` */}
 
         {/* SEXTA LINHA: Senha e confirmar senha (REMOVIDO) */}
 
