@@ -129,9 +129,6 @@ const UserEditPage = () => {
           genero: personal?.genero || '',
           naturalidade: personal?.naturalidade || '',
           estadoCivil: personal?.estadoCivil || '',
-          nomeMae: personal?.nomeMae || '',
-          nomePai: personal?.nomePai || '',
-          profissao: personal?.profissao || '',
           perfisIds: (res.perfis || []).map((p: any) => p.id),
         };
         // determine which fields should be locked for admin edits
@@ -213,9 +210,6 @@ const UserEditPage = () => {
           sexo: data.sexo || undefined,
           naturalidade: data.naturalidade || undefined,
           estadoCivil: data.estadoCivil || undefined,
-          nomeMae: data.nomeMae || undefined,
-          nomePai: data.nomePai || undefined,
-          profissao: data.profissao || undefined,
           // keep registro/rqe in dadosPessoais for backward compatibility
           registro: data.registro || undefined,
           rqe: data.rqe || undefined,

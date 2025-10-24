@@ -124,7 +124,6 @@ const MyProfilePage = () => {
           rqe: personal?.rqe || me.rqe || '',
           numero: address?.numero || '',
           complemento: address?.complemento || '',
-          tipo: rawUser?.tipo || rawUser?.tipoUsuario || '',
           estadoCivil: personal?.estadoCivil || '',
           dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
           naturalidade: personal?.naturalidade || '',
@@ -165,7 +164,6 @@ const MyProfilePage = () => {
       const payload: any = {
         email: data.email,
         telefone: data.telefone,
-        tipo: data.tipo,
         // include nested personal/registration info for medical/professional users
         dadosPessoais: {
           registro: data.registro || undefined,
@@ -173,8 +171,6 @@ const MyProfilePage = () => {
           estadoCivil: data.estadoCivil || undefined,
           dataNascimento: data.dataNascimento ? formatDDMMYYYYToISO(data.dataNascimento) : undefined,
           naturalidade: data.naturalidade || undefined,
-          nomeMae: data.nomeMae || undefined,
-          nomePai: data.nomePai || undefined,
         },
         
         endereco: {
@@ -279,36 +275,7 @@ const MyProfilePage = () => {
               )}
             />
           </Grid>
-
-          {/* Row 3: Tipo | Perfis */}
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Controller
-              name="tipo"
-              control={control}
-              defaultValue={rawUser?.tipo || ''}
-              render={({ field }) => (
-                <FormControl fullWidth>
-                  <InputLabel id="tipo-label">Tipo</InputLabel>
-                  <Select
-                    labelId="tipo-label"
-                    id="tipo"
-                    label="Tipo"
-                    {...field}
-                  >
-                    
-                    <MenuItem value={"ADMINISTRADOR"}>Administrador</MenuItem>
-                    <MenuItem value={"DENTISTA"}>Dentista</MenuItem>
-                    <MenuItem value={"ENFERMEIRO"}>Enfermeiro</MenuItem>
-                    <MenuItem value={"FISIOTERAPEUTA"}>Fisioterapeuta</MenuItem>
-                    <MenuItem value={"MEDICO"}>Médico</MenuItem>
-                    <MenuItem value={"NUTRICIONISTA"}>Nutricionista</MenuItem>
-                    <MenuItem value={"RECEPCIONISTA"}>Recepcionista</MenuItem>
-                    <MenuItem value={"AUDITOR"}>Auditor</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-            />
-          </Grid>
+          
 
           {/* Sexo (shown but disabled) */}
           <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
@@ -361,12 +328,6 @@ const MyProfilePage = () => {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
             <TextField id="naturalidade" label="Naturalidade" variant="outlined" fullWidth placeholder="Naturalidade" {...register('naturalidade')} InputLabelProps={{ shrink: !!watch('naturalidade') }} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ mt: 1 }}>
-            <TextField id="nomeMae" label="Nome da Mãe" variant="outlined" fullWidth placeholder="Nome da Mãe" {...register('nomeMae')} InputLabelProps={{ shrink: !!watch('nomeMae') }} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ mt: 1 }}>
-            <TextField id="nomePai" label="Nome do Pai" variant="outlined" fullWidth placeholder="Nome do Pai (opcional)" {...register('nomePai')} InputLabelProps={{ shrink: !!watch('nomePai') }} />
           </Grid>
 
           {/* Registro profissional / RQE (shown conditionally based on user tipo) */}
