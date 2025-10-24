@@ -5,6 +5,8 @@ import { authService } from '../../api/auth.service';
 import { adminService } from '../../api/admin.service';
 import MaskedTextField from '../../components/MaskedTextField';
 import { useAuth } from '../../hooks/useAuth';
+import { formatISOToDDMMYYYY } from '../../utils/formatters';
+
 
 const MyProfilePage = () => {
   const { token, user, login } = useAuth();
@@ -94,7 +96,7 @@ const MyProfilePage = () => {
       try {
         const me: any = await authService.getActiveSession();
         setRawUser(me);
-  const personal = me.dadosPessoais || { sexo: me.sexo };
+        const personal = me.dadosPessoais || { sexo: me.sexo };
         const address = me.endereco || {
           cep: me.cep,
           endereco: me.endereco,
@@ -122,6 +124,12 @@ const MyProfilePage = () => {
           rqe: personal?.rqe || me.rqe || '',
           numero: address?.numero || '',
           complemento: address?.complemento || '',
+          tipo: rawUser?.tipo || rawUser?.tipoUsuario || '',
+          estadoCivil: personal?.estadoCivil || '',
+          dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
+          naturalidade: personal?.naturalidade || '',
+          nomeMae: personal?.nomeMae || '',
+          nomePai: personal?.nomePai || '',
         });
       } catch (err) {
         console.error('Erro ao carregar perfil', err);
@@ -144,14 +152,31 @@ const MyProfilePage = () => {
     try {
       const { removeNonNumeric } = await import('../../utils/formatters');
 
+      const formatDDMMYYYYToISO = (d: string | undefined) => {
+        if (!d) return undefined;
+        const parts = String(d).split('/');
+        if (parts.length !== 3) return undefined;
+        const [dd, mm, yyyy] = parts;
+        
+        if (!/^\d{1,2}$/.test(dd) || !/^\d{1,2}$/.test(mm) || !/^\d{4}$/.test(yyyy)) return undefined;
+        return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+      };
+
       const payload: any = {
         email: data.email,
         telefone: data.telefone,
+        tipo: data.tipo,
         // include nested personal/registration info for medical/professional users
         dadosPessoais: {
           registro: data.registro || undefined,
           sexo: data.sexo || undefined,
+          estadoCivil: data.estadoCivil || undefined,
+          dataNascimento: data.dataNascimento ? formatDDMMYYYYToISO(data.dataNascimento) : undefined,
+          naturalidade: data.naturalidade || undefined,
+          nomeMae: data.nomeMae || undefined,
+          nomePai: data.nomePai || undefined,
         },
+        
         endereco: {
           logradouro: data.endereco || undefined,
           numero: data.numero || undefined,
@@ -256,23 +281,33 @@ const MyProfilePage = () => {
           </Grid>
 
           {/* Row 3: Tipo | Perfis */}
-          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="subtitle2">Tipo</Typography>
-              <Box sx={{ mt: 1 }}>
-                <Chip label={rawUser?.tipo || rawUser?.tipoUsuario || '—'} />
-              </Box>
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="subtitle2">Perfis</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                {Array.isArray(rawUser?.perfis) ? rawUser.perfis.map((p: any) => (
-                  <Chip key={p.id} label={p.nome} />
-                )) : ((user?.roles || []) as string[]).map((r) => <Chip key={r} label={r} />)}
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Controller
+              name="tipo"
+              control={control}
+              defaultValue={rawUser?.tipo || ''}
+              render={({ field }) => (
+                <FormControl fullWidth>
+                  <InputLabel id="tipo-label">Tipo</InputLabel>
+                  <Select
+                    labelId="tipo-label"
+                    id="tipo"
+                    label="Tipo"
+                    {...field}
+                  >
+                    
+                    <MenuItem value={"ADMINISTRADOR"}>Administrador</MenuItem>
+                    <MenuItem value={"DENTISTA"}>Dentista</MenuItem>
+                    <MenuItem value={"ENFERMEIRO"}>Enfermeiro</MenuItem>
+                    <MenuItem value={"FISIOTERAPEUTA"}>Fisioterapeuta</MenuItem>
+                    <MenuItem value={"MEDICO"}>Médico</MenuItem>
+                    <MenuItem value={"NUTRICIONISTA"}>Nutricionista</MenuItem>
+                    <MenuItem value={"RECEPCIONISTA"}>Recepcionista</MenuItem>
+                    <MenuItem value={"AUDITOR"}>Auditor</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            />
           </Grid>
 
           {/* Sexo (shown but disabled) */}
@@ -292,7 +327,7 @@ const MyProfilePage = () => {
                     onChange={(e) => field.onChange((e.target as HTMLInputElement).value as any)}
                     onBlur={field.onBlur}
                     name={field.name}
-                    disabled
+                 
                   >
                     <MenuItem value={"MASCULINO"}>Masculino</MenuItem>
                     <MenuItem value={"FEMININO"}>Feminino</MenuItem>
@@ -300,6 +335,38 @@ const MyProfilePage = () => {
                 </FormControl>
               )}
             />
+          </Grid>
+
+          
+          <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
+            <TextField id="estadoCivil" label="Estado Civil" variant="outlined" fullWidth placeholder="Estado Civil" {...register('estadoCivil')} InputLabelProps={{ shrink: !!watch('estadoCivil') }} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
+            <Controller
+              name="dataNascimento"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <MaskedTextField
+                  {...field}
+                  id="dataNascimento"
+                  label="Data de Nascimento"
+                  variant="outlined"
+                  fullWidth
+                  placeholder="DD/MM/AAAA"
+                  mask="00/00/0000"
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
+            <TextField id="naturalidade" label="Naturalidade" variant="outlined" fullWidth placeholder="Naturalidade" {...register('naturalidade')} InputLabelProps={{ shrink: !!watch('naturalidade') }} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }} sx={{ mt: 1 }}>
+            <TextField id="nomeMae" label="Nome da Mãe" variant="outlined" fullWidth placeholder="Nome da Mãe" {...register('nomeMae')} InputLabelProps={{ shrink: !!watch('nomeMae') }} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }} sx={{ mt: 1 }}>
+            <TextField id="nomePai" label="Nome do Pai" variant="outlined" fullWidth placeholder="Nome do Pai (opcional)" {...register('nomePai')} InputLabelProps={{ shrink: !!watch('nomePai') }} />
           </Grid>
 
           {/* Registro profissional / RQE (shown conditionally based on user tipo) */}

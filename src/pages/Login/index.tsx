@@ -66,11 +66,25 @@ const Login = () => {
       navigate(from, { replace: true });
     }, 2000);
 
-  } catch (error: any) { 
-    const message = error.response?.data?.message || "CPF ou senha inválidos";
-    showSnackbar(message, "error");
-  }
-};
+  } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Erro desconhecido";
+      const status = error.response?.status;
+
+      // (AJUSTE "Código 2FA necessário" para a mensagem exata do backend)
+      if (status === 401 && errorMessage.includes("Código 2FA necessário")) { 
+        
+        // Salva o CPF limpo para a próxima tela usar
+        sessionStorage.setItem('cpfFor2FA', cpf.replace(/\D/g, '')); 
+        
+        // Redireciona para a tela de verificação
+        navigate('/login/verify-2fa'); 
+        
+      } else {
+        // Se for outro erro (ex: senha errada), mostra a mensagem
+        showSnackbar(errorMessage, "error");
+      }
+    }
+  };
   return (
     <Box css={BoxStyles}>
       <Container css={ContainerLoginStyles}>

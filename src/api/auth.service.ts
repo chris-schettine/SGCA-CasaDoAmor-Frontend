@@ -1,6 +1,7 @@
-import { api } from './api.gateway'; // Importa a instância 'api'
-import type { UserType } from '../contexts/AuthContext'; // Importa o tipo de usuário
+import { api } from './api.gateway'; 
+import type { UserType } from '../contexts/AuthContext'; 
 import type {
+  LoginResponse,
   ForgotPasswordDTO,
   ResetPasswordDTO,
   VerifyEmailRequestDTO,
@@ -70,8 +71,13 @@ class AuthService {
     return response.data;
   }
 
-  async verify2FA(data: Verify2FADTO): Promise<void> {
+  /*async verify2FA(data: Verify2FADTO): Promise<void> {
     await api.post('/auth/2fa/verify', data);
+  }
+    */
+   async verify2FA(data: Verify2FADTO): Promise<LoginResponse> {
+    const response = await api.post('/auth/2fa/verify', data);
+    return response.data; 
   }
 
   async resend2FA(): Promise<MessageResponseDTO> {

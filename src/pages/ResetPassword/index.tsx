@@ -1,11 +1,8 @@
 import { Alert, Box, Button, Container, Snackbar, TextField, Typography } from "@mui/material";
-// 👇 Importações de hooks alteradas:
 import { useState, useEffect } from "react";
-// 👇 Removemos 'useParams' e adicionamos 'useLocation'
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 
-// (Estilos - sem alterações)
 const BoxStyles = {
   display: 'flex',
   alignItems: 'center',
@@ -25,23 +22,19 @@ const ContainerFormStyles = {
   width: { xs: '90%', sm: '400px' },
 };
 
-// 👇 Hook para ler parâmetros de busca (ex: ?token=...)
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  const query = useQuery(); // Hook para ler os query params
+  const query = useQuery(); 
 
-  // 👇 'token' agora vem de um 'useState'
   const [token, setToken] = useState<string | null>(null);
 
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // (Estados do Snackbar - sem alterações)
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
@@ -56,7 +49,7 @@ const ResetPasswordPage = () => {
     setSnackbarOpen(false);
   };
 
-  // 👇 Adicionado useEffect para ler o token da URL na inicialização
+
   useEffect(() => {
     const urlToken = query.get('token');
     if (urlToken) {
@@ -64,7 +57,7 @@ const ResetPasswordPage = () => {
     } else {
       showSnackbar("Token de redefinição inválido ou ausente na URL.", "error");
     }
-  }, [query]); // Executa quando 'query' mudar
+  }, [query]); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +67,6 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    // A validação do token agora usa o estado 'token'
     if (!token) {
       showSnackbar("Token de redefinição inválido ou ausente.", "error");
       return;
@@ -83,7 +75,6 @@ const ResetPasswordPage = () => {
     setIsLoading(true);
     
     try {
-      // Esta chamada continua correta
       await authService.resetPassword({ token, novaSenha }); 
       
       showSnackbar("Senha redefinida com sucesso! Você já pode fazer login.", "success");
@@ -131,7 +122,7 @@ const ResetPasswordPage = () => {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          // 👇 Botão fica desabilitado se não houver token
+          
           disabled={isLoading || !token} 
           fullWidth
         >

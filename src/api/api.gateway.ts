@@ -11,7 +11,7 @@ class ApiGateway {
       withCredentials: true 
     });
 
-    // Interceptor para adicionar token em todas as requisições
+    
     this.gateway.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('authToken');
@@ -29,7 +29,7 @@ class ApiGateway {
       }
     );
 
-    // Interceptor para tratar erros 401 (não autorizado)
+   
     this.gateway.interceptors.response.use(
       (response) => {
         console.log('[API Gateway] Resposta sucesso:', response.status, response.config.url);
@@ -44,11 +44,11 @@ class ApiGateway {
         });
         
         if (error.response?.status === 401) {
-          // Token expirado ou inválido - limpar localStorage
+          
           console.warn('[API Gateway] Token inválido/expirado (401) - limpando sessão');
           localStorage.removeItem('authToken');
           localStorage.removeItem('authUser');
-          // Redirecionar para login se necessário
+          
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }

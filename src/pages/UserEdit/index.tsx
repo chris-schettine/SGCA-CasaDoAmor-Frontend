@@ -126,6 +126,7 @@ const UserEditPage = () => {
           complemento: address?.complemento || '',
           // personal data
           dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
+          genero: personal?.genero || '',
           naturalidade: personal?.naturalidade || '',
           estadoCivil: personal?.estadoCivil || '',
           nomeMae: personal?.nomeMae || '',

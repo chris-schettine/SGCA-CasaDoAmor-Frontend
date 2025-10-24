@@ -8,7 +8,7 @@ import { userSchemaConditional as userSchema, type UserFormInputs } from "../../
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
-import type { CreateUserDTO } from '../../api/admin.dto';
+import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -127,6 +127,14 @@ const UserRegisterPage = () => {
         telefone: data.telefone || undefined,
         tipo: data.tipo || '',
         perfisIds: data.perfisIds,
+      };
+
+     
+      const newUserResponse = await adminService.createUser(createDTO);
+      const newUserId = newUserResponse.id; 
+
+      
+      const updateDTO: UpdateUserDTO = {
         dadosPessoais: {
           dataNascimento: data.dataNascimento || undefined,
           sexo: data.sexo || undefined,
@@ -135,6 +143,15 @@ const UserRegisterPage = () => {
           nomeMae: data.nomeMae || undefined,
           nomePai: data.nomePai || undefined,
           profissao: data.profissao || undefined,
+
+          // O DTO é inconsistente, mas o schema e o form
+          // possuem estes campos. Enviamos eles aqui.
+          // @ts-ignore
+          conselho: data.conselho,
+          // @ts-ignore
+          registro: data.registro,
+          // @ts-ignore
+          rqe: data.rqe,
         },
         endereco: {
           cep: data.cep ? removeNonNumeric(data.cep) : undefined,
@@ -142,31 +159,20 @@ const UserRegisterPage = () => {
           numero: data.numero || undefined,
           bairro: data.bairro || undefined,
           cidade: data.cidade || undefined,
-          uf: data.estado || undefined,
+          uf: data.estado || undefined, 
           complemento: data.complemento || undefined,
-        },
-        registroProfissional: {
-          tipoProfissional: data.tipo || undefined,
-          numeroRegistro: data.registro || undefined,
-          rqe: data.rqe || undefined,
         },
       };
 
-      const created = await adminService.createUser(createDTO);
+      
+      await adminService.updateUser(newUserId, updateDTO);
+      
 
-      // If perfisIds was not included in creation or backend requires separate assign, try to assign roles
-      if ((!createDTO.perfisIds || createDTO.perfisIds.length === 0) && Array.isArray(data.perfisIds) && data.perfisIds.length > 0) {
-        try {
-          await adminService.assignRoles(created.id, { perfisIds: data.perfisIds });
-        } catch (err) {
-          // Non-blocking: roles assignment failed
-          console.warn('Falha ao atribuir perfis ao usuário criado', err);
-        }
-      }
 
       setOpenSaveDialog(false);
       showSnackbar('Profissional cadastrado com sucesso!', 'success');
       setTimeout(() => navigate('/users'), 1200);
+
     } catch (error: any) {
       console.error('Erro ao cadastrar profissional:', error);
       const message = error.response?.data?.message || 'Erro ao processar usuário. Tente novamente.';

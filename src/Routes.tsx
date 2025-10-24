@@ -18,6 +18,7 @@ import VerifyEmailPage from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPassword';
 import ResetPasswordPage from './pages/ResetPassword'; 
 import ActivateAccountPage from './pages/ActivateAccount';
+import LoginVerify2FAPage from './pages/LoginVerify2FA';
 
 const AppRoutes = () => (
   <Routes>
@@ -28,6 +29,7 @@ const AppRoutes = () => (
     <Route path="reset-password" element={<ResetPasswordPage />} />
     <Route path="verify-email/:token" element={<VerifyEmailPage />} />
     <Route path="activate-account" element={<ActivateAccountPage />} />
+    <Route path="login/verify-2fa" element={<LoginVerify2FAPage />} />
     {/* Rotas Privadas */}
     <Route
       path="/"

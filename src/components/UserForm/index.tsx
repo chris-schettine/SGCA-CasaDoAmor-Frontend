@@ -331,7 +331,91 @@ const UserForm = (
             )}
           />
         </Grid>
-
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <Controller
+            name="dataNascimento"
+            control={control}
+            render={({ field }) => (
+              <MaskedTextField
+                {...field}
+                id="dataNascimento"
+                label="Data de Nascimento"
+                variant="outlined"
+                fullWidth
+                placeholder="DD/MM/AAAA"
+                error={!!errors.dataNascimento}
+                helperText={errors.dataNascimento?.message}
+                mask="00/00/0000"
+                lazy={true}
+              />
+            )}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="naturalidade"
+            label="Naturalidade"
+            variant="outlined"
+            fullWidth
+            placeholder="Naturalidade"
+            {...register("naturalidade")}
+            error={!!errors.naturalidade}
+            helperText={errors.naturalidade?.message}
+            InputLabelProps={{ shrink: !!watch('naturalidade') }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="estadoCivil"
+            label="Estado Civil"
+            variant="outlined"
+            fullWidth
+            placeholder="Estado Civil"
+            {...register("estadoCivil")}
+            error={!!errors.estadoCivil}
+            helperText={errors.estadoCivil?.message}
+            InputLabelProps={{ shrink: !!watch('estadoCivil') }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="profissao"
+            label="Profissão"
+            variant="outlined"
+            fullWidth
+            placeholder="Profissão"
+            {...register("profissao")}
+            error={!!errors.profissao}
+            helperText={errors.profissao?.message}
+            InputLabelProps={{ shrink: !!watch('profissao') }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <TextField
+            id="nomeMae"
+            label="Nome da Mãe"
+            variant="outlined"
+            fullWidth
+            placeholder="Nome da Mãe"
+            {...register("nomeMae")}
+            error={!!errors.nomeMae}
+            helperText={errors.nomeMae?.message}
+            InputLabelProps={{ shrink: !!watch('nomeMae') }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <TextField
+            id="nomePai"
+            label="Nome do Pai"
+            variant="outlined"
+            fullWidth
+            placeholder="Nome do Pai (opcional)"
+            {...register("nomePai")}
+            error={!!errors.nomePai}
+            helperText={errors.nomePai?.message}
+            InputLabelProps={{ shrink: !!watch('nomePai') }}
+          />
+        </Grid>
         {/* Address fields (same as patient) */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Controller
