@@ -30,6 +30,8 @@ const PatientRegisterPage = () => {
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
 
+  const [isCepLoading, setIsCepLoading] = useState(false);
+
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
@@ -113,7 +115,7 @@ const PatientRegisterPage = () => {
           cep: removeNonNumeric(data.cep),
           cidade: data.cidade,
           estado: data.estado,
-          complemento: data.complemento,
+          complemento: data.complemento || undefined,
         },
       };
 
@@ -143,9 +145,9 @@ const PatientRegisterPage = () => {
     navigate('/patients');
   };
 
-  const handleOpenSaveDialog = () => {
+  /*const handleOpenSaveDialog = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
-  };
+  };*/
   const handleCloseSaveDialog = () => setOpenSaveDialog(false);
   const handleConfirmSave = handleSubmit(handleSavePatient, onError);
 
@@ -153,6 +155,10 @@ const PatientRegisterPage = () => {
 
   const handleCepSearch = useCallback(async (cep: string, targetFieldPrefix: "" | "acompanhante") => {
     clearErrors(`${targetFieldPrefix}cep` as keyof PatientFormInputs);
+    clearErrors(`${targetFieldPrefix}endereco` as keyof PatientFormInputs);
+    clearErrors(`${targetFieldPrefix}bairro` as keyof PatientFormInputs);
+    clearErrors(`${targetFieldPrefix}cidade` as keyof PatientFormInputs);
+    clearErrors(`${targetFieldPrefix}estado` as keyof PatientFormInputs);
     setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
     setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, "");
     setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, "");
@@ -163,12 +169,12 @@ const PatientRegisterPage = () => {
     if (cleanedCep.length === 8) {
       try {
         const addressData = await fetchAddressByCep(cleanedCep);
-        if (addressData) {
-          setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, addressData.logradouro);
-          setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, addressData.bairro);
-          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, addressData.localidade);
-          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, addressData.uf);
-          setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, addressData.complemento || "");
+        if (addressData && !addressData.erro) {
+          setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, addressData.logradouro || "", { shouldDirty: true });
+          setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, addressData.bairro || "", { shouldDirty: true });
+          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, addressData.localidade || "", { shouldDirty: true });
+          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, addressData.uf || "", { shouldDirty: true });
+          setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, addressData.complemento || "", { shouldDirty: true });
         } else {
           setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
             type: "manual",
@@ -183,6 +189,8 @@ const PatientRegisterPage = () => {
           message: "Erro ao buscar CEP. Tente novamente."
         });
         showSnackbar("Erro ao buscar CEP. Tente novamente.", "error");
+      } finally {
+        setIsCepLoading(false);
       }
     } else if (cleanedCep.length > 0 && cleanedCep.length < 8) {
       setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
@@ -202,7 +210,7 @@ const PatientRegisterPage = () => {
   return (
     <div css={stylesContainer}>
       <h1 css={TitleStyles}>Cadastrar Paciente</h1>
-      <form noValidate>
+      <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
 
         {/* Dados Pessoais */}
         <PatientPersonalDataForm
@@ -211,6 +219,7 @@ const PatientRegisterPage = () => {
           watch={watch}
           setValue={setValue}
           handleCepSearch={handleCepSearch}
+          isCepLoading={isCepLoading}
           control={control}
         />
 
@@ -225,9 +234,10 @@ const PatientRegisterPage = () => {
         {/* Botões Salvar e Cancelar */}
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
           <Button
+            type="submit"
             variant="contained"
             css={[buttonStyles, saveButtonStyles]}
-            onClick={handleOpenSaveDialog}
+            //onClick={handleOpenSaveDialog}
           >
             Salvar
           </Button>

@@ -1,4 +1,4 @@
-import { Grid, TextField } from "@mui/material";
+import { Grid, TextField, InputAdornment, CircularProgress } from "@mui/material";
 import { type UseFormRegister, type FieldErrors, type UseFormWatch, type UseFormSetValue, Controller, type Control } from "react-hook-form";
 import type { PatientFormInputs } from "../../schemas/patientSchema";
 import { useEffect } from "react";
@@ -12,6 +12,7 @@ interface PatientPersonalDataFormProps {
   setValue: UseFormSetValue<PatientFormInputs>;
   control: Control<PatientFormInputs>;
   handleCepSearch: (cep: string, targetFieldPrefix: "" | "acompanhante") => Promise<void>;
+  isCepLoading: boolean;
   disabledFields?: (keyof PatientFormInputs)[];
 }
 
@@ -22,6 +23,7 @@ const PatientPersonalDataForm = (
     watch,
     setValue,
     handleCepSearch,
+    isCepLoading,
     control,
     disabledFields,
   }: PatientPersonalDataFormProps
@@ -274,6 +276,13 @@ const PatientPersonalDataForm = (
                   field.onBlur();
                   handleCepSearch(e.target.value, "");
                 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      {isCepLoading && <CircularProgress size={20} />}
+                    </InputAdornment>
+                  ),
+                }}
               />
             )}
           />
@@ -288,6 +297,8 @@ const PatientPersonalDataForm = (
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!enderecoValue || isCepLoading }}
             slotProps={{
               inputLabel: {
                 shrink: !!enderecoValue,
@@ -313,6 +324,8 @@ const PatientPersonalDataForm = (
             {...register("bairro")}
             error={!!errors.bairro}
             helperText={errors.bairro?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
             slotProps={{
               inputLabel: {
                 shrink: !!bairroValue,
@@ -402,6 +415,8 @@ const PatientPersonalDataForm = (
             {...register("complemento")}
             error={!!errors.complemento}
             helperText={errors.complemento?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!complementoValue || isCepLoading }}
             slotProps={{
               inputLabel: {
                 shrink: !!complementoValue,
@@ -447,6 +462,38 @@ const PatientPersonalDataForm = (
             }}
           />
         </Grid>
+
+        {/* SEXTA LINHA: Cidade e Estado*/}
+        <Grid size={{xs:12, sm:8}}>
+          <TextField
+            id="cidade"
+            label="Cidade"
+            variant="outlined"
+            fullWidth
+            placeholder="Cidade"
+            {...register("cidade")}
+            error={!!errors.cidade}
+            helperText={errors.cidade?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!cidadeValue || isCepLoading }}
+          />
+        </Grid>
+        <Grid size={{xs:12, sm:4}}>
+          <TextField
+            id="estado"
+            label="Estado (UF)"
+            variant="outlined"
+            fullWidth
+            placeholder="UF"
+            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
+            {...register("estado")}
+            error={!!errors.estado}
+            helperText={errors.estado?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!estadoValue || isCepLoading }}
+            />
+        </Grid>
+
       </Grid>
     </>
   )

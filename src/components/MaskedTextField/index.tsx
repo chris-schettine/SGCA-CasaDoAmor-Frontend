@@ -46,6 +46,7 @@ interface Props extends Omit<TextFieldProps, 'InputProps' | 'name'> { // Remova 
     inputLabel?: TextFieldProps['InputLabelProps']; // Reutiliza o tipo que o MUI espera
     formHelperText?: TextFieldProps['FormHelperTextProps']; // Reutiliza o tipo
   };
+  InputProps?: TextFieldProps['InputProps'];
 }
 
 const MaskedTextField: React.FC<Props> = ({
@@ -57,6 +58,7 @@ const MaskedTextField: React.FC<Props> = ({
   error,
   value,
   slotProps,
+  InputProps: parentInputProps,
   ...rest
 }) => {
   return (
@@ -66,6 +68,7 @@ const MaskedTextField: React.FC<Props> = ({
       error={error}
       helperText={helperText || " "}
       InputProps={{
+        ...(parentInputProps || {}),
         inputComponent: MaskedInput,
         inputProps: {
           mask,
