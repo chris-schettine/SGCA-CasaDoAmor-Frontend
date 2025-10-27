@@ -9,6 +9,7 @@ import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
 import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
+import { formatDateToISO, removeNonNumeric } from '../../utils/formatters';
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -118,7 +119,6 @@ const UserRegisterPage = () => {
 
   const handleSaveUser = async (data: UserFormInputs) => {
     try {
-      const { removeNonNumeric } = await import('../../utils/formatters');
 
       const createDTO: CreateUserDTO = {
         nome: data.nomeUsuario,
@@ -136,13 +136,10 @@ const UserRegisterPage = () => {
       
       const updateDTO: UpdateUserDTO = {
         dadosPessoais: {
-          dataNascimento: data.dataNascimento || undefined,
+          dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
           sexo: data.sexo || undefined,
           naturalidade: data.naturalidade || undefined,
           estadoCivil: data.estadoCivil || undefined,
-          nomeMae: data.nomeMae || undefined,
-          nomePai: data.nomePai || undefined,
-          profissao: data.profissao || undefined,
 
           // O DTO é inconsistente, mas o schema e o form
           // possuem estes campos. Enviamos eles aqui.
