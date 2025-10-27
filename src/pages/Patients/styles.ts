@@ -22,11 +22,12 @@ export const TitleStyles = css({
 
 export const buttonStyles = css({
   width: '20%',
-  backgroundColor: "#000",
-  color: "#fff",
-  "&:hover": {
-    backgroundColor: "#333",
+  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
+  color: '#fff',
+  '&:hover': {
+  backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
   },
+
 });
 
 export const searchContainer = css({

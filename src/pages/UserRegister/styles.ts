@@ -27,17 +27,18 @@ export const buttonStyles = css({
 });
 
 export const saveButtonStyles = css({
-  backgroundColor: '#000', // Cor preta para o botão Salvar
+  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
   color: '#fff',
   '&:hover': {
-    backgroundColor: '#333',
+  backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
   },
+
 });
 
 export const cancelButtonStyles = css({
   backgroundColor: '#f44336', // Cor vermelha para o botão Cancelar
   color: '#fff',
   '&:hover': {
-    backgroundColor: '#d32f2f',
+  backgroundColor: '#d32f2f',
   },
 });

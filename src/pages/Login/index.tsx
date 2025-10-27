@@ -34,6 +34,13 @@ const Login = () => {
     setSnackbarOpen(false);
   };
 
+  const handlerCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const onlyDigits = value.replace(/[^0-9]/g, '');
+
+    setCpf(onlyDigits.slice(0, 11));
+  }
+
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
@@ -87,7 +94,7 @@ const Login = () => {
   };
   return (
     <Box css={BoxStyles}>
-      <Container css={ContainerLoginStyles}>
+      <Container css={ContainerLoginStyles} component="form" onSubmit={handleSubmit}>
         <img
           src="logo1.png"
           alt="Logo Casa do Amor"
@@ -99,8 +106,11 @@ const Login = () => {
           label="CPF"
           variant="outlined"
           value={cpf}
-          onChange={(e) => setCpf(e.target.value)}
-          css={TextFieldStyles} 
+          //onChange={(e) => setCpf(e.target.value)}
+          onChange={handlerCpfChange}
+          css={TextFieldStyles}
+          required
+          type="tel"
         />
 
         {/* Campo de Password */}
@@ -111,6 +121,7 @@ const Login = () => {
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
           css={TextFieldStyles}
           slotProps={{
             input: {
@@ -133,6 +144,7 @@ const Login = () => {
         <Button
           variant="contained"
           css={ButtonStyles}
+          type="submit"
           onClick={handleSubmit}
         >
           Login

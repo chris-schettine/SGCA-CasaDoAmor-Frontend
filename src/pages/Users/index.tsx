@@ -30,10 +30,10 @@ const buttonStyles = css({
   flexShrink: 0, 
   whiteSpace: "nowrap", 
 
-  backgroundColor: "#000",
-  color: "#fff",
-  "&:hover": {
-    backgroundColor: "#333",
+  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
+  color: '#fff',
+  '&:hover': {
+  backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
   },
 });
 
