@@ -56,6 +56,15 @@ const Login = () => {
     // { token, tipo, email, nome, tipoUsuario, expiresIn }
     const resp = await authService.login(cpf, password);
 
+    // Se o backend informar que 2FA é necessário, redirecionamos para a tela de verificação.
+    // Ex: { requires2FA: true }
+    if (resp?.requires2FA) {
+      sessionStorage.setItem('cpfFor2FA', cpf.replace(/\D/g, ''));
+      showSnackbar('Código 2FA enviado — verifique seu e-mail.', 'info');
+      navigate('/login/verify-2fa');
+      return;
+    }
+
     const token = resp.token;
     const user = {
       nome: resp.nome || resp.user?.nome || '',
@@ -67,8 +76,8 @@ const Login = () => {
 
     login(token, user);
 
-    showSnackbar("Login realizado com sucesso!", "success");
-    const from = location.state?.from?.pathname || "/";
+    showSnackbar('Login realizado com sucesso!', 'success');
+    const from = location.state?.from?.pathname || '/';
     setTimeout(() => {
       navigate(from, { replace: true });
     }, 2000);

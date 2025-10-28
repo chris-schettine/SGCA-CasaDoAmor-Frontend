@@ -15,6 +15,13 @@ const MyProfilePage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success'| 'error' | 'warning' | 'info'>('success');
+  // 2FA state
+  const [twoFaSetup, setTwoFaSetup] = useState<any | null>(null);
+  const [twoFaCodigo, setTwoFaCodigo] = useState('');
+  const [twoFaLoading, setTwoFaLoading] = useState(false);
+  const [twoFaEnableLoading, setTwoFaEnableLoading] = useState(false);
+  const [twoFaResendLoading, setTwoFaResendLoading] = useState(false);
+  const [twoFaEnabled, setTwoFaEnabled] = useState<boolean | null>(null);
 
   const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register } = useForm({ mode: 'onBlur' });
 
@@ -96,6 +103,15 @@ const MyProfilePage = () => {
       try {
         const me: any = await authService.getActiveSession();
         setRawUser(me);
+        // tenta inferir se 2FA está habilitado a partir do objeto retornado (backend pode retornar em campos diferentes)
+        const inferredTwoFaEnabled = !!(
+          me?.autenticacao2fa?.habilitado ||
+          me?.autenticacao2fa?.enabled ||
+          me?.twoFactorEnabled ||
+          me?.habilita2FA ||
+          false
+        );
+        setTwoFaEnabled(inferredTwoFaEnabled);
         const personal = me.dadosPessoais || { sexo: me.sexo };
         const address = me.endereco || {
           cep: me.cep,
@@ -221,6 +237,67 @@ const MyProfilePage = () => {
     } catch (err: any) {
       console.error('Erro ao alterar senha', err);
       showSnackbar(err?.response?.data?.message || 'Erro ao alterar senha', 'error');
+    }
+  };
+
+  // 2FA handlers
+  const handleSetup2FA = async () => {
+    setTwoFaLoading(true);
+    try {
+      const resp = await authService.setup2FA();
+      setTwoFaSetup(resp);
+      showSnackbar(resp?.mensagem || 'Código enviado para seu e-mail.', 'success');
+    } catch (err: any) {
+      console.error('Erro ao iniciar configuração 2FA', err);
+      showSnackbar(err?.response?.data?.message || 'Erro ao enviar código 2FA', 'error');
+    } finally {
+      setTwoFaLoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    if (!twoFaCodigo) { showSnackbar('Informe o código recebido por e-mail', 'warning'); return; }
+    setTwoFaEnableLoading(true);
+    try {
+      await authService.enable2FA({ codigo: twoFaCodigo, habilitar: true });
+      setTwoFaEnabled(true);
+      setTwoFaCodigo('');
+      showSnackbar('2FA habilitado com sucesso', 'success');
+    } catch (err: any) {
+      console.error('Erro ao habilitar 2FA', err);
+      showSnackbar(err?.response?.data?.message || 'Erro ao habilitar 2FA', 'error');
+    } finally {
+      setTwoFaEnableLoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    // Desabilitar exige código também segundo o backend
+    if (!twoFaCodigo) { showSnackbar('Informe o código para desabilitar 2FA', 'warning'); return; }
+    setTwoFaEnableLoading(true);
+    try {
+      await authService.enable2FA({ codigo: twoFaCodigo, habilitar: false });
+      setTwoFaEnabled(false);
+      setTwoFaCodigo('');
+      showSnackbar('2FA desabilitado com sucesso', 'success');
+    } catch (err: any) {
+      console.error('Erro ao desabilitar 2FA', err);
+      showSnackbar(err?.response?.data?.message || 'Erro ao desabilitar 2FA', 'error');
+    } finally {
+      setTwoFaEnableLoading(false);
+    }
+  };
+
+  const handleResend2FA = async () => {
+    setTwoFaResendLoading(true);
+    try {
+      await authService.resend2FA();
+      showSnackbar('Novo código enviado para seu e-mail.', 'success');
+    } catch (err: any) {
+      console.error('Erro ao reenviar código 2FA', err);
+      showSnackbar(err?.response?.data?.message || 'Erro ao reenviar código 2FA', 'error');
+    } finally {
+      setTwoFaResendLoading(false);
     }
   };
 
@@ -427,6 +504,54 @@ const MyProfilePage = () => {
             </Grid>
           </Grid>
         </form>
+      </Box>
+
+      <Box sx={{ mt: 4, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+        <Typography variant="h6">Autenticação de Dois Fatores (2FA)</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2">Status:</Typography>
+          <Chip label={twoFaEnabled ? 'Habilitado' : (twoFaEnabled === null ? 'Desconhecido' : 'Desabilitado')} color={twoFaEnabled ? 'success' : 'default'} />
+          {twoFaEnabled ? (
+            <>
+              <TextField
+                label="Código (para desabilitar)"
+                value={twoFaCodigo}
+                onChange={(e) => setTwoFaCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputProps={{ maxLength: 6, inputMode: 'numeric' }}
+                size="small"
+              />
+              <Button variant="outlined" color="error" onClick={handleDisable2FA} disabled={twoFaEnableLoading}>
+                {twoFaEnableLoading ? <CircularProgress size={18} /> : 'Desabilitar 2FA'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="contained" onClick={handleSetup2FA} disabled={twoFaLoading}>
+                {twoFaLoading ? <CircularProgress size={18} /> : (twoFaSetup ? 'Reenviar código' : 'Configurar 2FA')}
+              </Button>
+              {twoFaSetup && (
+                <>
+                  <TextField
+                    label="Código recebido"
+                    value={twoFaCodigo}
+                    onChange={(e) => setTwoFaCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    inputProps={{ maxLength: 6, inputMode: 'numeric' }}
+                    size="small"
+                  />
+                  <Button variant="contained" color="success" onClick={handleEnable2FA} disabled={twoFaEnableLoading || twoFaCodigo.length !== 6}>
+                    {twoFaEnableLoading ? <CircularProgress size={18} /> : 'Habilitar 2FA'}
+                  </Button>
+                  <Button variant="text" onClick={handleResend2FA} disabled={twoFaResendLoading}>
+                    {twoFaResendLoading ? 'Reenviando...' : 'Reenviar código'}
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </Box>
+        {twoFaSetup?.email && (
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>Código enviado para: {twoFaSetup.email}</Typography>
+        )}
       </Box>
 
       <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)}>

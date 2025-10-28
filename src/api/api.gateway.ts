@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
+import { forceLogout } from '../contexts/AuthContext';
 
 class ApiGateway {
   public gateway: AxiosInstance;
@@ -44,16 +45,39 @@ class ApiGateway {
         });
         
         if (error.response?.status === 401) {
-          
-          console.warn('[API Gateway] Token inválido/expirado (401) - limpando sessão');
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('authUser');
-          
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+          // Don't force logout for auth endpoints that may legitimately return 401
+          // during login/2FA flows (the frontend handles those cases explicitly).
+          const url: string | undefined = error.config?.url;
+          if (url && (url.includes('/auth/login') || url.includes('/auth/2fa') || url.includes('/auth/forgot-password') || url.includes('/auth/reset-password'))) {
+            console.warn('[API Gateway] 401 recebido em endpoint de autenticação; não forçando logout (fluxo de login/2FA).', url);
+          } else {
+            console.warn('[API Gateway] Token inválido/expirado (401) - forçando logout');
+            try {
+              forceLogout();
+            } catch (e) {
+              console.error('[API Gateway] Erro ao executar forceLogout', e);
+              // fallback: limpa e redireciona
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('authUser');
+              if (window.location.pathname !== '/login') window.location.href = '/login';
+            }
           }
         } else if (error.response?.status === 403) {
-          console.warn('[API Gateway] Acesso negado (403) - sem permissão');
+          const url: string | undefined = error.config?.url;
+          // If /auth/me returned 403, it's safer to force logout (session invalid or permission removed)
+          if (url && url.includes('/auth/me')) {
+            console.warn('[API Gateway] /auth/me retornou 403 - forçando logout');
+            try {
+              forceLogout();
+            } catch (e) {
+              console.error('[API Gateway] Erro ao executar forceLogout após 403 /auth/me', e);
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('authUser');
+              if (window.location.pathname !== '/login') window.location.href = '/login';
+            }
+          } else {
+            console.warn('[API Gateway] Acesso negado (403) - sem permissão', url);
+          }
         }
         return Promise.reject(error);
       }

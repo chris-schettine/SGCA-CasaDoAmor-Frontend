@@ -165,3 +165,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export { AuthContext };
+
+// Utility to force logout from non-react modules (e.g. API gateway interceptor).
+// This performs the minimal cleanup: clears localStorage and redirects to /login.
+// Avoids using React hooks since it may be called outside React lifecycle.
+export const forceLogout = () => {
+  try {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+  } catch (e) {
+    console.warn('[forceLogout] erro ao limpar storage', e);
+  }
+  // Redirect to login page
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
