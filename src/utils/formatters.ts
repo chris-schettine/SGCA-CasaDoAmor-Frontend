@@ -47,6 +47,34 @@ export const formatISOToDDMMYYYY = (isoString: string | undefined | null): strin
   return isoString;
 };
 
+/**
+ * Formata uma string ISO para data+hora no timezone local do usuário.
+ * Exemplo: "28/10/2025 14:35 BRT" (formato pode variar conforme o ambiente/browser)
+ */
+export const formatISOToLocalDateTime = (isoString: string | undefined | null): string => {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+    // Usa Intl.DateTimeFormat para respeitar locale e timezone do usuário
+    const dtf = new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      // second: '2-digit',
+      hour12: false,
+      timeZoneName: 'short'
+    });
+    // dtf.format returns something like '28/10/2025 14:35 BRT'
+    return dtf.format(d);
+  } catch (e) {
+    console.warn('formatISOToLocalDateTime failed for', isoString, e);
+    return isoString;
+  }
+};
+
 export const formatRG = (rg?: string | null): string => {
   if (!rg) return '';
   const digits = rg.replace(/\D/g, '');

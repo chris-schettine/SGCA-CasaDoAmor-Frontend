@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Users from './pages/Users';
+import SessionsPage from './pages/Sessions';
 import AdminRoute from './components/AdminRoute';
 import CompanionRegisterPage from './pages/CompanionRegister';
 import Patients from './pages/Patients';
@@ -49,6 +50,12 @@ const AppRoutes = () => (
       <Route path="users" element={
         <AdminRoute>
           <Users />
+        </AdminRoute>
+      } />
+
+      <Route path="sessions" element={
+        <AdminRoute>
+          <SessionsPage />
         </AdminRoute>
       } />
 

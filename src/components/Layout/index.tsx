@@ -16,6 +16,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import HistoryIcon from '@mui/icons-material/History';
 import GroupsIcon from '@mui/icons-material/Groups';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Outlet, useNavigate } from 'react-router-dom';
@@ -221,6 +222,32 @@ export default function Layout() {
                 </ListItemIcon>
                 <ListItemText
                   primary="Usuários"
+                  sx={{ textAlign: 'center' }}
+                  slotProps={{
+                    primary: {
+                      sx: { color: '#000000da', fontWeight: 'bold' }
+                    }
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          )}
+          {user?.tipoUsuario === 'ADMINISTRADOR' && (
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                to="/sessions"
+                sx={{
+                  maxWidth: '280px',
+                  margin: '0 auto',
+                  padding: '8px 75px',
+                }}
+              >
+                <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
+                  <HistoryIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Sessões Ativas"
                   sx={{ textAlign: 'center' }}
                   slotProps={{
                     primary: {

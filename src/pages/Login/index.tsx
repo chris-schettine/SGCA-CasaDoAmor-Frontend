@@ -52,21 +52,10 @@ const Login = () => {
   try {
    
 
-    // backend returns an object like:
-    // { token, tipo, email, nome, tipoUsuario, expiresIn }
-    const resp = await authService.login(cpf, password);
-
-    // Se o backend informar que 2FA é necessário, redirecionamos para a tela de verificação.
-    // Ex: { requires2FA: true }
-    if (resp?.requires2FA) {
-      sessionStorage.setItem('cpfFor2FA', cpf.replace(/\D/g, ''));
-      showSnackbar('Código 2FA enviado — verifique seu e-mail.', 'info');
-      navigate('/login/verify-2fa');
-      return;
-    }
-
-    const token = resp.token;
-    const user = {
+  // { token, tipo, email, nome, tipoUsuario, expiresIn }
+  const resp = await authService.login(cpf, password);
+  const token = resp.token;
+    let finalUser = {
       nome: resp.nome || resp.user?.nome || '',
       email: resp.email || resp.user?.email || '',
       cpf: resp.cpf || resp.user?.cpf || '',
@@ -74,7 +63,21 @@ const Login = () => {
       tipoUsuario: resp.tipoUsuario || resp.user?.tipoUsuario || resp.tipo || undefined,
     };
 
-    login(token, user);
+    try {
+      const raw: any = await authService.getActiveSession();
+      const normalizedUser = {
+        nome: raw.nome || raw.user?.nome || finalUser.nome,
+        email: raw.email || raw.user?.email || finalUser.email,
+        cpf: raw.cpf || raw.user?.cpf || finalUser.cpf,
+        roles: (raw.perfis && Array.isArray(raw.perfis)) ? raw.perfis.map((p: any) => p.nome) : (raw.roles || raw.user?.roles || finalUser.roles),
+        tipoUsuario: raw.tipo || raw.tipoUsuario || raw.user?.tipoUsuario || finalUser.tipoUsuario,
+      };
+      finalUser = normalizedUser;
+    } catch (err) {
+      console.warn('[Login] Falha ao obter /auth/me após login - usando user retornado pelo login', err);
+    }
+
+    login(token, finalUser);
 
     showSnackbar('Login realizado com sucesso!', 'success');
     const from = location.state?.from?.pathname || '/';
@@ -83,23 +86,10 @@ const Login = () => {
     }, 2000);
 
   } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Erro desconhecido";
-      const status = error.response?.status;
-
-      // (AJUSTE "Código 2FA necessário" para a mensagem exata do backend)
-      if (status === 401 && errorMessage.includes("Código 2FA necessário")) { 
-        
-        // Salva o CPF limpo para a próxima tela usar
-        sessionStorage.setItem('cpfFor2FA', cpf.replace(/\D/g, '')); 
-        
-        // Redireciona para a tela de verificação
-        navigate('/login/verify-2fa'); 
-        
-      } else {
-        // Se for outro erro (ex: senha errada), mostra a mensagem
-        showSnackbar(errorMessage, "error");
-      }
-    }
+    const errorMessage = error.response?.data?.message || 'Erro desconhecido';
+    // Default behavior: show error message for failed login
+    showSnackbar(errorMessage, 'error');
+  }
   };
   return (
     <Box css={BoxStyles}>

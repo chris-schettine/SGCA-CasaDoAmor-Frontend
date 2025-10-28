@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress, Link as MuiLink, type AlertColor, type SnackbarCloseReason } from "@mui/material";
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -26,9 +26,7 @@ const ContainerFormStyles = {
 // --- Fim dos Estilos ---
 
 // Hook para ler parâmetros de busca (ex: ?token=...)
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+// (removed unused useQuery helper)
 
 
 const LoginVerify2FAPage = () => {
@@ -83,23 +81,49 @@ const LoginVerify2FAPage = () => {
 
       
       const token = resp.token;
-      
-     const user = {
-        nome: resp.user?.nome || '', 
-        email: resp.user?.email || '', 
-        cpf: cpf || '', 
-        roles: resp.user?.roles || [], 
-        tipoUsuario: resp.user?.tipoUsuario || undefined, 
-     };
 
-   
+      // Temporarily store the token so subsequent requests (e.g. /auth/me) include it
+      try {
+        localStorage.setItem('authToken', token);
+      } catch (e) {
+        console.warn('[LoginVerify2FA] Não foi possível salvar token temporariamente no localStorage', e);
+      }
+
+      // Try to fetch the full user profile (with roles) from /auth/me to ensure we have
+      // correct permissions immediately after 2FA. If this fails, fall back to using
+      // the user object returned in the verify2FA response.
+      let finalUser = {
+        nome: resp.user?.nome || '',
+        email: resp.user?.email || '',
+        cpf: cpf || '',
+        roles: resp.user?.roles || [],
+        tipoUsuario: resp.user?.tipoUsuario || undefined,
+      };
+
+      try {
+        const raw: any = await authService.getActiveSession();
+        // Normalize shape similar to AuthContext normalization
+        const normalizedUser = {
+          nome: raw.nome || raw.user?.nome || finalUser.nome,
+          email: raw.email || raw.user?.email || finalUser.email,
+          cpf: raw.cpf || raw.user?.cpf || finalUser.cpf,
+          roles: (raw.perfis && Array.isArray(raw.perfis))
+            ? raw.perfis.map((p: any) => p.nome)
+            : (raw.roles || raw.user?.roles || finalUser.roles),
+          tipoUsuario: raw.tipo || raw.tipoUsuario || raw.user?.tipoUsuario || finalUser.tipoUsuario,
+        } as any;
+
+        finalUser = normalizedUser;
+      } catch (err) {
+        console.warn('[LoginVerify2FA] Falha ao obter /auth/me após 2FA - usando user retornado pelo verify2FA', err);
+      }
+
       sessionStorage.removeItem('cpfFor2FA');
 
-     
-      login(token, user); 
-      
-      showSnackbar("Código verificado com sucesso!", "success");
-      
+      // Call login with the token and the (preferably) full user object
+      login(token, finalUser as any);
+
+      showSnackbar('Código verificado com sucesso!', 'success');
       setTimeout(() => navigate('/'), 1500);
 
     } catch (error: any) {
