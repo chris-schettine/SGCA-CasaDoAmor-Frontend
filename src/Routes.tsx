@@ -20,6 +20,7 @@ import ForgotPasswordPage from './pages/ForgotPassword';
 import ResetPasswordPage from './pages/ResetPassword'; 
 import ActivateAccountPage from './pages/ActivateAccount';
 import LoginVerify2FAPage from './pages/LoginVerify2FA';
+import RelatoryPage from './components/RelatoryPage';
 
 const AppRoutes = () => (
   <Routes>
@@ -46,6 +47,7 @@ const AppRoutes = () => (
       <Route path="patient/information" element={<PatientInformation />} />
       <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
       <Route path="patient/edit/:id" element={<PatientEditPage />} />
+      <Route path="/patient/report/:id" element={<RelatoryPage />} />
 
       <Route path="users" element={
         <AdminRoute>

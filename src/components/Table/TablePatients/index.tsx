@@ -1,5 +1,6 @@
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import AssignmentIcon from '@mui/icons-material/Assignment'; 
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography } from "@mui/material"
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +38,6 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   const delay = 1000;
   const searchDebounce = 500;
 
-  // Fetch data from the API when the component mounts
   useEffect(() => {
     let mounted = true;
     const timeout = setTimeout(async () => {
@@ -72,9 +72,8 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     setPage(0);
   }
 
-  // Passar o paciente a partir do id 
   const handleViewMedicalRecords = (id: string) => {
-    // find patient object to pass via state
+
     const patientObj = patients.find((p) => p.id === id);
     setTimeout(() => {
       navigate("/patient/information", {
@@ -86,6 +85,12 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   const handleEdit = (id: string) => {
     const patientObj = patients.find((p) => p.id === id);
     navigate(`/patient/edit/${id}`, { state: { patient: patientObj } });
+  }
+
+  const handleReport = (id: string) => {
+    const patientObj = patients.find((p) => p.id === id);
+  
+    navigate(`/patient/report/${id}`, { state: { patient: patientObj } });
   }
 
   if (loading) {
@@ -137,17 +142,26 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
                       <TableCell>{patient.cpf}</TableCell>
                       <TableCell>{formatRG(patient.rg) || '—'}</TableCell>
                     <TableCell align="center">
+           
                       <IconButton color="primary"
                         onClick={() => handleViewMedicalRecords(patient.id)}
                         aria-label="visualizar"
                       >
                         <VisibilityIcon />
                       </IconButton>
+             
                       <IconButton color="success"
                         onClick={() => handleEdit(patient.id)}
                         aria-label="editar"
                       >
                         <EditIcon />
+                      </IconButton>
+
+                      <IconButton color="secondary" 
+                        onClick={() => handleReport(patient.id)}
+                        aria-label="relatório"
+                      >
+                        <AssignmentIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
