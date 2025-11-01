@@ -34,6 +34,7 @@ const PatientEditPage = () => {
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isCepLoading, setIsCepLoading] = useState(false);
 
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -174,6 +175,7 @@ const PatientEditPage = () => {
 
     const cleanedCep = cep.replace(/\D/g, '');
     if (cleanedCep.length === 8) {
+      setIsCepLoading(true);
       try {
         const addressData = await fetchAddressByCep(cleanedCep);
         if (addressData) {
@@ -196,6 +198,8 @@ const PatientEditPage = () => {
           message: "Erro ao buscar CEP. Tente novamente."
         });
         showSnackbar("Erro ao buscar CEP. Tente novamente.", "error");
+      } finally {
+        setIsCepLoading(false);
       }
     } else if (cleanedCep.length > 0 && cleanedCep.length < 8) {
       setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
@@ -280,6 +284,7 @@ const PatientEditPage = () => {
           setValue={setValue}
           handleCepSearch={handleCepSearch}
           control={control}
+          isCepLoading={isCepLoading}
           disabledFields={["nomeCompletoPaciente", "dataNascimento", "cpfPaciente", "rg", "naturalidade", "nomeMae"]}
         />
 
