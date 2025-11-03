@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, IconButton, InputAdornment, Snackbar, TextField } from "@mui/material";
+import { Alert, Box, Button, Container, IconButton, InputAdornment, Snackbar, TextField, Typography } from "@mui/material";
 import { BoxStyles, ButtonStyles, ContainerLoginStyles, imgStyles, TextFieldStyles } from "./styles";
 import { useState } from "react";
 import Visibility from '@mui/icons-material/Visibility';
@@ -93,61 +93,74 @@ const Login = () => {
   };
   return (
     <Box css={BoxStyles}>
-      <Container css={ContainerLoginStyles} component="form" onSubmit={handleSubmit}>
+      <Container css={ContainerLoginStyles}>
         <img
           src="logo1.png"
           alt="Logo Casa do Amor"
           css={imgStyles}
         />
 
-        {/* Campo de Username */}
-        <TextField
-          label="CPF"
-          variant="outlined"
-          value={cpf}
-          //onChange={(e) => setCpf(e.target.value)}
-          onChange={handlerCpfChange}
-          css={TextFieldStyles}
-          required
-          type="tel"
-        />
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', mt: 1 }}>
+          Sistema de Gerenciamento da Casa do Amor
+        </Typography>
+        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+          Por favor, faça login para continuar.
+        </Typography>
 
-        {/* Campo de Password */}
-        <TextField
-          label="Senha"
-          variant="outlined"
-          fullWidth
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          css={TextFieldStyles}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }
-          }}
+        <Box component="form" onSubmit={handleSubmit} css={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          
+          <TextField
+            label="CPF"
+            variant="outlined"
+            value={cpf}
+            onChange={handlerCpfChange}
+            css={TextFieldStyles}
+            required
+            type="tel"
+            autoComplete="username" 
+            inputProps={{ 
+              maxLength: 11 
+            }}
+          />
 
-        />
-        <Button
-          variant="contained"
-          css={ButtonStyles}
-          type="submit"
-          onClick={handleSubmit}
-        >
-          Login
-        </Button>
+          <TextField
+            label="Senha"
+            variant="outlined"
+            fullWidth
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            css={TextFieldStyles}
+            autoComplete="current-password" 
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
+            }}
+          />
+
+          <Button
+            variant="contained"
+            css={ButtonStyles}
+            type="submit"
+          >
+            Login
+          </Button>
+        </Box>
+        
+        
          <Box sx={{ textAlign: 'center', marginTop: '1rem' }}>
           <MuiLink
             component={RouterLink}
