@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, IconButton, InputAdornment, Snackbar, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 import { BoxStyles, ButtonStyles, ContainerLoginStyles, imgStyles, TextFieldStyles } from "./styles";
 import { useState } from "react";
 import Visibility from '@mui/icons-material/Visibility';
@@ -7,7 +7,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { Link as RouterLink } from 'react-router-dom'; 
-import { Link as MuiLink } from '@mui/material'; 
+import { Link as MuiLink } from '@mui/material';
+import { toastError, toastSuccess } from "../../utils/toast";
 
 const Login = () => {
   const { login } = useAuth();
@@ -18,22 +19,14 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
-
-
+  
   // Mostrar e não mostrar senha
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
 
-  const handleSnackbarClose = (reason: string) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  };
-
+  
   const handlerCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const onlyDigits = value.replace(/[^0-9]/g, '');
@@ -41,11 +34,7 @@ const Login = () => {
     setCpf(onlyDigits.slice(0, 11));
   }
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -79,16 +68,15 @@ const Login = () => {
 
     login(token, finalUser);
 
-    showSnackbar('Login realizado com sucesso!', 'success');
+    toastSuccess('Login realizado com sucesso!');
     const from = location.state?.from?.pathname || '/';
     setTimeout(() => {
       navigate(from, { replace: true });
     }, 2000);
 
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || 'Erro desconhecido';
-    // Default behavior: show error message for failed login
-    showSnackbar(errorMessage, 'error');
+    const  errorMessage = error.response?.data?.message || 'Erro desconhecido';
+    toastError(errorMessage);
   }
   };
   return (
@@ -172,22 +160,7 @@ const Login = () => {
           </MuiLink>
         </Box>
       </Container>
-
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as string)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+    
     </Box>
   )
 };
