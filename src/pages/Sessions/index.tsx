@@ -12,6 +12,13 @@ interface SessaoDTO {
   expiraEm: string;
   ativo: boolean;
   atual: boolean;
+  usuario?: {
+    id: number;
+    nome: string;
+    email: string;
+    cpf: string;
+    tipo: string;
+  };
 }
 
 const SessionsPage = () => {
@@ -27,7 +34,8 @@ const SessionsPage = () => {
     setLoading(true);
     try {
       const resp = await authService.listSessions();
-      setSessions(resp);
+      // resp tem o shape { totalSessoes, sessoes }
+      setSessions(resp.sessoes || []);
     } catch (err: any) {
       console.error('Erro ao buscar sessões', err);
       setSnackbarMessage(err?.response?.data?.message || 'Erro ao buscar sessões');
@@ -76,6 +84,8 @@ const SessionsPage = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
+                <TableCell>Nome</TableCell>
+                <TableCell>CPF</TableCell>
                 <TableCell>IP Origem</TableCell>
                 <TableCell>User Agent</TableCell>
                 <TableCell>Criado Em</TableCell>
@@ -89,6 +99,8 @@ const SessionsPage = () => {
               {sessions.map(s => (
                 <TableRow key={s.id}>
                   <TableCell>{s.id}</TableCell>
+                  <TableCell>{s.usuario?.nome || '-'}</TableCell>
+                  <TableCell>{s.usuario?.cpf || '-'}</TableCell>
                   <TableCell>{s.ipOrigem || '-'}</TableCell>
                   <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.userAgent || '-'}</TableCell>
                   <TableCell>{formatISOToLocalDateTime(s.criadoEm) || s.criadoEm}</TableCell>

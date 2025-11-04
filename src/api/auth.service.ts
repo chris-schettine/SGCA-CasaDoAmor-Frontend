@@ -13,7 +13,7 @@ import type {
   Verify2FADTO,
   Setup2FADTO,
   Enable2FADTO,
-  SessaoDTO,
+  SessaoAuditDTO,
   MessageResponseDTO,
 } from './auth.dto';
 
@@ -90,8 +90,14 @@ class AuthService {
     return response.data;
   }
 
-  async listSessions(): Promise<SessaoDTO[]> {
-    const response = await api.get('/auth/sessions');
+  /**
+   * Lista sessões ativas via endpoint de auditoria.
+   * Endpoint atualizado: GET /admin/audit/sessions
+   * Retorna o objeto { totalSessoes: number; sessoes: SessaoAuditDTO[] }
+   */
+  async listSessions(): Promise<{ totalSessoes: number; sessoes: SessaoAuditDTO[] }> {
+    const response = await api.get('/admin/audit/sessions');
+    // O backend retorna { totalSessoes, sessoes }
     return response.data;
   }
 

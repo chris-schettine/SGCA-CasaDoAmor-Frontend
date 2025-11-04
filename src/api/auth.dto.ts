@@ -77,6 +77,19 @@ export interface SessaoDTO {
   atual: boolean;
 }
 
+export interface SessaoUsuarioDTO {
+  id: number;
+  nome: string;
+  email: string;
+  cpf: string;
+  tipo: string;
+}
+
+// Extende SessaoDTO para incluir o usuário quando retornado pelo endpoint de auditoria
+export interface SessaoAuditDTO extends SessaoDTO {
+  usuario?: SessaoUsuarioDTO;
+}
+
 export interface MessageResponseDTO {
   message: string;
   success: boolean;
