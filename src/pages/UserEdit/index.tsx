@@ -8,6 +8,7 @@ import { userSchemaConditional as userSchema, type UserFormInputs } from "../../
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
+import { formatISOToDDMMYYYY } from '../../utils/formatters';
 
 const UserEditPage = () => {
   const navigate = useNavigate();
@@ -195,7 +196,7 @@ const UserEditPage = () => {
   const handleSaveUser = async (data: UserFormInputs) => {
     if (!id) return;
     try {
-      const { removeNonNumeric } = await import('../../utils/formatters');
+      const { removeNonNumeric, formatDateToISO } = await import('../../utils/formatters');
 
       const userDTO: any = {
         nome: data.nomeUsuario,
@@ -206,7 +207,7 @@ const UserEditPage = () => {
         // send cpf as digits-only (backend seems to accept digits)
         cpf: data.cpfUsuario ? removeNonNumeric(data.cpfUsuario) : undefined,
         dadosPessoais: {
-          dataNascimento: data.dataNascimento || undefined,
+          dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
           sexo: data.sexo || undefined,
           naturalidade: data.naturalidade || undefined,
           estadoCivil: data.estadoCivil || undefined,
