@@ -8,7 +8,7 @@ import { userSchemaConditional as userSchema, type UserFormInputs } from "../../
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
-import { formatISOToDDMMYYYY } from '../../utils/formatters';
+
 
 const UserEditPage = () => {
   const navigate = useNavigate();
