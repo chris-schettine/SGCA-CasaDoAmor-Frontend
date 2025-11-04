@@ -6,7 +6,8 @@ function App() {
   return (
     <Router>
       <AppRoutes />
-      <ToastContainer />
+      {/* Limita toasts simultâneos e mostra os mais novos no topo */}
+      <ToastContainer limit={3} newestOnTop />
     </Router>
   );
 }
