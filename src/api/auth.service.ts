@@ -102,7 +102,7 @@ class AuthService {
   }
 
   async revokeSession(id: number): Promise<void> {
-    await api.delete(`/auth/sessions/${id}`);
+    await api.delete(`/admin/audit/sessions/${id}`);
   }
 }
 
