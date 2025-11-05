@@ -462,38 +462,6 @@ const PatientPersonalDataForm = (
             }}
           />
         </Grid>
-
-        {/* SEXTA LINHA: Cidade e Estado*/}
-        <Grid size={{xs:12, sm:8}}>
-          <TextField
-            id="cidade"
-            label="Cidade"
-            variant="outlined"
-            fullWidth
-            placeholder="Cidade"
-            {...register("cidade")}
-            error={!!errors.cidade}
-            helperText={errors.cidade?.message}
-            disabled={isCepLoading}
-            InputLabelProps={{ shrink: !!cidadeValue || isCepLoading }}
-          />
-        </Grid>
-        <Grid size={{xs:12, sm:4}}>
-          <TextField
-            id="estado"
-            label="Estado (UF)"
-            variant="outlined"
-            fullWidth
-            placeholder="UF"
-            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
-            {...register("estado")}
-            error={!!errors.estado}
-            helperText={errors.estado?.message}
-            disabled={isCepLoading}
-            InputLabelProps={{ shrink: !!estadoValue || isCepLoading }}
-            />
-        </Grid>
-
       </Grid>
     </>
   )
