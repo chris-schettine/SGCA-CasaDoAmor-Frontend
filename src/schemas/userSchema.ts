@@ -7,9 +7,14 @@ import {
 } from './commonValidation';
 
 export const userSchema = z.object({
-  tipo: z.enum(["ADMINISTRADOR","DENTISTA","ENFERMEIRO","FISIOTERAPEUTA","MEDICO","NUTRICIONISTA","RECEPCIONISTA","AUDITOR"]),
+  tipo: z.enum(["ADMINISTRADOR","DENTISTA","ENFERMEIRO","FISIOTERAPEUTA","MEDICO","NUTRICIONISTA","RECEPCIONISTA","AUDITOR"], {
+    errorMap: () => ({ message: "Selecione um tipo de usuário válido" })
+  }),
   cpfUsuario: cpfSchema,
-  email: z.string().email("Email inválido").max(255, "Email muito longo."),
+  email: z.string()
+    .min(1, "O e-mail é obrigatório")
+    .email("Digite um e-mail válido (ex: nome@exemplo.com)")
+    .max(255, "O e-mail não pode ter mais de 255 caracteres"),
   telefone: phoneSchema,
   nomeUsuario: requiredString,
   sexo: requiredString,
@@ -22,7 +27,7 @@ export const userSchema = z.object({
   profissao: z.string().trim().optional(),
   // professional-specific fields: optional by default, validated conditionally below
   registro: z.string().trim().optional(),
-  estado: z.string().trim().min(1, 'Estado é obrigatório.'),
+  estado: z.string().trim().min(1, 'O estado é obrigatório'),
   rqe: z.string().trim().optional(),
   cep: cepSchema,
   endereco: requiredString,
@@ -30,7 +35,7 @@ export const userSchema = z.object({
   cidade: requiredString,
   numero: requiredString,
   complemento: z.string().trim().optional(),
-  perfisIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil de acesso"),
+  perfisIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil de acesso para o usuário"),
 });
 
 // Conditional validation: require professional fields only for certain tipos

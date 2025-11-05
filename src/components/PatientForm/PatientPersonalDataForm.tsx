@@ -67,7 +67,11 @@ const PatientPersonalDataForm = (
             disabled={isDisabled('nomeCompletoPaciente')}
             error={!!errors.nomeCompletoPaciente}
             helperText={errors.nomeCompletoPaciente?.message}
+            required
             slotProps={{
+              inputLabel: {
+                required: true,
+              },
               formHelperText: {
                 sx: {
                   maxHeight: '0.4em',
@@ -96,6 +100,10 @@ const PatientPersonalDataForm = (
                 mask="000.000.000-00"
                 lazy={true}
                 disabled={isDisabled('cpfPaciente')}
+                required
+                InputLabelProps={{
+                  required: true,
+                }}
               />
             )}
           />
@@ -119,6 +127,10 @@ const PatientPersonalDataForm = (
                 mask="00/00/0000"
                 lazy={true}
                 disabled={isDisabled('dataNascimento')}
+                required
+                InputLabelProps={{
+                  required: true,
+                }}
               />
             )}
           />
@@ -252,6 +264,10 @@ const PatientPersonalDataForm = (
                 helperText={errors.telefone?.message}
                 mask="00 00000-0000"
                 lazy={true}
+                required
+                InputLabelProps={{
+                  required: true,
+                }}
               />
             )}
           />
@@ -269,17 +285,21 @@ const PatientPersonalDataForm = (
                 fullWidth
                 placeholder="00000-000"
                 error={!!errors.cep}
-                helperText={errors.cep?.message}
+                helperText={errors.cep?.message || (isCepLoading ? "Buscando endereço..." : "")}
                 mask="00000-000"
                 lazy={true}
                 onBlur={(e) => {
                   field.onBlur();
                   handleCepSearch(e.target.value, "");
                 }}
+                required
+                InputLabelProps={{
+                  required: true,
+                }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      {isCepLoading && <CircularProgress size={20} />}
+                      {isCepLoading && <CircularProgress size={20} aria-label="Buscando endereço pelo CEP" />}
                     </InputAdornment>
                   ),
                 }}
@@ -298,10 +318,12 @@ const PatientPersonalDataForm = (
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
             disabled={isCepLoading}
-            InputLabelProps={{ shrink: !!enderecoValue || isCepLoading }}
+            required
+            InputLabelProps={{ shrink: !!enderecoValue || isCepLoading, required: true }}
             slotProps={{
               inputLabel: {
                 shrink: !!enderecoValue,
+                required: true,
               },
               formHelperText: {
                 sx: {
@@ -395,7 +417,11 @@ const PatientPersonalDataForm = (
             {...register("numero")}
             error={!!errors.numero}
             helperText={errors.numero?.message}
+            required
             slotProps={{
+              inputLabel: {
+                required: true,
+              },
               formHelperText: {
                 sx: {
                   maxHeight: 0,

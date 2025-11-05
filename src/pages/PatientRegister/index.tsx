@@ -1,4 +1,4 @@
-import { Button, type AlertColor } from "@mui/material";
+import { Button, type AlertColor, Stepper, Step, StepLabel, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
-import { buttonStyles, cancelButtonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "./styles";
+import { buttonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "./styles";
 import Snackbar from '@mui/material/Snackbar';
 import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -18,24 +18,31 @@ import { pacienteService } from "../../api/paciente.service";
 import type { RegistrarPacienteDTO } from "../../api/paciente.dto";
 import { useAuth } from "../../hooks/useAuth";
 import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
+import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
+import { useSaveShortcut } from "../../hooks/useSaveShortcut";
+
+const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
+  const [activeStep, setActiveStep] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
+  const [snackbarAutoHide, setSnackbarAutoHide] = useState(6000);
 
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
 
   const [isCepLoading, setIsCepLoading] = useState(false);
 
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
+  const showSnackbar = useCallback((message: string, severity: AlertColor, autoHideDuration: number = 6000) => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
+    setSnackbarAutoHide(autoHideDuration);
   }, []);
 
   const handleSnackbarClose = (
@@ -50,7 +57,7 @@ const PatientRegisterPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
     watch,
     setValue,
@@ -85,6 +92,16 @@ const PatientRegisterPage = () => {
       usoOxigenoterapia: "nao",
     }
   });
+
+  // Alerta de mudanças não salvas
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
+
+  // Atalho Ctrl+S para salvar (apenas na última etapa)
+  useSaveShortcut(() => {
+    if (activeStep === steps.length - 1) {
+      handleSubmit(handleSavePatient, onError)();
+    }
+  }, activeStep === steps.length - 1);
 
   const handleSavePatient = async (data: PatientFormInputs) => {
     console.log("Formulário Válido, Dados:", data);
@@ -121,7 +138,7 @@ const PatientRegisterPage = () => {
 
       await pacienteService.registrarPaciente(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
-      showSnackbar("Paciente cadastrado com sucesso!", "success");
+      showSnackbar("✓ Paciente cadastrado com sucesso!", "success", 8000); // Operação crítica - 8 segundos
       setTimeout(() => {
         navigate('/patient/companion/register');
       }, 2000)
@@ -134,7 +151,29 @@ const PatientRegisterPage = () => {
 
   const onError = (errors: FieldErrors<PatientFormInputs>) => {
     console.log("Erros de validação:", errors);
-    showSnackbar("Por favor, corrija os erros no formulário.", "error");
+    
+    // Identifica campos com erro para mensagem mais específica
+    const errorFields = Object.keys(errors);
+    const fieldLabels: Record<string, string> = {
+      nomeCompletoPaciente: "Nome Completo",
+      cpfPaciente: "CPF",
+      dataNascimento: "Data de Nascimento",
+      telefone: "Telefone",
+      cep: "CEP",
+      endereco: "Endereço",
+      bairro: "Bairro",
+      cidade: "Cidade",
+      estado: "Estado",
+      numero: "Número"
+    };
+    
+    if (errorFields.length > 0) {
+      const firstErrorField = fieldLabels[errorFields[0]] || errorFields[0];
+      showSnackbar(`Por favor, corrija o campo: ${firstErrorField}`, "error");
+    } else {
+      showSnackbar("Por favor, corrija os erros no formulário.", "error");
+    }
+    
     setOpenSaveDialog(false);
   };
 
@@ -207,47 +246,104 @@ const PatientRegisterPage = () => {
     }
   }, [cepValue, handleCepSearch]);
 
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
   return (
     <div css={stylesContainer}>
       <h1 css={TitleStyles}>Cadastrar Paciente</h1>
+      
+      {/* Stepper */}
+      <Box sx={{ width: '100%', mb: 4 }}>
+        <Stepper activeStep={activeStep}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      </Box>
+
       <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
 
-        {/* Dados Pessoais */}
-        <PatientPersonalDataForm
-          register={register}
-          errors={errors}
-          watch={watch}
-          setValue={setValue}
-          handleCepSearch={handleCepSearch}
-          isCepLoading={isCepLoading}
-          control={control}
-        />
+        {/* Dados Pessoais - Step 0 */}
+        {activeStep === 0 && (
+          <PatientPersonalDataForm
+            register={register}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            handleCepSearch={handleCepSearch}
+            isCepLoading={isCepLoading}
+            control={control}
+          />
+        )}
 
-        {/* Mais detalhes do paciente */}
-        <PatientDetailsForm
-          register={register}
-          errors={errors}
-          control={control}
-          watch={watch}
-        />
+        {/* Mais detalhes do paciente - Step 1 */}
+        {activeStep === 1 && (
+          <PatientDetailsForm
+            register={register}
+            errors={errors}
+            control={control}
+            watch={watch}
+          />
+        )}
 
-        {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
-          <Button
-            type="submit"
-            variant="contained"
-            css={[buttonStyles, saveButtonStyles]}
-            //onClick={handleOpenSaveDialog}
-          >
-            Salvar
-          </Button>
-          <Button
-            variant="contained"
-            css={[buttonStyles, cancelButtonStyles]}
-            onClick={handleOpenCancelDialog}
-          >
-            Cancelar
-          </Button>
+        {/* Botões de Navegação */}
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4, ml: 3, mr: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={handleBack}
+              disabled={activeStep === 0}
+              css={buttonStyles}
+            >
+              Voltar
+            </Button>
+            {activeStep < steps.length - 1 && (
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                css={[buttonStyles, saveButtonStyles]}
+              >
+                Próximo
+              </Button>
+            )}
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {activeStep === steps.length - 1 && (
+              <Button
+                type="submit"
+                variant="contained"
+                css={[buttonStyles, saveButtonStyles]}
+                aria-label="Salvar cadastro do paciente"
+              >
+                Salvar
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              css={buttonStyles}
+              sx={{
+                borderColor: '#d32f2f',
+                color: '#d32f2f',
+                '&:hover': {
+                  borderColor: '#c62828',
+                  backgroundColor: 'rgba(211, 47, 47, 0.04)',
+                },
+              }}
+              onClick={handleOpenCancelDialog}
+              aria-label="Cancelar cadastro e voltar"
+            >
+              Cancelar
+            </Button>
+          </Box>
         </Grid>
       </form>
 
@@ -255,7 +351,7 @@ const PatientRegisterPage = () => {
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         open={snackbarOpen}
-        autoHideDuration={6000}
+        autoHideDuration={snackbarAutoHide}
         onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
       >
         <Alert

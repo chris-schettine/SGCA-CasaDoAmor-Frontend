@@ -18,6 +18,7 @@ const Login = () => {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [cpfError, setCpfError] = useState('');
 
   
   // Mostrar e não mostrar senha
@@ -32,6 +33,13 @@ const Login = () => {
     const onlyDigits = value.replace(/[^0-9]/g, '');
 
     setCpf(onlyDigits.slice(0, 11));
+    
+    // Validação em tempo real do CPF
+    if (onlyDigits.length > 0 && onlyDigits.length < 11) {
+      setCpfError('CPF deve ter 11 dígitos');
+    } else {
+      setCpfError('');
+    }
   }
 
 
@@ -106,8 +114,11 @@ const Login = () => {
             required
             type="tel"
             autoComplete="username" 
+            error={!!cpfError}
+            helperText={cpfError || "Digite apenas números"}
             inputProps={{ 
-              maxLength: 11 
+              maxLength: 11,
+              'aria-label': 'Digite seu CPF com 11 dígitos'
             }}
           />
 
@@ -120,13 +131,16 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             css={TextFieldStyles}
-            autoComplete="current-password" 
+            autoComplete="current-password"
+            inputProps={{
+              'aria-label': 'Digite sua senha'
+            }}
             slotProps={{
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="toggle password visibility"
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       onClick={handleClickShowPassword}
                       onMouseDown={handleMouseDownPassword}
                       edge="end"

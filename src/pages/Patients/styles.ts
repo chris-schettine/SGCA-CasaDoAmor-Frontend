@@ -22,12 +22,15 @@ export const TitleStyles = css({
 
 export const buttonStyles = css({
   width: '20%',
-  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
+  backgroundColor: '#1976d2', // Material Blue 700 - melhor contraste WCAG
   color: '#fff',
   '&:hover': {
-  backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
+    backgroundColor: '#1565c0', // Material Blue 800
   },
-
+  '&:focus-visible': {
+    outline: '3px solid #90caf9', // Foco visível para acessibilidade
+    outlineOffset: '2px',
+  },
 });
 
 export const searchContainer = css({

@@ -1,5 +1,5 @@
 import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason } from "@mui/material";
-import { buttonStyles, cancelButtonStyles, saveButtonStyles, stylesContainer, TitleStyles } from "./styles";
+import { buttonStyles, saveButtonStyles, cancelButtonStyles, stylesContainer, TitleStyles } from "./styles";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
@@ -10,6 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
 import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
 import { formatDateToISO, removeNonNumeric } from '../../utils/formatters';
+import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
+import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ const UserRegisterPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
     watch,
     setValue,
@@ -77,6 +79,9 @@ const UserRegisterPage = () => {
       complemento: "",
     },
   });
+
+  // Alerta de mudanças não salvas
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
 
   // CEP auto-fill logic (similar to edit page)
   const cepValue = watch('cep');
@@ -116,6 +121,11 @@ const UserRegisterPage = () => {
       handleCepSearch(cepValue);
     }
   }, [cepValue, setValue, setError, clearErrors, showSnackbar, watch]);
+
+  // Atalho Ctrl+S para salvar
+  useSaveShortcut(() => {
+    handleSubmit(handleSaveUser, onError)();
+  });
 
   const handleSaveUser = async (data: UserFormInputs) => {
     try {
@@ -202,11 +212,12 @@ const UserRegisterPage = () => {
         />
 
         {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
             variant="contained"
             css={[buttonStyles, saveButtonStyles]}
             onClick={handleOpenSaveDialog}
+            aria-label="Salvar cadastro do profissional"
           >
             Salvar
           </Button>
@@ -214,6 +225,7 @@ const UserRegisterPage = () => {
             variant="contained"
             css={[buttonStyles, cancelButtonStyles]}
             onClick={handleOpenCancelDialog}
+            aria-label="Cancelar cadastro e voltar"
           >
             Cancelar
           </Button>

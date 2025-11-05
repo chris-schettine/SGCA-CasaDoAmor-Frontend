@@ -12,32 +12,32 @@ export const CEP_REGEX = /^\d{5}-\d{3}$/;
 
 export const requiredString = z.string()
   .trim()
-  .min(1, "Campo obrigatório.");
+  .min(1, "Este campo é obrigatório");
 
 export const cpfSchema = z.string()
   .trim()
-  .min(1, "CPF é obrigatório.")
-  .regex(CPF_REGEX, "Formato de CPF inválido (XXX.XXX.XXX-XX).");
+  .min(1, "O CPF é obrigatório")
+  .regex(CPF_REGEX, "CPF inválido. Use o formato XXX.XXX.XXX-XX");
 
 export const dateSchema = z.string()
   .trim()
-  .min(1, "Data é obrigatória.")
-  .regex(DATE_REGEX, "Formato de data inválido (DD/MM/AAAA).");
+  .min(1, "A data é obrigatória")
+  .regex(DATE_REGEX, "Data inválida. Use o formato DD/MM/AAAA");
 
 export const rgSchema = z.string()
   .trim()
-  .min(1, "RG é obrigatório.")
-  .regex(RG_REGEX, "Formato de RG inválido (XX.XXX.XXX-X).");
+  .min(1, "O RG é obrigatório")
+  .regex(RG_REGEX, "RG inválido. Use o formato XX.XXX.XXX-X");
 
 export const phoneSchema = z.string()
   .trim()
-  .min(1, "Telefone é obrigatório.")
-  .regex(PHONE_REGEX, "Formato de telefone inválido (DD XXXXX-XXXX). Pode ser também apenas dígitos.");
+  .min(1, "O telefone é obrigatório")
+  .regex(PHONE_REGEX, "Telefone inválido. Use o formato (DD) XXXXX-XXXX");
 
 export const cepSchema = z.string()
   .trim()
-  .min(1, "CEP é obrigatório.")
-  .regex(CEP_REGEX, "CEP inválido (XXXXX-XXX).");
+  .min(1, "O CEP é obrigatório")
+  .regex(CEP_REGEX, "CEP inválido. Use o formato XXXXX-XXX");
 
 
 

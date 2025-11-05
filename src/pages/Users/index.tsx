@@ -10,10 +10,13 @@ import { useState } from 'react';
 const headerContainer = css({
   display: "flex",
   alignItems: "center",
+  justifyContent: "center",
   flexDirection: 'column',
+  position: "relative",
   width: "90%",
   minHeight: "56px",
   margin: "24px auto",
+  paddingBottom: "15px",
 });
 
 const TitleStyles = css({
@@ -22,18 +25,29 @@ const TitleStyles = css({
   fontWeight: "600",
   textAlign: "center",
   margin: 0,
+  marginBottom: '16px'
+});
+
+const searchContainer = css({
+  display: "flex",
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: '16px',
+  width: '100%'
 });
 
 const buttonStyles = css({
- 
-  marginLeft: "auto",
+  width: '20%',
   flexShrink: 0, 
   whiteSpace: "nowrap", 
-
-  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
+  backgroundColor: '#1976d2', // Material Blue 700 - melhor contraste WCAG
   color: '#fff',
   '&:hover': {
-  backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
+    backgroundColor: '#1565c0', // Material Blue 800
+  },
+  '&:focus-visible': {
+    outline: '3px solid #90caf9', // Foco visível para acessibilidade
+    outlineOffset: '2px',
   },
 });
 
@@ -44,7 +58,7 @@ const Users = () => {
     <>
       <div css={headerContainer}>
         <h1 css={TitleStyles}>Profissionais</h1>
-        <Box sx={{ width: '90%', display: 'flex', alignItems: 'center', marginTop: 2 }}>
+        <Box css={searchContainer}>
           <FormControl fullWidth sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="search">Buscar Usuário</InputLabel>
             <Input

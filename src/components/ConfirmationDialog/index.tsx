@@ -67,11 +67,11 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="error"> {/* Botão de cancelar do modal */}
-          {cancelButtonText}
-        </Button>
-        <Button autoFocus onClick={onConfirm} variant="contained" color="primary"> {/* Botão de confirmar do modal */}
+        <Button autoFocus onClick={onConfirm} variant="contained" color="primary">
           {confirmButtonText}
+        </Button>
+        <Button onClick={onClose} color="error" variant="outlined">
+          {cancelButtonText}
         </Button>
       </DialogActions>
     </BootstrapDialog>

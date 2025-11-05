@@ -36,10 +36,13 @@ export const ButtonStyles = css({
   fontWeight: "bold",
   textTransform: "uppercase", 
   
-  
-  backgroundColor: "#0D47A1", 
+  backgroundColor: "#1976d2", // Material Blue 700 - melhor contraste WCAG
   "&:hover": {
-    backgroundColor: "#0B3D91", 
+    backgroundColor: "#1565c0", // Material Blue 800
+  },
+  '&:focus-visible': {
+    outline: '3px solid #90caf9', // Foco visível para acessibilidade
+    outlineOffset: '2px',
   },
 });
 

@@ -1,11 +1,13 @@
 import EditIcon from "@mui/icons-material/Edit";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CheckIcon from '@mui/icons-material/Check';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../../api/admin.service';
 import type { PageUserResponseDTO, UserResponseDTO } from '../../../api/admin.dto';
+import EmptyState from "../../EmptyState";
 
 interface Column {
   id: 'name' | 'function' | 'email' | 'telephone' | 'actions';
@@ -147,22 +149,39 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {displayRows.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.nome}</TableCell>
-                <TableCell>{row.tipo}</TableCell>
-                <TableCell>{row.email}</TableCell>
-                <TableCell>{row.telefone}</TableCell>
-                <TableCell align="center">
-                  <IconButton color="success"
-                    onClick={() => handleEdit(row.id)}
-                    aria-label="editar"
-                  >
-                    <EditIcon />
-                  </IconButton>
+            {displayRows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} sx={{ p: 0, border: 'none' }}>
+                  <EmptyState
+                    icon={<PersonAddIcon sx={{ fontSize: 80 }} />}
+                    title="Nenhum usuário encontrado"
+                    description={searchText || filterTipo ? "Tente ajustar os filtros de busca ou cadastre um novo usuário." : "Comece cadastrando o primeiro usuário do sistema."}
+                    actionLabel="Cadastrar Usuário"
+                    onAction={() => navigate('/user/register')}
+                  />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              displayRows.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.nome}</TableCell>
+                  <TableCell>{row.tipo}</TableCell>
+                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{row.telefone}</TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="Editar dados do usuário">
+                      <IconButton 
+                        color="success"
+                        onClick={() => handleEdit(row.id)}
+                        aria-label={`Editar dados de ${row.nome}`}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
           </Table>
         )}

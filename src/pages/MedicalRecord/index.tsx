@@ -3,11 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Snackbar, CircularProgress, type AlertColor, type SnackbarCloseReason } from "@mui/material";
 import CustomCheckbox from "../../components/CustomCheckbox";
+import Breadcrumbs from "../../components/Breadcrumbs";
 
 const MedicalRecordPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { patientId } = location.state || {};
+  const { patientId, patientName } = location.state || {};
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -60,7 +61,12 @@ const MedicalRecordPage = () => {
 
   return (
     <div css={stylesContainer}>
-      <h1 css={TitleStyles}>Prontuário médico do paciente NOME</h1>
+      <Breadcrumbs items={[
+        { label: 'Pacientes', path: '/patients' },
+        { label: patientName || 'Paciente', path: `/patient/information/${patientId}` },
+        { label: 'Prontuário Médico' }
+      ]} />
+      <h1 css={TitleStyles}>Prontuário médico do paciente {patientName || 'NOME'}</h1>
 
       <h2 css={SubtitleStyles}>Fatores de riscos</h2>
 

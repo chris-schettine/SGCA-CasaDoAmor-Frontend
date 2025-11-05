@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
 import type { PacienteDTO } from "../../api/paciente.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
+import Breadcrumbs from "../../components/Breadcrumbs";
 
 const btnStyles = css({
   backgroundColor: '#09244B',
@@ -109,6 +110,10 @@ const PatientInformation = () => {
 
   return (
     <div css={stylesContainer}>
+      <Breadcrumbs items={[
+        { label: 'Pacientes', path: '/patients' },
+        { label: patient?.nome || 'Carregando...' }
+      ]} />
       {patient && (
         <>
           <h1 css={TitleStyles}>{patient.nome}</h1>

@@ -6,6 +6,19 @@ import { adminService } from '../../api/admin.service';
 import MaskedTextField from '../../components/MaskedTextField';
 import { useAuth } from '../../hooks/useAuth';
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
+import { css } from '@emotion/react';
+
+const buttonStyles = css({
+  backgroundColor: '#1976d2',
+  color: '#fff',
+  '&:hover': {
+    backgroundColor: '#1565c0',
+  },
+  '&:focus-visible': {
+    outline: '3px solid #90caf9',
+    outlineOffset: '2px',
+  },
+});
 
 
 const MyProfilePage = () => {
@@ -385,7 +398,7 @@ const MyProfilePage = () => {
           </Grid>
 
           <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-            <Button variant="contained" type="submit">Salvar</Button>
+            <Button variant="contained" type="submit" css={buttonStyles}>Salvar</Button>
           </Grid>
         </Grid>
       </form>

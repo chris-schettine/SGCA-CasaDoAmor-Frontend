@@ -1,7 +1,8 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
+import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 
 
 const BoxStyles = {
@@ -131,15 +132,18 @@ const ActivateAccountPage = () => {
           required
         />
         
-        <TextField
-          label="Nova Senha"
-          variant="outlined"
-          fullWidth
-          value={novaSenha}
-          onChange={(e) => setNovaSenha(e.target.value)}
-          type="password"
-          required
-        />
+        <Box>
+          <TextField
+            label="Nova Senha"
+            variant="outlined"
+            fullWidth
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            type="password"
+            required
+          />
+          <PasswordStrengthIndicator password={novaSenha} />
+        </Box>
         
         <TextField
           label="Confirmar Nova Senha"
@@ -157,7 +161,7 @@ const ActivateAccountPage = () => {
           disabled={isLoading || !token}
           fullWidth
         >
-          {isLoading ? "Ativando..." : "Ativar Conta"}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Ativar Conta"}
         </Button>
       </Container>
 

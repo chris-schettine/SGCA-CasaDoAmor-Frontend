@@ -17,6 +17,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import GroupsIcon from '@mui/icons-material/Groups';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -24,6 +25,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { styled, useTheme, type Theme } from '@mui/material/styles'; 
 import type { CSSObject } from '@mui/system';
+import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
+import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
@@ -236,6 +239,7 @@ export default function Layout() {
     const navigate = useNavigate();
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
+    const [shortcutsHelpOpen, setShortcutsHelpOpen] = React.useState(false);
 
     const handleDrawerToggle = React.useCallback(() => {
         setOpen(prev => !prev);
@@ -247,6 +251,46 @@ export default function Layout() {
             navigate("/login", { replace: true });
         }, 1000)
     };
+
+    // Definir atalhos de teclado globais
+    const shortcuts: KeyboardShortcut[] = React.useMemo(() => [
+        {
+            key: '?',
+            handler: () => setShortcutsHelpOpen(true),
+            description: 'Exibir ajuda de atalhos',
+        },
+        {
+            key: 'k',
+            ctrl: true,
+            handler: () => setShortcutsHelpOpen(true),
+            description: 'Exibir ajuda de atalhos',
+        },
+        {
+            key: 'Escape',
+            handler: () => setShortcutsHelpOpen(false),
+            description: 'Fechar diálogos',
+        },
+        {
+            key: 'p',
+            ctrl: true,
+            handler: () => navigate('/patients'),
+            description: 'Ir para Pacientes',
+        },
+        {
+            key: 'u',
+            ctrl: true,
+            handler: () => navigate('/users'),
+            description: 'Ir para Profissionais',
+        },
+        {
+            key: 'm',
+            ctrl: true,
+            handler: () => navigate('/my-profile'),
+            description: 'Ir para Meu Perfil',
+        },
+    ], [navigate]);
+
+    useKeyboardShortcuts(shortcuts);
 
     const { user } = useAuth();
 
@@ -271,6 +315,18 @@ export default function Layout() {
                     </Typography>
 
                     <Box sx={{ flexGrow: 1 }} />
+
+                    {/* Botão de Ajuda de Atalhos */}
+                    <Tooltip title="Atalhos de teclado (?)">
+                        <IconButton
+                            color="inherit"
+                            onClick={() => setShortcutsHelpOpen(true)}
+                            aria-label="atalhos de teclado"
+                            sx={{ mr: 1 }}
+                        >
+                            <KeyboardIcon />
+                        </IconButton>
+                    </Tooltip>
 
                     {/* Botão Meu Perfil */}
                     <Tooltip title={user?.nome ? `Meu perfil — ${user.nome}` : 'Meu perfil'}>
@@ -359,6 +415,13 @@ export default function Layout() {
             <Main open={open}>
                 <Outlet />
             </Main>
+
+            {/* Modal de Ajuda de Atalhos */}
+            <KeyboardShortcutsHelp
+                open={shortcutsHelpOpen}
+                onClose={() => setShortcutsHelpOpen(false)}
+                shortcuts={shortcuts}
+            />
         </Box>
     );
 }

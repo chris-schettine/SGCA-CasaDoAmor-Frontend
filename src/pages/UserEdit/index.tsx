@@ -1,5 +1,5 @@
 import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, CircularProgress } from "@mui/material";
-import { buttonStyles, cancelButtonStyles, saveButtonStyles, stylesContainer, TitleStyles } from "../UserRegister/styles";
+import { buttonStyles, saveButtonStyles, cancelButtonStyles, stylesContainer, TitleStyles } from "../UserRegister/styles";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
@@ -8,6 +8,9 @@ import { userSchemaConditional as userSchema, type UserFormInputs } from "../../
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
+import Breadcrumbs from "../../components/Breadcrumbs";
+import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
+import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 
 
 const UserEditPage = () => {
@@ -18,6 +21,7 @@ const UserEditPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState<string>("");
 
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -65,7 +69,7 @@ const UserEditPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
   reset,
   watch,
@@ -77,12 +81,21 @@ const UserEditPage = () => {
     mode: "onBlur",
   });
 
+  // Alerta de mudanças não salvas
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
+
+  // Atalho Ctrl+S para salvar
+  useSaveShortcut(() => {
+    handleSubmit(handleSaveUser, onError)();
+  });
+
   useEffect(() => {
     const fetch = async () => {
       if (!id) return;
       setLoading(true);
       try {
         const res = await adminService.getUserById(Number(id));
+        setUserName(res.nome || 'Usuário');
         // map response to form shape
         const { formatCPF, formatPhone, formatISOToDDMMYYYY } = await import('../../utils/formatters');
         // backend may return nested objects (dadosPessoais, endereco) or flattened fields; support both
@@ -264,6 +277,11 @@ const UserEditPage = () => {
 
   return (
     <div css={stylesContainer}>
+      <Breadcrumbs items={[
+        { label: 'Profissionais', path: '/users' },
+        { label: userName || 'Carregando...', path: `/users/${id}` },
+        { label: 'Editar' }
+      ]} />
       <h1 css={TitleStyles}>Editar Profissional</h1>
       <form noValidate>
 
@@ -279,11 +297,12 @@ const UserEditPage = () => {
         />
 
         {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
             variant="contained"
             css={[buttonStyles, saveButtonStyles]}
             onClick={handleOpenSaveDialog}
+            aria-label="Salvar alterações do profissional"
           >
             Salvar
           </Button>
@@ -291,6 +310,7 @@ const UserEditPage = () => {
             variant="contained"
             css={[buttonStyles, cancelButtonStyles]}
             onClick={handleOpenCancelDialog}
+            aria-label="Cancelar edição e voltar"
           >
             Cancelar
           </Button>

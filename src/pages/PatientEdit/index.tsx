@@ -19,6 +19,9 @@ import type { EditarPacienteDTO, PacienteDTO } from "../../api/paciente.dto";
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation } from 'react-router-dom';
 import { formatDateToISO, removeNonNumeric, formatISOToDDMMYYYY } from "../../utils/formatters";
+import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
+import { useSaveShortcut } from "../../hooks/useSaveShortcut";
+import Breadcrumbs from "../../components/Breadcrumbs";
 
 const PatientEditPage = () => {
   const navigate = useNavigate();
@@ -35,6 +38,7 @@ const PatientEditPage = () => {
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
+  const [patientName, setPatientName] = useState<string>("");
 
   const showSnackbar = useCallback((message: string, severity: AlertColor) => {
     setSnackbarMessage(message);
@@ -54,7 +58,7 @@ const PatientEditPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
     watch,
     setValue,
@@ -88,6 +92,14 @@ const PatientEditPage = () => {
       usoCurativo: "sim",
       usoOxigenoterapia: "nao",
     }
+  });
+
+  // Alerta de mudanças não salvas
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
+
+  // Atalho Ctrl+S para salvar
+  useSaveShortcut(() => {
+    handleSubmit(handleSavePatient, onError)();
   });
 
   const handleSavePatient = async (data: PatientFormInputs) => {
@@ -240,6 +252,7 @@ const PatientEditPage = () => {
 
     if (passedPatient) {
       fillWithPatient(passedPatient);
+      setPatientName(passedPatient.nome);
       return;
     }
 
@@ -249,6 +262,7 @@ const PatientEditPage = () => {
         const response = await pacienteService.listarPacientes(10, 0, id);
         if (response.nodes.length > 0) {
           fillWithPatient(response.nodes[0]);
+          setPatientName(response.nodes[0].nome);
         } else {
           showSnackbar('Paciente não encontrado', 'warning');
           setTimeout(() => navigate('/patients'), 1500);
@@ -273,6 +287,14 @@ const PatientEditPage = () => {
 
   return (
     <div css={stylesContainer}>
+      <Breadcrumbs
+        items={[
+          { label: 'Pacientes', path: '/patients' },
+          { label: patientName || 'Carregando...', path: `/patient/information/${id}` },
+          { label: 'Editar' }
+        ]}
+      />
+      
       <h1 css={TitleStyles}>Editar Paciente</h1>
       <form noValidate>
 

@@ -21,23 +21,35 @@ export const TitleStyles = css({
 });
 
 export const buttonStyles = css({
+  padding: '10px 24px',
+  fontSize: '14px',
+  fontWeight: 500,
+  minWidth: '120px',
   '&:not(:last-child)': {
-    marginRight: '16px', // Espaço entre os botões
+    marginRight: '16px',
   },
 });
 
 export const saveButtonStyles = css({
-  backgroundColor: '#09244B', // Cor azul escuro para o botão salvar
+  backgroundColor: '#1976d2', // Material Blue 700 - melhor contraste
   color: '#fff',
   '&:hover': {
-    backgroundColor: '#0C2F58',// um tom mais claro do azul escuro para melhorar o hover;
+    backgroundColor: '#1565c0', // Material Blue 800
+  },
+  '&:focus-visible': {
+    outline: '3px solid #90caf9', // Foco visível para acessibilidade
+    outlineOffset: '2px',
   },
 });
 
 export const cancelButtonStyles = css({
-  backgroundColor: '#f44336', // Cor vermelha para o botão Cancelar
+  backgroundColor: '#d32f2f', // Material Red 700 - melhor contraste
   color: '#fff',
   '&:hover': {
-    backgroundColor: '#d32f2f',
+    backgroundColor: '#c62828', // Material Red 800
+  },
+  '&:focus-visible': {
+    outline: '3px solid #ef9a9a', // Foco visível para acessibilidade
+    outlineOffset: '2px',
   },
 });

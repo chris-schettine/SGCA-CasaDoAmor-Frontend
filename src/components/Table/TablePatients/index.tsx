@@ -1,12 +1,14 @@
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AssignmentIcon from '@mui/icons-material/Assignment'; 
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography } from "@mui/material"
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography, Tooltip } from "@mui/material"
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { pacienteService } from "../../../api/paciente.service";
 import type { PacienteDTO } from "../../../api/paciente.dto";
 import { formatRG } from '../../../utils/formatters';
+import EmptyState from "../../EmptyState";
 
 interface Column {
   id: 'nome' | 'cpf' | 'rg' | 'acoes';
@@ -131,8 +133,14 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
           <TableBody>
             {patients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  Nenhum paciente encontrado.
+                <TableCell colSpan={columns.length} sx={{ p: 0, border: 'none' }}>
+                  <EmptyState
+                    icon={<PersonAddIcon sx={{ fontSize: 80 }} />}
+                    title="Nenhum paciente encontrado"
+                    description={searchText ? "Tente usar outros termos de busca ou cadastre um novo paciente." : "Comece cadastrando o primeiro paciente do sistema."}
+                    actionLabel="Cadastrar Paciente"
+                    onAction={() => navigate('/patient/register')}
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -142,27 +150,35 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
                       <TableCell>{patient.cpf}</TableCell>
                       <TableCell>{formatRG(patient.rg) || '—'}</TableCell>
                     <TableCell align="center">
-           
-                      <IconButton color="primary"
-                        onClick={() => handleViewMedicalRecords(patient.id)}
-                        aria-label="visualizar"
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
-             
-                      <IconButton color="success"
-                        onClick={() => handleEdit(patient.id)}
-                        aria-label="editar"
-                      >
-                        <EditIcon />
-                      </IconButton>
+                      <Tooltip title="Visualizar informações do paciente">
+                        <IconButton 
+                          color="primary"
+                          onClick={() => handleViewMedicalRecords(patient.id)}
+                          aria-label={`Visualizar informações de ${patient.nome}`}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Tooltip title="Editar dados do paciente">
+                        <IconButton 
+                          color="success"
+                          onClick={() => handleEdit(patient.id)}
+                          aria-label={`Editar dados de ${patient.nome}`}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
 
-                      <IconButton color="secondary" 
-                        onClick={() => handleReport(patient.id)}
-                        aria-label="relatório"
-                      >
-                        <AssignmentIcon />
-                      </IconButton>
+                      <Tooltip title="Gerar relatório do paciente">
+                        <IconButton 
+                          color="secondary" 
+                          onClick={() => handleReport(patient.id)}
+                          aria-label={`Gerar relatório de ${patient.nome}`}
+                        >
+                          <AssignmentIcon />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))

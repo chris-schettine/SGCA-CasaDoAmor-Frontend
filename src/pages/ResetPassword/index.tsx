@@ -1,7 +1,8 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../api/auth.service";
+import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 
 const BoxStyles = {
   display: 'flex',
@@ -101,14 +102,17 @@ const ResetPasswordPage = () => {
           Digite sua nova senha.
         </Typography>
 
-        <TextField
-          label="Nova Senha"
-          variant="outlined"
-          fullWidth
-          value={novaSenha}
-          onChange={(e) => setNovaSenha(e.target.value)}
-          type="password"
-        />
+        <Box>
+          <TextField
+            label="Nova Senha"
+            variant="outlined"
+            fullWidth
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            type="password"
+          />
+          <PasswordStrengthIndicator password={novaSenha} />
+        </Box>
 
         <TextField
           label="Confirmar Nova Senha"
@@ -126,7 +130,7 @@ const ResetPasswordPage = () => {
           disabled={isLoading || !token} 
           fullWidth
         >
-          {isLoading ? "Salvando..." : "Salvar Nova Senha"}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Salvar Nova Senha"}
         </Button>
       </Container>
       

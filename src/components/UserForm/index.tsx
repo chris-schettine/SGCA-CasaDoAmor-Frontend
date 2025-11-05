@@ -1,4 +1,5 @@
-import { Box, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText } from "@mui/material";
+import { Box, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText, Tooltip } from "@mui/material";
+import InfoIcon from '@mui/icons-material/Info';
 import MaskedTextField from "../MaskedTextField";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch, type UseFormSetValue, type UseFormSetError, type UseFormClearErrors } from "react-hook-form";
 import type { UserFormInputs } from "../../schemas/userSchema";
@@ -179,7 +180,27 @@ const UserForm = (
                     <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="registro" label="Registro" variant="outlined" fullWidth placeholder="Registro" {...register('registro')} error={!!errors.registro} helperText={errors.registro?.message} InputLabelProps={{ shrink: !!watch('registro') }} disabled={!!disabledFields?.registro} />
+                          <Box sx={{ position: 'relative' }}>
+                            <TextField 
+                              id="registro" 
+                              label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  Registro
+                                  <Tooltip title="Número de registro profissional (ex: CRM para médicos, COREN para enfermeiros)">
+                                    <InfoIcon sx={{ fontSize: 16, color: 'action.active' }} />
+                                  </Tooltip>
+                                </Box>
+                              }
+                              variant="outlined" 
+                              fullWidth 
+                              placeholder="Ex: CRM 12345" 
+                              {...register('registro')} 
+                              error={!!errors.registro} 
+                              helperText={errors.registro?.message} 
+                              InputLabelProps={{ shrink: !!watch('registro') }} 
+                              disabled={!!disabledFields?.registro} 
+                            />
+                          </Box>
                         </Grid>
                       </Grid>
                     </Grid>
@@ -191,7 +212,27 @@ const UserForm = (
                     <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <TextField id="rqe" label="RQE" variant="outlined" fullWidth placeholder="RQE" {...register('rqe')} error={!!errors.rqe} helperText={errors.rqe?.message} InputLabelProps={{ shrink: !!watch('rqe') }} disabled={!!disabledFields?.rqe} />
+                          <Box sx={{ position: 'relative' }}>
+                            <TextField 
+                              id="rqe" 
+                              label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  RQE
+                                  <Tooltip title="Registro de Qualificação de Especialista - certifica que o médico tem especialização reconhecida">
+                                    <InfoIcon sx={{ fontSize: 16, color: 'action.active' }} />
+                                  </Tooltip>
+                                </Box>
+                              }
+                              variant="outlined" 
+                              fullWidth 
+                              placeholder="Ex: RQE 5678" 
+                              {...register('rqe')} 
+                              error={!!errors.rqe} 
+                              helperText={errors.rqe?.message} 
+                              InputLabelProps={{ shrink: !!watch('rqe') }} 
+                              disabled={!!disabledFields?.rqe} 
+                            />
+                          </Box>
                         </Grid>
                       </Grid>
                     </Grid>

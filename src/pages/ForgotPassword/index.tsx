@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -90,7 +90,7 @@ const ForgotPassword = () => {
           disabled={isLoading}
           fullWidth
         >
-          {isLoading ? "Enviando..." : "Enviar Link"}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Enviar Link"}
         </Button>
       </Container>
 
