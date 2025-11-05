@@ -6,7 +6,6 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -20,17 +19,10 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-import { CssBaseline, Divider } from '@mui/material';
+import { CssBaseline, Divider, Button } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
-// import { Link } from 'react-router-dom'; // Movido para a linha acima
-// import { useAuth } from '../../hooks/useAuth'; // Mockado abaixo
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
-// import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts'; // Mockado abaixo
-// import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp'; // Mockado abaixo
-
-// --- Mocks para resolver erros de import ---
-// (No seu projeto, remova estes mocks e use seus imports reais)
 
 type KeyboardShortcut = {
     key: string;
@@ -40,14 +32,11 @@ type KeyboardShortcut = {
 };
 
 const useKeyboardShortcuts = (_shortcuts: KeyboardShortcut[]) => {
-    // Mock: não faz nada
     React.useEffect(() => {
-        // console.log("Mock: useKeyboardShortcuts hook chamado");
     }, []);
 };
 
 const useAuth = () => {
-    // Mock: retorna um usuário e função de logout falsos
     return {
         user: { nome: "Usuário Mock", tipoUsuario: "ADMINISTRADOR" },
         logout: () => console.log("Mock: Logout chamado"),
@@ -55,10 +44,8 @@ const useAuth = () => {
 };
 
 const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: { open: boolean, onClose: () => void, shortcuts: KeyboardShortcut[] }) => {
-    // Mock: Componente de ajuda
     if (!open) return null;
     
-    // Usando componentes MUI para consistência visual
     return (
         <Drawer anchor="right" open={open} onClose={onClose}>
             <Box sx={{ width: 300, p: 2 }}>
@@ -82,8 +69,6 @@ const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: { open: boolean, on
         </Drawer>
     );
 };
-// --- Fim dos Mocks ---
-
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
@@ -207,7 +192,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
             return;
         }
 
-        if (isCurrentActive && !open) {
+        if (!open && isCurrentActive) {
             event.preventDefault();
             onToggleDrawer();
             
@@ -235,7 +220,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
                 sx={{
                     minHeight: 48,
                     justifyContent: open ? 'initial' : 'center',
-                    px: 2,
+                    px: 2.5,
                     borderRadius: '8px',
                     
                     backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
@@ -250,8 +235,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
             >
                 <ListItemIcon
                     sx={{
-                        minWidth: closedDrawerWidth - 40,
-                        mr: open ? 3 : 'auto',
+                        minWidth: 0,
+                        mr: open ? 3 : 0,
                         justifyContent: 'center',
                         color: isCurrentActive ? activeTextColor : '#000000da',
                     }}
@@ -412,39 +397,31 @@ export default function Layout() {
                     }
                 }}
             >
-                {/* ----- ÁREA MODIFICADA ----- */}
                 <DrawerHeader sx={{
-                    // Se aberto: logo na esquerda, botão na direita
-                    // Se fechado: botão centralizado
                     justifyContent: open ? 'space-between' : 'center',
                     alignItems: 'center',
-                    padding: theme.spacing(0, open ? 2 : 1), // Padding diferente se aberto/fechado
+                    padding: theme.spacing(0, open ? 2 : 1),
                 }}>
                     
-                    {/* Só mostra o logo quando a barra lateral está aberta */}
-                    {open && (
-                        <img src="logo2.png" alt="Icone Casa do Amor" style={{
-                            width: "80px", // Tamanho fixo quando aberto
-                            transition: theme.transitions.create('width'),
-                            margin: '5px 0',
-                        }} />
-                    )}
+                    <img src="logo2.png" alt="Icone Casa do Amor" style={{
+                        width: open ? "80px" : "50px",
+                        transition: theme.transitions.create('width'),
+                        margin: '5px 0',
+                    }} />
                     
-                    {/* Botão unificado que troca o ícone */}
-                    <IconButton
-                        color="inherit"
-                        aria-label="toggle drawer"
-                        onClick={handleDrawerToggle}
-                        sx={{
-                            color: '#000000DA',
-                        }}
-                    >
-                        {/* Mostra o ícone de fechar (esquerda) ou abrir (direita) */}
-                        {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                    </IconButton>
+                    {open && (
+                        <IconButton
+                            color="inherit"
+                            aria-label="fechar drawer"
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                color: '#000000DA',
+                            }}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+                    )}
                 </DrawerHeader>
-                {/* ----- FIM DA MODIFICAÇÃO ----- */}
-
 
                 <List sx={{ padding: '0px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
