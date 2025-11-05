@@ -1,14 +1,11 @@
 import * as React from 'react';
-import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -18,275 +15,350 @@ import ListItemText from '@mui/material/ListItemText';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import HistoryIcon from '@mui/icons-material/History';
 import GroupsIcon from '@mui/icons-material/Groups';
+import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { styled, useTheme, type Theme } from '@mui/material/styles'; 
+import type { CSSObject } from '@mui/system';
 
 const drawerWidth = 280;
+const closedDrawerWidth = 80;
+
+const activeBgColor = '#09244B';
+const activeTextColor = '#FFFFFF';
+
+const openedMixin = (theme: Theme): CSSObject => ({ 
+    width: drawerWidth,
+    transition: theme.transitions.create('width', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+    }),
+    overflowX: 'hidden',
+});
+
+const closedMixin = (theme: Theme): CSSObject => ({ 
+    transition: theme.transitions.create('width', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+    }),
+    overflowX: 'hidden',
+    width: closedDrawerWidth,
+});
+
+const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+    ({ theme, open }: any) => ({
+        width: drawerWidth,
+        flexShrink: 0,
+        boxSizing: 'border-box',
+        ...(open && {
+            ...openedMixin(theme),
+            '& .MuiDrawer-paper': openedMixin(theme),
+        }),
+        ...(!open && {
+            ...closedMixin(theme),
+            '& .MuiDrawer-paper': closedMixin(theme),
+        }),
+    }),
+);
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
-  open?: boolean;
+    open?: boolean;
 }>(({ theme, open }) => ({
-  flexGrow: 1,
-  minWidth: 0,
-  padding: theme.spacing(2),
-  transition: theme.transitions.create('margin', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  marginTop: theme.spacing(8),
-  display: !open ? 'flex' : 'block', // Centraliza só quando fechado
-  justifyContent: !open ? 'center' : 'initial',
+    flexGrow: 1,
+    minWidth: 0,
+    padding: theme.spacing(2),
+    transition: theme.transitions.create('margin', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+    }),
+    marginTop: theme.spacing(8),
+    marginLeft: closedDrawerWidth, 
+    ...(open && {
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        marginLeft: drawerWidth,
+    }),
 }));
 
 const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
+    shouldForwardProp: (prop) => prop !== 'open',
 })<{
-  open?: boolean;
+    open?: boolean;
 }>(({ theme, open }) => ({
-  backgroundColor: "#65ACD6",
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    boxShadow: 'none', // Remove o box-shadow
-    border: 'none', // Remove qualquer bordass
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
+    backgroundColor: "#65ACD6",
+    zIndex: theme.zIndex.drawer + 1,
+    boxShadow: 'none',
     transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
     }),
-  }),
+    
+    width: `calc(100% - ${closedDrawerWidth}px)`,
+    marginLeft: closedDrawerWidth,
+
+    ...(open && {
+        marginLeft: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
+        transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+    }),
 }));
+
 
 const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-  justifyContent: 'flex-end',
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    ...theme.mixins.toolbar,
+    justifyContent: 'flex-end',
 }));
 
-export default function Layout() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+interface NavItemProps {
+    to: string;
+    primary: string;
+    Icon: React.ElementType;
+    open: boolean;
+    requiredRole?: string;
+    onToggleDrawer: () => void;
+    navigate: (path: string) => void; 
+}
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole, onToggleDrawer, navigate }) => {
+    const { user } = useAuth();
+    const location = useLocation(); 
+    
+    const isActive = location.pathname.startsWith(to) && to !== '/';
+    const isRootActive = location.pathname === '/' && to === '/patients';
+    const isCurrentActive = isActive || isRootActive;
+    
+    const handleNavigation = (event: React.MouseEvent) => {
+        
+        // 1. CLICAR NO ITEM ATIVO COM A SIDEBAR ABERTA -> SOMENTE FECHA A SIDEBAR (Continua ativo)
+        if (open && isCurrentActive) {
+            event.preventDefault(); 
+            onToggleDrawer(); 
+            return;
+        }
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+        // 2. CLICAR NO ITEM ATIVO COM A SIDEBAR FECHADA -> ABRE A SIDEBAR E SAI DA TELA ATUAL
+        if (isCurrentActive && !open) {
+            event.preventDefault();
+            onToggleDrawer(); 
+            
+            // Navega para a tela principal (desativa o item atual)
+            const targetPath = to === '/patients' ? '/' : '/patients';
+            navigate(targetPath); 
+            return;
+        }
 
-  const handleLogout = () => {
-    setTimeout(() => {
-      logout();
-      navigate("/login", { replace: true });
-    }, 1000)
-  };
-
-  const { user } = useAuth();
-
-  return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      {/* Barra de cima */}
-      <AppBar position="fixed" open={open}>
-        <Toolbar>
-
-          {/* Botão para abrir a Drawer */}
-          {!open && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              sx={{
-                color: 'white',
-                position: 'absolute', // Garante que os botões fiquem no mesmo local
-                left: '20px', // Ajuste a posição horizontal
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-
-
-          <Typography variant="h6" noWrap component="div" sx={{ marginLeft: '30px' }}>
-            SISTEMA DE GERENCIAMENTO DA CASA DO AMOR
-          </Typography>
-
-          {/* Isto faz o botão de logout ficar à direita */}
-          <Box sx={{ flexGrow: 1 }} />
-
-          {/* Botão de Logout */}
-          {/* Botão Meu Perfil */}
-          <Tooltip title={user?.nome ? `Meu perfil — ${user.nome}` : 'Meu perfil'}>
-            <IconButton
-              color="inherit"
-              onClick={() => navigate('/profile')}
-              aria-label="perfil"
-              sx={{ mr: 1 }}
-            >
-              <AccountCircleIcon />
-            </IconButton>
-          </Tooltip>
-          <IconButton
-            color="inherit"
-            onClick={handleLogout}
-            aria-label="logout"
-            edge="end"
-          >
-            <LogoutIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-      {/* Barra lateral */}
-      <Drawer
-        sx={{
-          width: open ? drawerWidth : 0,
-          flexShrink: 0,
-          transition: theme => theme.transitions.create('width', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          '& .MuiDrawer-paper': {
-            width: open ? drawerWidth : 0,
-            boxSizing: 'border-box',
-            backgroundColor: "#C5E4F2",
-            boxShadow: 'none',
-            border: 'none',
-            transition: theme => theme.transitions.create('width', {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-            overflowX: 'hidden',
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
-        <DrawerHeader>
-          {/* icone */}
-          <img src="logo2.png" alt="Icone Casa do Amor" style={{
-            margin: '5px auto 0', width: "80px",
-          }} />
-
-          {/* Botão para fechar a Drawer */}
-          {open && (
-            <IconButton
-              onClick={handleDrawerClose}
-              sx={{
-                color: '#000000DA',
-                position: 'absolute', // Garante que os botões fiquem no mesmo local
-                right: '6px', // Ajuste a posição horizontal
-              }}
-            >
-              {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-            </IconButton>
-          )}
+        // 3. CLICAR EM UM ITEM INATIVO (NOVO) -> ABRE A SIDEBAR E DEIXA O LINK NAVEGAR (Mantém a sidebar aberta)
+        if (!isCurrentActive && !open) {
+            onToggleDrawer();
+            // Permite o link navegar para a nova rota
+        }
+        
+        // Se a sidebar já estiver aberta e clicamos em um novo item (Cenário 3 com open=true), o link navega.
+    };
 
 
-        </DrawerHeader>
+    if (requiredRole && user?.tipoUsuario !== requiredRole) {
+        return null;
+    }
 
-        <List sx={{
-          padding: '0px',
-        }}>
-          <Divider sx={{
-            maxWidth: '230px',
-            margin: '0 auto',
-          }} />
-          {user?.tipoUsuario === 'ADMINISTRADOR' && (
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                to="/users"
-                sx={{
-                  maxWidth: '280px',
-                  margin: '0 auto',
-                  padding: '8px 75px',
-                }}
-              >
-                <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
-                  <PeopleAltIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Usuários"
-                  sx={{ textAlign: 'center' }}
-                  slotProps={{
-                    primary: {
-                      sx: { color: '#000000da', fontWeight: 'bold' }
-                    }
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          )}
-          {user?.tipoUsuario === 'ADMINISTRADOR' && (
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                to="/sessions"
-                sx={{
-                  maxWidth: '280px',
-                  margin: '0 auto',
-                  padding: '8px 75px',
-                }}
-              >
-                <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
-                  <HistoryIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Sessões Ativas"
-                  sx={{ textAlign: 'center' }}
-                  slotProps={{
-                    primary: {
-                      sx: { color: '#000000da', fontWeight: 'bold' }
-                    }
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          )}
-          <ListItem disablePadding>
+    return (
+        <ListItem disablePadding sx={{ display: 'block' }}>
             <ListItemButton
-              component={Link}
-              to="/patients"
-              sx={{
-                maxWidth: '280px',
-                margin: '0 auto',
-                padding: '8px 75px',
-              }}
-            >
-              <ListItemIcon sx={{ color: '#000000da', minWidth: 0 }}>
-                <GroupsIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Pacientes"
-                sx={{ textAlign: 'center' }}
-                slotProps={{
-                  primary: {
-                    sx: { color: '#000000da', fontWeight: 'bold' }
-                  }
+                component={Link}
+                to={to}
+                onClick={handleNavigation}
+                sx={{
+                    minHeight: 48,
+                    // CORREÇÃO: Garante que o ícone fique centralizado no modo fechado
+                    justifyContent: open ? 'initial' : 'center', 
+                    px: 2,
+                    borderRadius: '8px', 
+                    
+                    backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
+                    
+                    '&:hover': {
+                        backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)',
+                    },
+                    
+                    margin: '4px 8px',
+                    width: 'auto',
                 }}
-              />
+            >
+                <ListItemIcon
+                    sx={{
+                        // CORREÇÃO: Removendo o minWidth excessivo e usando o padrão para centralizar
+                        minWidth: closedDrawerWidth - 40, // 40px para garantir a centralização em 80px de largura
+                        mr: open ? 3 : 'auto',
+                        justifyContent: 'center',
+                        color: isCurrentActive ? activeTextColor : '#000000da', 
+                    }}
+                >
+                    <Icon />
+                </ListItemIcon>
+                <ListItemText
+                    primary={primary}
+                    sx={{ 
+                        opacity: open ? 1 : 0, 
+                        width: '100%',
+                        textAlign: 'left',
+                        transition: theme => theme.transitions.create('opacity'),
+                        overflow: 'hidden'
+                    }}
+                    slotProps={{
+                        primary: {
+                            sx: { 
+                                color: isCurrentActive ? activeTextColor : '#000000da', 
+                                fontWeight: 'bold',
+                            }
+                        }
+                    }}
+                />
             </ListItemButton>
-          </ListItem>
-        </List>
-      </Drawer>
-      <Main open={open}>
-        <Outlet />
-      </Main>
-    </Box>
-  );
+        </ListItem>
+    );
+};
+
+
+export default function Layout() {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const [open, setOpen] = React.useState(false);
+
+    const handleDrawerToggle = React.useCallback(() => {
+        setOpen(prev => !prev);
+    }, []);
+
+    const handleLogout = () => {
+        setTimeout(() => {
+            logout();
+            navigate("/login", { replace: true });
+        }, 1000)
+    };
+
+    const { user } = useAuth();
+
+    // DADOS DOS ITENS DE NAVEGAÇÃO (Pacientes em 1º)
+    const navItems = [
+        { to: "/patients", primary: "Pacientes", Icon: GroupsIcon },
+        { to: "/users", primary: "Usuários", Icon: PeopleAltIcon, requiredRole: 'ADMINISTRADOR' },
+        { to: "/sessions", primary: "Sessões Ativas", Icon: HistoryIcon, requiredRole: 'ADMINISTRADOR' },
+        { to: "/auditoria", primary: "Auditoria", Icon: GavelIcon, requiredRole: 'ADMINISTRADOR' },
+    ];
+
+
+    return (
+        <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            {/* Barra de cima */}
+            <AppBar position="fixed" open={open}>
+                <Toolbar>
+                    
+                    <Typography variant="h6" noWrap component="div" sx={{ marginLeft: '30px' }}>
+                        SISTEMA DE GERENCIAMENTO DA CASA DO AMOR
+                    </Typography>
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {/* Botão Meu Perfil */}
+                    <Tooltip title={user?.nome ? `Meu perfil — ${user.nome}` : 'Meu perfil'}>
+                        <IconButton
+                            color="inherit"
+                            onClick={() => navigate('/profile')}
+                            aria-label="perfil"
+                            sx={{ mr: 1 }}
+                        >
+                            <AccountCircleIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <IconButton
+                        color="inherit"
+                        onClick={handleLogout}
+                        aria-label="logout"
+                        edge="end"
+                    >
+                        <LogoutIcon />
+                    </IconButton>
+                </Toolbar>
+            </AppBar>
+            {/* Barra lateral - Usando o StyledDrawer */}
+            <StyledDrawer
+                variant="permanent" 
+                open={open}
+                PaperProps={{
+                    sx: {
+                        backgroundColor: "#C5E4F2",
+                        boxShadow: 'none',
+                        border: 'none',
+                        width: open ? drawerWidth : closedDrawerWidth, 
+                        transition: theme => theme.transitions.create('width', {
+                            easing: theme.transitions.easing.sharp,
+                            duration: open 
+                                ? theme.transitions.duration.enteringScreen 
+                                : theme.transitions.duration.leavingScreen,
+                        }),
+                        overflowX: 'hidden',
+                    }
+                }}
+            >
+                <DrawerHeader sx={{ 
+                    justifyContent: 'space-between', // Centraliza o logo e coloca a seta à direita
+                    padding: theme.spacing(0, 2),
+                }}>
+                    {/* icone / Logo */}
+                    <img src="logo2.png" alt="Icone Casa do Amor" style={{
+                        width: open ? "80px" : "50px", 
+                        transition: theme.transitions.create('width'),
+                        margin: '5px 0',
+                    }} />
+                    
+                    {/* NOVO: Seta de Fechar FIXA no topo do DrawerHeader */}
+                    {open && (
+                        <IconButton
+                            color="inherit"
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                color: '#000000DA',
+                            }}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+                    )}
+                </DrawerHeader>
+
+                <List sx={{ padding: '0px' }}>
+                    <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
+
+                    {navItems.map((item) => (
+                        <NavItem
+                            key={item.to}
+                            to={item.to}
+                            primary={item.primary}
+                            Icon={item.Icon}
+                            open={open}
+                            requiredRole={item.requiredRole}
+                            onToggleDrawer={handleDrawerToggle}
+                            navigate={navigate}
+                        />
+                    ))}
+                </List>
+            </StyledDrawer>
+
+            <Main open={open}>
+                <Outlet />
+            </Main>
+        </Box>
+    );
 }
