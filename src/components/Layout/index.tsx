@@ -23,8 +23,7 @@ import { CssBaseline, Divider, Button } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
- 
-//corrigir commit
+
 type KeyboardShortcut = {
     key: string;
     handler: () => void;
