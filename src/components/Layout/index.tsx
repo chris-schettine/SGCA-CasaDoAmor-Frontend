@@ -176,12 +176,12 @@ interface NavItemProps {
     navigate: (path: string) => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole, onToggleDrawer }) => {
+const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole, onToggleDrawer, navigate }) => {
     const { user } = useAuth();
     const location = useLocation();
     
     const isActive = location.pathname.startsWith(to) && to !== '/';
-    const isRootActive = (location.pathname === '/' && to === '/patients') || (location.pathname === '/profile' && to === '/profile');
+    const isRootActive = location.pathname === '/' && to === '/patients';
     const isCurrentActive = isActive || isRootActive;
     
     const handleNavigation = (event: React.MouseEvent) => {
@@ -196,6 +196,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
             event.preventDefault();
             onToggleDrawer();
             
+            const targetPath = to === '/patients' ? '/' : '/patients';
+            navigate(targetPath);
             return;
         }
 
@@ -211,57 +213,55 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
 
     return (
         <ListItem disablePadding sx={{ display: 'block' }}>
-            <Tooltip title={primary} placement="right" disableHoverListener={open}>
-                <ListItemButton
-                    component={Link}
-                    to={to}
-                    onClick={handleNavigation}
+            <ListItemButton
+                component={Link}
+                to={to}
+                onClick={handleNavigation}
+                sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    borderRadius: '8px',
+                    
+                    backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
+                    
+                    '&:hover': {
+                        backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)',
+                    },
+                    
+                    margin: '4px 8px',
+                    width: 'auto',
+                }}
+            >
+                <ListItemIcon
                     sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        borderRadius: '8px',
-                        
-                        backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
-                        
-                        '&:hover': {
-                            backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)',
-                        },
-                        
-                        margin: '4px 8px',
-                        width: 'auto',
+                        minWidth: 0,
+                        mr: open ? 3 : 0,
+                        justifyContent: 'center',
+                        color: isCurrentActive ? activeTextColor : '#000000da',
                     }}
                 >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 0,
-                            justifyContent: 'center',
-                            color: isCurrentActive ? activeTextColor : '#000000da',
-                        }}
-                    >
-                        <Icon />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={primary}
-                        sx={{
-                            opacity: open ? 1 : 0,
-                            width: '100%',
-                            textAlign: 'left',
-                            transition: theme => theme.transitions.create('opacity'),
-                            overflow: 'hidden'
-                        }}
-                        slotProps={{
-                            primary: {
-                                sx: {
-                                    color: isCurrentActive ? activeTextColor : '#000000da',
-                                    fontWeight: 'bold',
-                                }
+                    <Icon />
+                </ListItemIcon>
+                <ListItemText
+                    primary={primary}
+                    sx={{
+                        opacity: open ? 1 : 0,
+                        width: '100%',
+                        textAlign: 'left',
+                        transition: theme => theme.transitions.create('opacity'),
+                        overflow: 'hidden'
+                    }}
+                    slotProps={{
+                        primary: {
+                            sx: {
+                                color: isCurrentActive ? activeTextColor : '#000000da',
+                                fontWeight: 'bold',
                             }
-                        }}
-                    />
-                </ListItemButton>
-            </Tooltip>
+                        }
+                    }}
+                />
+            </ListItemButton>
         </ListItem>
     );
 };
@@ -367,16 +367,14 @@ export default function Layout() {
                             <AccountCircleIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Sair"> 
-                        <IconButton
-                            color="inherit"
-                            onClick={handleLogout}
-                            aria-label="logout"
-                            edge="end"
-                        >
-                            <LogoutIcon />
-                        </IconButton>
-                    </Tooltip>
+                    <IconButton
+                        color="inherit"
+                        onClick={handleLogout}
+                        aria-label="logout"
+                        edge="end"
+                    >
+                        <LogoutIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
 
