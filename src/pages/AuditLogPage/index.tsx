@@ -13,7 +13,6 @@ import {
   TablePagination,
   Button,
   TextField,
-  Grid,
   Select,
   MenuItem,
   FormControl,
@@ -130,10 +129,10 @@ export const AuditLogPage = () => {
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>Filtros</Typography>
         
-        <Grid container spacing={3} alignItems="flex-end">
-          
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-end' }}>
+
           {/* Filtro por Usuário */}
-          <Grid item xs={12} sm={4}>
+          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
             <TextField
               fullWidth
               label="Buscar por Usuário"
@@ -141,10 +140,10 @@ export const AuditLogPage = () => {
               onChange={(e) => setFilterUsuario(e.target.value)}
               variant="outlined"
             />
-          </Grid>
-          
+          </Box>
+
           {/* Filtro por Tipo de Ação - CORRIGIDO com InputLabel shrink */}
-          <Grid item xs={12} sm={4}>
+          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
             <FormControl fullWidth variant="outlined">
               {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
               <InputLabel shrink={filterTipoAcao !== ''}>Tipo de Ação</InputLabel>
@@ -162,10 +161,10 @@ export const AuditLogPage = () => {
                 <MenuItem value="PERMISSAO">Permissão Alterada</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
+          </Box>
 
           {/* Filtro por Resultado - CORRIGIDO com InputLabel shrink */}
-          <Grid item xs={12} sm={4}>
+          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
             <FormControl fullWidth variant="outlined">
               {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
               <InputLabel shrink={filterResultado !== ''}>Resultado</InputLabel>
@@ -179,10 +178,10 @@ export const AuditLogPage = () => {
                 <MenuItem value="FALHA">Falha</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
+          </Box>
 
           {/* Botão de Exportação */}
-          <Grid item xs={12}>
+          <Box sx={{ width: '100%' }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
@@ -194,8 +193,8 @@ export const AuditLogPage = () => {
                 Exportar ({filteredLogs.length})
               </Button>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Tabela de Logs */}
