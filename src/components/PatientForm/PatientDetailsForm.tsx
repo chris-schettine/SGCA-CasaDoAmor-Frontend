@@ -139,6 +139,37 @@ const PatientDetailsForm = (
           )}
         </FormControl>
       </Grid>
+
+      {/* Tratamento e Diagnóstico (Dados Médicos) */}
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          id="tratamento"
+          label="Tratamento"
+          variant="outlined"
+          fullWidth
+          placeholder="Tratamento"
+          multiline
+          rows={3}
+          {...register("tratamento")}
+          error={!!errors.tratamento}
+          helperText={errors.tratamento?.message}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          id="diagnostico"
+          label="Diagnóstico"
+          variant="outlined"
+          fullWidth
+          placeholder="Diagnóstico"
+          multiline
+          rows={3}
+          {...register("diagnostico")}
+          error={!!errors.diagnostico}
+          helperText={errors.diagnostico?.message}
+        />
+      </Grid>
     </Grid>
   )
 }
