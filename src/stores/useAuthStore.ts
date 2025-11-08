@@ -51,9 +51,21 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
+          // 🔐 Chama API de logout (POST /auth/logout)
           await authService.logout();
-        } catch (error) {
-          console.error('[useAuthStore] Erro ao fazer logout:', error);
+          console.log('[useAuthStore] Logout na API realizado com sucesso');
+        } catch (error: any) {
+          const status = error?.response?.status;
+          
+          if (status === 401) {
+            console.warn('[useAuthStore] Logout: sessão já expirada (401)');
+          } else if (status === 404) {
+            console.warn('[useAuthStore] Logout: sessão não encontrada (404)');
+          } else {
+            console.error('[useAuthStore] Erro ao fazer logout na API:', error);
+          }
+          
+          // Continua limpando mesmo com erro (sessão local)
         } finally {
           // Limpa o estado
           set({

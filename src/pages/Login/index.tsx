@@ -1,5 +1,5 @@
 import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from "../../hooks/useAuth";
@@ -11,7 +11,7 @@ import { toastError, toastSuccess } from "../../utils/toast";
 import { AnimatedPageScale } from "../../components/AnimatedPage";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,6 +19,14 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [cpfError, setCpfError] = useState('');
+
+  // ✅ Redireciona para menu inicial se já autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
 
   
   // Mostrar e não mostrar senha
