@@ -19,6 +19,8 @@ import {
   InputLabel,
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { adminService } from '../../api/admin.service';
+import type { TentativaLoginDTO, AuditPerfisResponseDTO, PerfilAuditDTO } from '../../api/admin.dto';
 
 // --- 1. TIPAGEM E DADOS MOCKADOS ---
 
@@ -29,19 +31,12 @@ interface AuditLogEntry {
   tipoAcao: 'LOGIN' | 'CRIACAO' | 'ALTERACAO' | 'EXCLUSAO' | 'FALHA_ACESSO' | 'PERMISSAO';
   objetoAfetado: string;
   resultado: 'SUCESSO' | 'FALHA';
+  motivoFalha?: string | null;
+  ipOrigem?: string | null;
 }
 
-const mockLogs: AuditLogEntry[] = [
-  { id: 1, dataHora: '2025-10-30 09:00:00', usuario: 'admin.pedro', tipoAcao: 'LOGIN', objetoAfetado: 'N/A', resultado: 'SUCESSO' },
-  { id: 2, dataHora: '2025-10-30 09:15:22', usuario: 'admin.pedro', tipoAcao: 'CRIACAO', objetoAfetado: 'Paciente ID: 456', resultado: 'SUCESSO' },
-  { id: 3, dataHora: '2025-10-30 10:45:00', usuario: 'user.joao', tipoAcao: 'FALHA_ACESSO', objetoAfetado: 'Login', resultado: 'FALHA' },
-  { id: 4, dataHora: '2025-10-30 11:30:00', usuario: 'admin.pedro', tipoAcao: 'ALTERACAO', objetoAfetado: 'Permissão User: 101', resultado: 'SUCESSO' },
-  { id: 5, dataHora: '2025-11-01 14:00:00', usuario: 'manager.ana', tipoAcao: 'EXCLUSAO', objetoAfetado: 'Relatório Mensal', resultado: 'SUCESSO' },
-  { id: 6, dataHora: '2025-11-01 14:05:00', usuario: 'user.joao', tipoAcao: 'LOGIN', objetoAfetado: 'N/A', resultado: 'SUCESSO' },
-  { id: 7, dataHora: '2025-11-01 14:10:00', usuario: 'manager.ana', tipoAcao: 'ALTERACAO', objetoAfetado: 'Configuração do Sistema', resultado: 'FALHA' },
-  { id: 8, dataHora: '2025-11-02 08:30:00', usuario: 'admin.pedro', tipoAcao: 'PERMISSAO', objetoAfetado: 'Grupo: Auditores', resultado: 'SUCESSO' },
-  { id: 9, dataHora: '2025-11-02 09:00:00', usuario: 'user.joao', tipoAcao: 'CRIACAO', objetoAfetado: 'Usuário: 999', resultado: 'FALHA' },
-];
+// initially empty; we'll fetch real audit data from the API
+const mockLogs: AuditLogEntry[] = [];
 
 const columns = [
   { id: 'dataHora', label: 'Data/Hora', minWidth: 150 },
@@ -67,13 +62,42 @@ export const AuditLogPage = () => {
 
   // Simular carregamento inicial dos dados
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLogs(mockLogs);
-      setFilteredLogs(mockLogs);
-      setLoading(false);
-    }, 1500);
+    let mounted = true;
 
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        const data: AuditPerfisResponseDTO = await adminService.getAuditPerfis();
+
+        // Map backend 'tentativas' -> AuditLogEntry
+        const tentativas: TentativaLoginDTO[] = data.relatorioLogins?.tentativas || [];
+        const mapped: AuditLogEntry[] = tentativas.map((t) => ({
+          id: t.id,
+          dataHora: t.dataTentativa ? new Date(t.dataTentativa).toLocaleString() : '',
+          usuario: t.usuario?.nome || (t.cpf ? `CPF: ${t.cpf}` : 'Anônimo'),
+          tipoAcao: t.sucesso ? 'LOGIN' : 'FALHA_ACESSO',
+          objetoAfetado: t.ipOrigem || t.userAgent || 'N/A',
+          resultado: t.sucesso ? 'SUCESSO' : 'FALHA',
+          motivoFalha: t.motivoFalha ?? null,
+          ipOrigem: t.ipOrigem ?? null,
+        }));
+
+        if (!mounted) return;
+        setLogs(mapped);
+        setFilteredLogs(mapped);
+      } catch (err) {
+        console.error('Erro ao carregar auditoria:', err);
+        // keep UI usable — mostrar vazio
+        if (!mounted) return;
+        setLogs([]);
+        setFilteredLogs([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Lógica de Filtragem (Executada sempre que os filtros mudam)

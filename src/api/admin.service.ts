@@ -99,6 +99,11 @@ class AdminService {
     return response.data;
   }
 
+  async getAuditPerfis(): Promise<any> {
+    const response = await api.get('/admin/audit/perfis');
+    return response.data;
+  }
+
   async getPhotoUrl(id: number): Promise<any> {
     const response = await api.get(`/admin/${id}/foto`);
     return response.data;

@@ -146,3 +146,50 @@ export interface PermissaoDTO {
   nome: string;
   descricao: string;
 }
+
+// --- Auditoria DTOs ---
+export interface PerfilAuditDTO {
+  id: number;
+  nome: string;
+  descricao?: string | null;
+  criadoPor?: string | null;
+  criadoEm?: string | null;
+  atualizadoPor?: string | null;
+  atualizadoEm?: string | null;
+  permissoes?: PermissaoDTO[] | null;
+  totalUsuarios?: number;
+  usuarios?: any[] | null;
+}
+
+export interface UsuarioSimplesDTO {
+  id: number;
+  nome: string;
+  email?: string;
+  tipo?: string;
+  ativo?: boolean;
+  bloqueado?: boolean;
+}
+
+export interface TentativaLoginDTO {
+  id: number;
+  cpf?: string;
+  ipOrigem?: string;
+  userAgent?: string;
+  dataTentativa?: string; // ISO
+  sucesso: boolean;
+  motivoFalha?: string | null;
+  bloqueado?: boolean;
+  usuario?: UsuarioSimplesDTO | null;
+}
+
+export interface RelatorioLoginsDTO {
+  total: number;
+  sucessos: number;
+  falhas: number;
+  tentativas: TentativaLoginDTO[];
+}
+
+export interface AuditPerfisResponseDTO {
+  perfis: PerfilAuditDTO[];
+  relatorioLogins: RelatorioLoginsDTO;
+}
