@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { adminService } from '../../api/admin.service';
-import type { TentativaLoginDTO, AuditPerfisResponseDTO, PerfilAuditDTO } from '../../api/admin.dto';
+import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
 
 // --- 1. TIPAGEM E DADOS MOCKADOS ---
 
@@ -34,9 +34,6 @@ interface AuditLogEntry {
   motivoFalha?: string | null;
   ipOrigem?: string | null;
 }
-
-// initially empty; we'll fetch real audit data from the API
-const mockLogs: AuditLogEntry[] = [];
 
 const columns = [
   { id: 'dataHora', label: 'Data/Hora', minWidth: 150 },
