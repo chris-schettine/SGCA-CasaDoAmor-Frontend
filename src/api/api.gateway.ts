@@ -15,7 +15,19 @@ class ApiGateway {
     
     this.gateway.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
+        // 🚀 Zustand persist salva em 'auth-storage'
+        const authStorage = localStorage.getItem('auth-storage');
+        let token = null;
+        
+        if (authStorage) {
+          try {
+            const parsed = JSON.parse(authStorage);
+            token = parsed.state?.token;
+          } catch (e) {
+            console.warn('[API Gateway] Erro ao parsear auth-storage:', e);
+          }
+        }
+        
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           console.log('[API Gateway] Token enviado:', token.substring(0, 20) + '...');
@@ -57,8 +69,7 @@ class ApiGateway {
             } catch (e) {
               console.error('[API Gateway] Erro ao executar forceLogout', e);
               // fallback: limpa e redireciona
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('authUser');
+              localStorage.removeItem('auth-storage');
               if (window.location.pathname !== '/login') window.location.href = '/login';
             }
           }
@@ -71,8 +82,7 @@ class ApiGateway {
               forceLogout();
             } catch (e) {
               console.error('[API Gateway] Erro ao executar forceLogout após 403 /auth/me', e);
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('authUser');
+              localStorage.removeItem('auth-storage');
               if (window.location.pathname !== '/login') window.location.href = '/login';
             }
           } else {

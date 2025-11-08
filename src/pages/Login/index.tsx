@@ -60,6 +60,12 @@ const Login = () => {
       tipoUsuario: resp.tipoUsuario || resp.user?.tipoUsuario || resp.tipo || undefined,
     };
 
+    // ✅ Salvar token ANTES de chamar /auth/me
+    login(token, finalUser);
+
+    // Aguardar sincronização do localStorage (persist middleware)
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const raw: any = await authService.getActiveSession();
       const normalizedUser = {
@@ -69,12 +75,11 @@ const Login = () => {
         roles: (raw.perfis && Array.isArray(raw.perfis)) ? raw.perfis.map((p: any) => p.nome) : (raw.roles || raw.user?.roles || finalUser.roles),
         tipoUsuario: raw.tipo || raw.tipoUsuario || raw.user?.tipoUsuario || finalUser.tipoUsuario,
       };
-      finalUser = normalizedUser;
+      // Atualizar com dados completos do /auth/me
+      login(token, normalizedUser);
     } catch (err) {
       console.warn('[Login] Falha ao obter /auth/me após login - usando user retornado pelo login', err);
     }
-
-    login(token, finalUser);
 
     toastSuccess('Login realizado com sucesso!');
     const from = location.state?.from?.pathname || '/';
