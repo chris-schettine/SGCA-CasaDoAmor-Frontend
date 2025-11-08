@@ -126,7 +126,40 @@ export const AuditLogPage = () => {
   };
 
   const handleExport = () => {
-    console.log(`Exportando ${filteredLogs.length} logs para CSV/PDF...`, filteredLogs);
+    if (!filteredLogs || filteredLogs.length === 0) return;
+
+    const headers = ['DataHora', 'Usuario', 'TipoAcao', 'ObjetoAfetado', 'Resultado', 'MotivoFalha', 'IpOrigem'];
+
+    const rows = filteredLogs.map((l) => [
+      l.dataHora,
+      l.usuario,
+      l.tipoAcao,
+      l.objetoAfetado,
+      l.resultado,
+      l.motivoFalha ?? '',
+      l.ipOrigem ?? '',
+    ]);
+
+    const escapeCell = (cell: any) => {
+      if (cell === null || cell === undefined) return '';
+      const str = String(cell);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
+    const csvContent = [headers, ...rows]
+      .map((r) => r.map(escapeCell).join(','))
+      .join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const today = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `auditoria_${today}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {

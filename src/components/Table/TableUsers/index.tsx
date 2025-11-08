@@ -2,12 +2,15 @@ import EditIcon from "@mui/icons-material/Edit";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CheckIcon from '@mui/icons-material/Check';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip, Switch } from "@mui/material"
+import BlockIcon from '@mui/icons-material/Block';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../../api/admin.service';
 import type { PageUserResponseDTO, UserResponseDTO } from '../../../api/admin.dto';
 import EmptyState from "../../EmptyState";
+import ConfirmationDialog from "../../ConfirmationDialog";
 
 interface Column {
   id: 'name' | 'function' | 'email' | 'telephone' | 'actions';
@@ -40,6 +43,10 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const [filterTipo, setFilterTipo] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchText || '');
+
+  // Confirmation dialog state
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [userToToggle, setUserToToggle] = useState<UserResponseDTO | null>(null);
 
   // debounce searchText
   useEffect(() => {
@@ -90,6 +97,33 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const handleEdit = (id: number) => {
     navigate(`/user/edit/${id}`);
   }
+
+  const handleToggleClick = (user: UserResponseDTO) => {
+    setUserToToggle(user);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmToggle = async () => {
+    if (!userToToggle) return;
+    
+    try {
+      setToggling((s) => ({ ...s, [userToToggle.id]: true }));
+      await adminService.toggleUserStatus(userToToggle.id);
+      // update local state optimistically
+      setRows((prev) => prev.map(r => r.id === userToToggle.id ? { ...r, ativo: !r.ativo } : r));
+    } catch (err) {
+      console.error('Erro ao alternar status do usuário', err);
+    } finally {
+      setToggling((s) => ({ ...s, [userToToggle.id]: false }));
+      setConfirmDialogOpen(false);
+      setUserToToggle(null);
+    }
+  };
+
+  const handleCancelToggle = () => {
+    setConfirmDialogOpen(false);
+    setUserToToggle(null);
+  };
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
@@ -179,28 +213,17 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                         <EditIcon />
                       </IconButton>
                     </Tooltip>
-                    {/* Toggle active/inactive */}
+                    {/* Toggle active/inactive button */}
                     <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
                       <span>
-                        <Switch
-                          checked={!!row.ativo}
-                          onChange={async () => {
-                            // prevent multiple toggles
-                            if (toggling[row.id]) return;
-                            try {
-                              setToggling((s) => ({ ...s, [row.id]: true }));
-                              await adminService.toggleUserStatus(row.id);
-                              // update local state optimistically
-                              setRows((prev) => prev.map(r => r.id === row.id ? { ...r, ativo: !r.ativo } : r));
-                            } catch (err) {
-                              console.error('Erro ao alternar status do usuário', err);
-                            } finally {
-                              setToggling((s) => ({ ...s, [row.id]: false }));
-                            }
-                          }}
-                          inputProps={{ 'aria-label': `Ativar/Desativar ${row.nome}` }}
+                        <IconButton
+                          color={row.ativo ? 'error' : 'success'}
+                          onClick={() => handleToggleClick(row)}
+                          aria-label={`${row.ativo ? 'Desativar' : 'Ativar'} ${row.nome}`}
                           disabled={!!toggling[row.id]}
-                        />
+                        >
+                          {row.ativo ? <BlockIcon /> : <CheckCircleIcon />}
+                        </IconButton>
                       </span>
                     </Tooltip>
                   </TableCell>
@@ -219,6 +242,21 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmDialogOpen}
+        onClose={handleCancelToggle}
+        onConfirm={handleConfirmToggle}
+        title={userToToggle?.ativo ? 'Desativar Usuário' : 'Ativar Usuário'}
+        message={
+          userToToggle?.ativo
+            ? `Tem certeza que deseja desativar o usuário "${userToToggle?.nome}"? O usuário não poderá mais acessar o sistema.`
+            : `Tem certeza que deseja ativar o usuário "${userToToggle?.nome}"? O usuário poderá acessar o sistema novamente.`
+        }
+        confirmButtonText={userToToggle?.ativo ? 'Desativar' : 'Ativar'}
+        cancelButtonText="Cancelar"
       />
     </Paper>
   )
