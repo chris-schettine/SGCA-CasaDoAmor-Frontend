@@ -15,7 +15,7 @@ import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
-import type { EditarPacienteDTO, PacienteDTO } from "../../api/paciente.dto";
+import type { PacienteDTO, EditarPacienteDTO } from "../../api/paciente.dto";
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation } from 'react-router-dom';
 import { formatDateToISO, removeNonNumeric, formatISOToDDMMYYYY } from "../../utils/formatters";
@@ -84,13 +84,9 @@ const PatientEditPage = () => {
       estado: "",
       numero: "",
       complemento: "",
-      tratamento: "",
+      tratamento: undefined,
       diagnostico: "",
       seForOutra: "",
-      condicaoChegada: "de_ambulancia",
-      usoSonda: "nao",
-      usoCurativo: "sim",
-      usoOxigenoterapia: "nao",
     }
   });
 
@@ -127,6 +123,7 @@ const PatientEditPage = () => {
           naturalidade: data.naturalidade,
           nomeMae: data.nomeMae,
           profissao: data.profissao,
+          estadoCivil: (data as any).estadoCivil || undefined,
         },
         endereco: {
           logradouro: data.endereco,
@@ -137,6 +134,19 @@ const PatientEditPage = () => {
           estado: data.estado,
           complemento: data.complemento,
         },
+        email: data.email || undefined,
+        informacaoHospitalar: (data as any).informacaoHospitalar ? {
+          nomeHospitalReferencia: (data as any).informacaoHospitalar.nomeHospitalReferencia || null,
+          medicoResponsavel: (data as any).informacaoHospitalar.medicoResponsavel || null,
+          setorAla: (data as any).informacaoHospitalar.setorAla || null,
+          dataInternacao: (data as any).informacaoHospitalar.dataInternacao ? formatDateToISO((data as any).informacaoHospitalar.dataInternacao) : null,
+        } : undefined,
+        dadoSocial: (data as any).dadoSocial ? {
+          rendaFamiliar: (data as any).dadoSocial.rendaFamiliar ?? null,
+          composicaoFamiliar: (data as any).dadoSocial.composicaoFamiliar || null,
+          situacaoMoradia: (data as any).dadoSocial.situacaoMoradia || null,
+          necessidadesEspeciais: (data as any).dadoSocial.necessidadesEspeciais || null,
+        } : undefined,
       };
 
       setLoading(true);
@@ -233,26 +243,26 @@ const PatientEditPage = () => {
     if (!id) return;
 
     const fillWithPatient = (p: PacienteDTO) => {
-      setValue('nomeCompletoPaciente', p.nome || '');
-      setValue('cpfPaciente', p.cpf || '');
-      setValue('dataNascimento', p.dataNascimento ? formatISOToDDMMYYYY(p.dataNascimento) : '');
-      setValue('naturalidade', p.naturalidade || '');
-  setValue('nomeMae', p.nomeMae || '');
-  setValue('profissao', p.profissao || '');
-      setValue('rg', p.rg || '');
-      setValue('telefone', p.telefone || '');
-      setValue('endereco', p.logradouro || '');
-      setValue('numero', p.numero?.toString() || '');
-      setValue('complemento', p.complemento || '');
-      setValue('bairro', p.bairro || '');
-      setValue('cidade', p.cidade || '');
-      setValue('estado', p.estado || '');
-      setValue('cep', p.cep || '');
+      setValue('nomeCompletoPaciente', p.dadoPessoal?.nome ?? '');
+      setValue('cpfPaciente', p.dadoPessoal?.cpf ?? '');
+      setValue('dataNascimento', p.dadoPessoal?.dataNascimento ? formatISOToDDMMYYYY(p.dadoPessoal.dataNascimento) : '');
+      setValue('naturalidade', p.dadoPessoal?.naturalidade ?? '');
+      setValue('nomeMae', p.dadoPessoal?.nomeMae ?? '');
+      setValue('profissao', p.dadoPessoal?.profissao ?? '');
+      setValue('rg', p.dadoPessoal?.rg ?? '');
+      setValue('telefone', p.dadoPessoal?.telefone ?? '');
+      setValue('endereco', p.endereco?.logradouro ?? '');
+      setValue('numero', p.endereco?.numero?.toString() ?? '');
+      setValue('complemento', p.endereco?.complemento ?? '');
+      setValue('bairro', p.endereco?.bairro ?? '');
+      setValue('cidade', p.endereco?.cidade ?? '');
+      setValue('estado', p.endereco?.estado ?? '');
+      setValue('cep', p.endereco?.cep ?? '');
     };
 
     if (passedPatient) {
       fillWithPatient(passedPatient);
-      setPatientName(passedPatient.nome);
+      setPatientName(passedPatient.dadoPessoal?.nome ?? '');
       return;
     }
 
@@ -262,7 +272,7 @@ const PatientEditPage = () => {
         const response = await pacienteService.listarPacientes(10, 0, id);
         if (response.nodes.length > 0) {
           fillWithPatient(response.nodes[0]);
-          setPatientName(response.nodes[0].nome);
+          setPatientName(response.nodes[0].dadoPessoal?.nome ?? '');
         } else {
           showSnackbar('Paciente não encontrado', 'warning');
           setTimeout(() => navigate('/patients'), 1500);

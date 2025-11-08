@@ -25,4 +25,6 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "src/pages/VerifyEmail"]
+  ,
+  "exclude": ["**/*.stories.tsx", "**/*.stories.ts", "src/**/*.stories.*"]
 }

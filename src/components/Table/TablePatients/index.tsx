@@ -27,6 +27,91 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
 
   const delay = 1000;
 
+  // 🚀 Configuração de colunas para tabela virtualizada (DEVE estar antes dos early returns)
+  const virtualColumns = useMemo(() => [
+    {
+      field: 'nome' as const,
+      headerName: 'Nome',
+      width: 250,
+    },
+    {
+      field: 'cpf' as const,
+      headerName: 'CPF',
+      width: 150,
+    },
+    {
+      field: 'rg' as const,
+      headerName: 'RG',
+      width: 150,
+      renderCell: (row: any) => formatRG(row.rg) || '—',
+    },
+    {
+      field: 'acoes' as const,
+      headerName: 'Ações',
+      width: 170,
+      renderCell: (row: any) => (
+        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+          <Tooltip title="Visualizar informações do paciente">
+            <IconButton 
+              color="primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewMedicalRecords(row.id, row._patientData);
+              }}
+              aria-label={`Visualizar informações de ${row.nome}`}
+              size="small"
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Editar dados do paciente">
+            <IconButton 
+              color="success"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.id, row._patientData);
+              }}
+              aria-label={`Editar dados de ${row.nome}`}
+              size="small"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Gerar relatório do paciente">
+            <IconButton 
+              color="secondary" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReport(row.id, row._patientData);
+              }}
+              aria-label={`Gerar relatório de ${row.nome}`}
+              size="small"
+            >
+              <AssignmentIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], []);
+
+  // Mapear pacientes (nested DTO) para linhas planas que a VirtualizedTable espera
+  // Incluímos o objeto completo do paciente para evitar race conditions ao buscar depois
+  const rows = useMemo(() => patients.map((p: any) => ({
+    id: p.id,
+    nome: p.dadoPessoal?.nome ?? '—',
+    cpf: p.dadoPessoal?.cpf ?? '—',
+    rg: p.dadoPessoal?.rg ?? '—',
+    logradouro: p.endereco?.logradouro ?? '—',
+    numero: p.endereco?.numero ?? '—',
+    bairro: p.endereco?.bairro ?? '—',
+    cidade: p.endereco?.cidade ?? '—',
+    estado: p.endereco?.estado ?? '—',
+    _patientData: p, // Armazenar o objeto completo do paciente
+  })), [patients]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -37,25 +122,23 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     setPage(0);
   }
 
-  const handleViewMedicalRecords = (id: string) => {
-
-    const patientObj = patients.find((p) => p.id === id);
+  const handleViewMedicalRecords = (id: string, patientData: any) => {
+    console.log('[TablePatients handleViewMedicalRecords] id:', id);
+    console.log('[TablePatients handleViewMedicalRecords] patientData:', patientData);
+    
     setTimeout(() => {
       navigate("/patient/information", {
-        state: { patient: patientObj }
+        state: { patientId: id, patient: patientData }
       });
     }, delay);
   }
 
-  const handleEdit = (id: string) => {
-    const patientObj = patients.find((p) => p.id === id);
-    navigate(`/patient/edit/${id}`, { state: { patient: patientObj } });
+  const handleEdit = (id: string, patientData: any) => {
+    navigate(`/patient/edit/${id}`, { state: { patient: patientData } });
   }
 
-  const handleReport = (id: string) => {
-    const patientObj = patients.find((p) => p.id === id);
-  
-    navigate(`/patient/report/${id}`, { state: { patient: patientObj } });
+  const handleReport = (id: string, patientData: any) => {
+    navigate(`/patient/report/${id}`, { state: { patient: patientData } });
   }
 
   if (isLoading) {
@@ -91,81 +174,11 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     );
   }
 
-  // 🚀 Configuração de colunas para tabela virtualizada
-  const virtualColumns = useMemo(() => [
-    {
-      field: 'nome' as const,
-      headerName: 'Nome',
-      width: 250,
-    },
-    {
-      field: 'cpf' as const,
-      headerName: 'CPF',
-      width: 150,
-    },
-    {
-      field: 'rg' as const,
-      headerName: 'RG',
-      width: 150,
-      renderCell: (row: any) => formatRG(row.rg) || '—',
-    },
-    {
-      field: 'acoes' as const,
-      headerName: 'Ações',
-      width: 170,
-      renderCell: (row: any) => (
-        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-          <Tooltip title="Visualizar informações do paciente">
-            <IconButton 
-              color="primary"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewMedicalRecords(row.id);
-              }}
-              aria-label={`Visualizar informações de ${row.nome}`}
-              size="small"
-            >
-              <VisibilityIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          
-          <Tooltip title="Editar dados do paciente">
-            <IconButton 
-              color="success"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(row.id);
-              }}
-              aria-label={`Editar dados de ${row.nome}`}
-              size="small"
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Gerar relatório do paciente">
-            <IconButton 
-              color="secondary" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReport(row.id);
-              }}
-              aria-label={`Gerar relatório de ${row.nome}`}
-              size="small"
-            >
-              <AssignmentIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ], []);
-
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
       {/* 🚀 Tabela Virtualizada - renderiza apenas linhas visíveis */}
       <VirtualizedTable
-        data={patients}
+        data={rows}
         columns={virtualColumns}
         rowHeight={53}
         height={440}

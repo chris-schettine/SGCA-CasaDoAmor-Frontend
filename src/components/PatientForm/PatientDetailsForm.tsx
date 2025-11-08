@@ -1,6 +1,7 @@
-import { FormControl, FormLabel, Grid, FormControlLabel, RadioGroup, Radio, TextField } from "@mui/material";
+import { FormControl, FormLabel, Grid, FormControlLabel, RadioGroup, Radio, TextField, MenuItem } from "@mui/material";
 import type { PatientFormInputs } from "../../schemas/patientSchema";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch } from "react-hook-form";
+import MaskedTextField from '../MaskedTextField';
 
 // Definição da interface de props para este componente
 interface PatientHealthDetailsFormProps {
@@ -19,8 +20,64 @@ const PatientDetailsForm = (
   }: PatientHealthDetailsFormProps
 ) => {
   const usoSondaValue = watch("usoSonda");
+  const tipoSondaVesicalValue = watch('tipoSondaVesical');
+  const tratamentoValue = watch('tratamento');
   return (
     <Grid container spacing={{ xs: 2, md: 3 }} sx={{ padding: '0 26px', gap: '10px', maxWidth: '1200px' }}>
+
+      {/* Diagnóstico e Tratamento (Dados Médicos) */}
+      <Grid size={{ xs: 12 }}>
+        <h4 style={{ marginTop: 8, marginBottom: 16 }}>Informações Clínicas</h4>
+      </Grid>
+      
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          id="diagnostico"
+          label="Diagnóstico *"
+          variant="outlined"
+          fullWidth
+          placeholder="Informe o diagnóstico do paciente"
+          multiline
+          rows={3}
+          {...register("diagnostico")}
+          error={!!errors.diagnostico}
+          helperText={errors.diagnostico?.message || 'Diagnóstico médico principal do paciente.'}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          id="tratamento"
+          label="Tratamento"
+          variant="outlined"
+          fullWidth
+          select
+          {...register("tratamento" as const)}
+          error={!!errors.tratamento}
+          helperText={errors.tratamento?.message || 'Tipo de tratamento em curso (opcional).'}
+        >
+          <MenuItem value="">Selecione...</MenuItem>
+          <MenuItem value={"RADIOTERAPIA"}>Radioterapia</MenuItem>
+          <MenuItem value={"QUIMIOTERAPIA"}>Quimioterapia</MenuItem>
+          <MenuItem value={"AMBOS"}>Ambos</MenuItem>
+          <MenuItem value={"OUTRO"}>Outro</MenuItem>
+        </TextField>
+      </Grid>
+
+      {tratamentoValue === 'OUTRO' && (
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            id="tratamento-outro"
+            label="Descreva o tratamento *"
+            variant="outlined"
+            fullWidth
+            placeholder="Especifique o tipo de tratamento"
+            {...register('tratamentoOutroDescricao' as const)}
+            error={!!errors.tratamentoOutroDescricao}
+            helperText={errors.tratamentoOutroDescricao?.message || 'Obrigatório quando "Outro" for selecionado.'}
+          />
+        </Grid>
+      )}
 
       {/* Condição de chegada */}
       <Grid size={{ xs: 12 }}>
@@ -29,16 +86,18 @@ const PatientDetailsForm = (
           <Controller
             name="condicaoChegada"
             control={control}
-            defaultValue="nenhum"
             render={({ field }) => (
               <RadioGroup row {...field}>
                 <FormControlLabel value="de_ambulancia" control={<Radio />} label="De ambulância" />
                 <FormControlLabel value="maca" control={<Radio />} label="Maca" />
                 <FormControlLabel value="cadeira_rodas" control={<Radio />} label="Cadeira de Rodas" />
-                <FormControlLabel value="nenhum" control={<Radio />} label="Nenhuma da opções" />
+                <FormControlLabel value="nenhum" control={<Radio />} label="Nenhuma das opções" />
               </RadioGroup>
             )}
           />
+          <div style={{ marginTop: 6 }}>
+            <small style={{ color: '#666' }}>Selecione como o paciente chegou ao local.</small>
+          </div>
           {errors.condicaoChegada && (
             <span style={{ color: 'red', fontSize: '0.8em', marginTop: '4px' }}>
               {errors.condicaoChegada.message}
@@ -50,20 +109,20 @@ const PatientDetailsForm = (
       {/* Faz uso de sonda? */}
       <Grid size={{ xs: 12 }}>
         <FormControl component="fieldset" error={!!errors.usoSonda}>
-          <FormLabel component="legend">Faz uso de sonda?</FormLabel>
+          <FormLabel component="legend">Faz uso de sonda? *</FormLabel>
           <Controller
             name="usoSonda"
             control={control}
-            defaultValue="nao"
             render={({ field }) => (
               <RadioGroup row {...field}>
+                <FormControlLabel value="sim" control={<Radio />} label="Sim" />
                 <FormControlLabel value="nao" control={<Radio />} label="Não" />
-                <FormControlLabel value="sonda_foley" control={<Radio />} label="Sonda Foley" />
-                <FormControlLabel value="cislostomia" control={<Radio />} label="Cislostomia" />
-                <FormControlLabel value="outra" control={<Radio />} label="Outra" />
               </RadioGroup>
             )}
           />
+          <div style={{ marginTop: 6 }}>
+            <small style={{ color: '#666' }}>Se "Sim", informe abaixo o(s) tipo(s) de sonda utilizados.</small>
+          </div>
           {errors.usoSonda && (
             <span style={{ color: 'red', fontSize: '0.8em', marginTop: '4px' }}>
               {errors.usoSonda.message}
@@ -73,16 +132,16 @@ const PatientDetailsForm = (
       </Grid>
 
       <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
+          <TextField
           id="se-for-outra"
-          label="Se for outra:"
+          label="Se for 'Outra', descreva"
           variant="outlined"
           fullWidth
-          placeholder="Descreva"
+          placeholder="Descreva a sonda vesical"
           {...register("seForOutra")}
           error={!!errors.seForOutra}
-          helperText={errors.seForOutra?.message}
-          disabled={usoSondaValue !== 'outra'} // Desabilita o campo se não for "outra"
+          helperText={errors.seForOutra?.message || 'Descreva a sonda vesical quando selecionada a opção "Outra".'}
+          disabled={tipoSondaVesicalValue !== 'OUTRA'}
           slotProps={{
             formHelperText: {
               sx: {
@@ -95,13 +154,12 @@ const PatientDetailsForm = (
       </Grid>
 
       {/* Faz uso de curativo? */}
-      <Grid size={{ xs: 12 }}>
+      <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
         <FormControl component="fieldset" error={!!errors.usoCurativo}>
-          <FormLabel component="legend">Faz uso de curativo?</FormLabel>
+          <FormLabel component="legend">Faz uso de curativo? *</FormLabel>
           <Controller
             name="usoCurativo"
             control={control}
-            defaultValue="nao"
             render={({ field }) => (
               <RadioGroup row {...field}>
                 <FormControlLabel value="sim" control={<Radio />} label="Sim" />
@@ -120,11 +178,10 @@ const PatientDetailsForm = (
       {/* Faz uso de oxigenoterapia? */}
       <Grid size={{ xs: 12 }}>
         <FormControl component="fieldset" error={!!errors.usoOxigenoterapia}>
-          <FormLabel component="legend">Faz uso de oxigenoterapia?</FormLabel>
+          <FormLabel component="legend">Faz uso de oxigenoterapia? *</FormLabel>
           <Controller
             name="usoOxigenoterapia"
             control={control}
-            defaultValue="nao"
             render={({ field }) => (
               <RadioGroup row {...field}>
                 <FormControlLabel value="sim" control={<Radio />} label="Sim" />
@@ -140,34 +197,141 @@ const PatientDetailsForm = (
         </FormControl>
       </Grid>
 
-      {/* Tratamento e Diagnóstico (Dados Médicos) */}
-      <Grid size={{ xs: 12, sm: 6 }}>
+      {/* Tipos de sonda e tipo sanguíneo */}
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
         <TextField
-          id="tratamento"
-          label="Tratamento"
+          id="tipo-sonda-nasal"
+          label="Tipo Sonda Nasal"
           variant="outlined"
           fullWidth
-          placeholder="Tratamento"
-          multiline
-          rows={3}
-          {...register("tratamento")}
-          error={!!errors.tratamento}
-          helperText={errors.tratamento?.message}
-        />
+          select
+          {...register('tipoSondaNasal' as const)}
+          error={!!errors.tipoSondaNasal}
+          disabled={usoSondaValue !== 'sim'}
+          helperText={
+            errors.tipoSondaNasal?.message || 
+            (usoSondaValue === 'sim' ? 'Selecione se utilizar (opcional).' : 'Habilitado somente se usar sonda.')
+          }
+        >
+          <MenuItem value="">Nenhum</MenuItem>
+          <MenuItem value={"SNG"}>SNG</MenuItem>
+          <MenuItem value={"SNE"}>SNE</MenuItem>
+          <MenuItem value={"OROGASTRICA"}>Orogástrica</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <TextField
+          id="tipo-sonda-cirurgica"
+          label="Tipo Sonda Cirúrgica"
+          variant="outlined"
+          fullWidth
+          select
+          {...register('tipoSondaCirurgica' as const)}
+          error={!!errors.tipoSondaCirurgica}
+          disabled={usoSondaValue !== 'sim'}
+          helperText={
+            errors.tipoSondaCirurgica?.message || 
+            (usoSondaValue === 'sim' ? 'Selecione se utilizar (opcional).' : 'Habilitado somente se usar sonda.')
+          }
+        >
+          <MenuItem value="">Nenhum</MenuItem>
+          <MenuItem value={"G"}>G</MenuItem>
+          <MenuItem value={"J"}>J</MenuItem>
+          <MenuItem value={"GJ"}>GJ</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <TextField
+          id="tipo-sonda-vesical"
+          label="Tipo Sonda Vesical"
+          variant="outlined"
+          fullWidth
+          select
+          {...register('tipoSondaVesical' as const)}
+          error={!!errors.tipoSondaVesical}
+          disabled={usoSondaValue !== 'sim'}
+          helperText={
+            errors.tipoSondaVesical?.message || 
+            (usoSondaValue === 'sim' ? 'Selecione o tipo ou "Não".' : 'Habilitado somente se usar sonda.')
+          }
+        >
+          <MenuItem value="">Selecione...</MenuItem>
+          <MenuItem value={"NAO"}>Não</MenuItem>
+          <MenuItem value={"FOLEY"}>Foley</MenuItem>
+          <MenuItem value={"CISTOSTOMIA"}>Cistostomia</MenuItem>
+          <MenuItem value={"OUTRA"}>Outra</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <TextField
+          id="tipo-sanguineo"
+          label="Tipo Sanguíneo *"
+          variant="outlined"
+          fullWidth
+          select
+          {...register('tipoSanguineo' as const)}
+          error={!!errors.tipoSanguineo}
+          helperText={errors.tipoSanguineo?.message || 'Selecione o tipo sanguíneo do paciente.'}
+        >
+          <MenuItem value="">Selecione...</MenuItem>
+          <MenuItem value={"A_POSITIVO"}>A+</MenuItem>
+          <MenuItem value={"A_NEGATIVO"}>A-</MenuItem>
+          <MenuItem value={"B_POSITIVO"}>B+</MenuItem>
+          <MenuItem value={"B_NEGATIVO"}>B-</MenuItem>
+          <MenuItem value={"AB_POSITIVO"}>AB+</MenuItem>
+          <MenuItem value={"AB_NEGATIVO"}>AB-</MenuItem>
+          <MenuItem value={"O_POSITIVO"}>O+</MenuItem>
+          <MenuItem value={"O_NEGATIVO"}>O-</MenuItem>
+        </TextField>
       </Grid>
 
-      <Grid size={{ xs: 12, sm: 6 }}>
+      {/* Informação Hospitalar */}
+      <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+        <h4 style={{ marginTop: 8 }}>Informação Hospitalar</h4>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
-          id="diagnostico"
-          label="Diagnóstico"
+          id="nome-hospital"
+          label="Hospital de Referência"
           variant="outlined"
           fullWidth
-          placeholder="Diagnóstico"
-          multiline
-          rows={3}
-          {...register("diagnostico")}
-          error={!!errors.diagnostico}
-          helperText={errors.diagnostico?.message}
+          {...register('informacaoHospitalar.nomeHospitalReferencia' as const)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <TextField
+          id="medico-responsavel"
+          label="Médico Responsável"
+          variant="outlined"
+          fullWidth
+          {...register('informacaoHospitalar.medicoResponsavel' as const)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <TextField
+          id="setor-ala"
+          label="Setor / Ala"
+          variant="outlined"
+          fullWidth
+          {...register('informacaoHospitalar.setorAla' as const)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Controller
+          name={'informacaoHospitalar.dataInternacao' as const}
+          control={control}
+          render={({ field }) => (
+            <MaskedTextField
+              {...field}
+              id="data-internacao"
+              label="Data Internação"
+              variant="outlined"
+              fullWidth
+              placeholder="00/00/0000"
+              mask="00/00/0000"
+              helperText={errors.informacaoHospitalar?.dataInternacao?.message || 'Formato DD/MM/AAAA (opcional)'}
+            />
+          )}
         />
       </Grid>
     </Grid>

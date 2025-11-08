@@ -83,13 +83,9 @@ const PatientRegisterPage = () => {
       estado: "",
       numero: "",
       complemento: "",
-      tratamento: "",
+      tratamento: undefined,
       diagnostico: "",
       seForOutra: "",
-      condicaoChegada: "de_ambulancia",
-      usoSonda: "nao",
-      usoCurativo: "sim",
-      usoOxigenoterapia: "nao",
     }
   });
 
@@ -114,6 +110,7 @@ const PatientRegisterPage = () => {
         return;
       }
 
+      // Monta o payload no formato esperado pelo novo endpoint (/pacientes/)
       const paciente: RegistrarPacienteDTO = {
         dadoPessoal: {
           nome: data.nomeCompletoPaciente,
@@ -124,6 +121,33 @@ const PatientRegisterPage = () => {
           naturalidade: data.naturalidade,
           nomeMae: data.nomeMae,
           profissao: data.profissao,
+          estadoCivil: data.estadoCivil || undefined,
+        },
+        dadoClinico: {
+          diagnostico: data.diagnostico || undefined,
+          tratamento: (data.tratamento as any) || undefined,
+          tratamentoOutroDescricao: data.tratamentoOutroDescricao || null,
+          condicaoChegada: (() => {
+            switch (data.condicaoChegada) {
+              case 'de_ambulancia':
+                return 'AMBULANCIA';
+              case 'maca':
+                return 'MACA';
+              case 'cadeira_rodas':
+                return 'CADEIRA_RODAS';
+              case 'nenhum':
+              default:
+                return 'NENHUMA';
+            }
+          })(),
+          usaSonda: data.usoSonda === 'sim',
+          tipoSondaNasal: data.tipoSondaNasal || null,
+          tipoSondaCirurgica: data.tipoSondaCirurgica || null,
+          tipoSondaVesical: data.tipoSondaVesical || null,
+          sondaOutraDescricao: data.seForOutra || null,
+          usaCurativo: data.usoCurativo === 'sim',
+          usaOxigenoterapia: data.usoOxigenoterapia === 'sim',
+          tipoSanguineo: data.tipoSanguineo,
         },
         endereco: {
           logradouro: data.endereco,
@@ -134,6 +158,29 @@ const PatientRegisterPage = () => {
           estado: data.estado,
           complemento: data.complemento || undefined,
         },
+        email: data.email,
+        contatosDeEmergencia: (data.contatosDeEmergencia && data.contatosDeEmergencia.length > 0) ? (data.contatosDeEmergencia || []).map(c => ({
+          nome: c.nome,
+          email: c.email,
+          telefone: removeNonNumeric(c.telefone),
+        })) : undefined,
+        informacaoHospitalar: data.informacaoHospitalar ? {
+          nomeHospitalReferencia: data.informacaoHospitalar.nomeHospitalReferencia || null,
+          medicoResponsavel: data.informacaoHospitalar.medicoResponsavel || null,
+          setorAla: data.informacaoHospitalar.setorAla || null,
+          dataInternacao: data.informacaoHospitalar.dataInternacao ? formatDateToISO(data.informacaoHospitalar.dataInternacao) : null,
+        } : undefined,
+        dadoSocial: (data.dadoSocial && (
+          data.dadoSocial.rendaFamiliar != null || 
+          data.dadoSocial.composicaoFamiliar || 
+          data.dadoSocial.situacaoMoradia || 
+          data.dadoSocial.necessidadesEspeciais
+        )) ? {
+          rendaFamiliar: data.dadoSocial.rendaFamiliar ?? null,
+          composicaoFamiliar: data.dadoSocial.composicaoFamiliar || null,
+          situacaoMoradia: data.dadoSocial.situacaoMoradia || null,
+          necessidadesEspeciais: data.dadoSocial.necessidadesEspeciais || null,
+        } : undefined,
       };
 
       await pacienteService.registrarPaciente(paciente); // chamada real com token automático
@@ -188,7 +235,7 @@ const PatientRegisterPage = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
   };*/
   const handleCloseSaveDialog = () => setOpenSaveDialog(false);
-  const handleConfirmSave = handleSubmit(handleSavePatient, onError);
+  const handleConfirmSave = handleSubmit(handleSavePatient as any, onError);
 
   const cepValue = watch("cep");
 
@@ -282,7 +329,7 @@ const PatientRegisterPage = () => {
         </Stepper>
       </Box>
 
-      <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
+      <form onSubmit={handleSubmit(handleSavePatient as any, onError)} noValidate>
 
         {/* Dados Pessoais - Step 0 */}
         {activeStep === 0 && (

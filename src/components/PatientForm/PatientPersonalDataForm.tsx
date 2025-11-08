@@ -1,5 +1,7 @@
-import { Grid, TextField, InputAdornment, CircularProgress } from "@mui/material";
-import { type UseFormRegister, type FieldErrors, type UseFormWatch, type UseFormSetValue, Controller, type Control } from "react-hook-form";
+import { Grid, TextField, InputAdornment, CircularProgress, Button, IconButton, MenuItem } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import { type UseFormRegister, type FieldErrors, type UseFormWatch, type UseFormSetValue, Controller, type Control, useFieldArray } from "react-hook-form";
 import type { PatientFormInputs } from "../../schemas/patientSchema";
 import { useEffect } from "react";
 import { calculateAge } from "../../utils/dateCalculations";
@@ -39,6 +41,12 @@ const PatientPersonalDataForm = (
   const cidadeValue = watch("cidade");
   const estadoValue = watch("estado");
   const complementoValue = watch("complemento");
+
+  // Field array para contatos de emergência
+  const { fields: contatosFields, append, remove } = useFieldArray({
+    control,
+    name: 'contatosDeEmergencia' as any,
+  });
 
   // Efeito para calcular e preencher a idade automaticamente
   useEffect(() => {
@@ -272,6 +280,46 @@ const PatientPersonalDataForm = (
             )}
           />
         </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="email"
+            label="E-mail"
+            variant="outlined"
+            fullWidth
+            placeholder="email@exemplo.com"
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message || 'Será usado para contato e notificações (opcional).'}
+            slotProps={{
+              formHelperText: {
+                sx: {
+                  maxHeight: '0.4em',
+                  margin: '0 0.2em',
+                },
+              },
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <TextField
+            id="estado-civil"
+            label="Estado Civil"
+            variant="outlined"
+            fullWidth
+            select
+            {...register('estadoCivil')}
+            error={!!errors.estadoCivil}
+            helperText={errors.estadoCivil?.message || 'Selecione o estado civil do paciente (opcional).'}
+          >
+            <MenuItem value="">Selecione...</MenuItem>
+            <MenuItem value="SOLTEIRO">Solteiro(a)</MenuItem>
+            <MenuItem value="CASADO">Casado(a)</MenuItem>
+            <MenuItem value="DIVORCIADO">Divorciado(a)</MenuItem>
+            <MenuItem value="VIUVO">Viúvo(a)</MenuItem>
+            <MenuItem value="SEPARADO">Separado(a)</MenuItem>
+            <MenuItem value="UNIAO_ESTAVEL">União Estável</MenuItem>
+          </TextField>
+        </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Controller
             name="cep"
@@ -448,6 +496,106 @@ const PatientPersonalDataForm = (
                 shrink: !!complementoValue,
               },
             }}
+          />
+        </Grid>
+        {/* Contatos de Emergência (array dinâmico) */}
+        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h4 style={{ margin: 0 }}>Contatos de Emergência</h4>
+            <Button
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => append({ nome: '', email: '', telefone: '' })}
+            >
+              Adicionar
+            </Button>
+          </div>
+          <div style={{ marginTop: 6, marginBottom: 8 }}>
+            <small style={{ color: '#666' }}>Informe ao menos um contato para acionamento em caso de emergência.</small>
+          </div>
+        </Grid>
+        {contatosFields && contatosFields.length > 0 && contatosFields.map((field, idx) => (
+          <Grid key={field.id} size={{ xs: 12 }} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              id={`contato-nome-${idx}`}
+              label="Nome"
+              variant="outlined"
+              fullWidth
+              placeholder="Nome do contato"
+              {...register(`contatosDeEmergencia.${idx}.nome` as const)}
+              error={!!errors?.contatosDeEmergencia?.[idx]?.nome}
+            />
+            <TextField
+              id={`contato-email-${idx}`}
+              label="E-mail"
+              variant="outlined"
+              fullWidth
+              placeholder="email@exemplo.com"
+              {...register(`contatosDeEmergencia.${idx}.email` as const)}
+              error={!!errors?.contatosDeEmergencia?.[idx]?.email}
+            />
+            <Controller
+              name={`contatosDeEmergencia.${idx}.telefone` as const}
+              control={control}
+              render={({ field: phoneField }) => (
+                <MaskedTextField
+                  {...phoneField}
+                  id={`contato-telefone-${idx}`}
+                  label="Telefone"
+                  variant="outlined"
+                  fullWidth
+                  placeholder="00 00000-0000"
+                  mask="00 00000-0000"
+                />
+              )}
+            />
+            <IconButton aria-label="remover" color="error" onClick={() => remove(idx)}>
+              <DeleteIcon />
+            </IconButton>
+          </Grid>
+        ))}
+
+        {/* Dado Social */}
+        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+          <h4 style={{ marginTop: 8 }}>Dado Social</h4>
+        </Grid>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <TextField
+            id="renda-familiar"
+            label="Renda Familiar (R$)"
+            variant="outlined"
+            fullWidth
+            type="number"
+            inputProps={{ min: 0 }}
+            {...register('dadoSocial.rendaFamiliar' as const, { valueAsNumber: true })}
+            helperText={'Informe a soma da renda familiar em reais (opcional)'}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <TextField
+            id="composicao-familiar"
+            label="Composição Familiar"
+            variant="outlined"
+            fullWidth
+            {...register('dadoSocial.composicaoFamiliar' as const)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <TextField
+            id="situacao-moradia"
+            label="Situação Moradia"
+            variant="outlined"
+            fullWidth
+            {...register('dadoSocial.situacaoMoradia' as const)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <TextField
+            id="necessidades-especiais"
+            label="Necessidades Especiais"
+            variant="outlined"
+            fullWidth
+            {...register('dadoSocial.necessidadesEspeciais' as const)}
           />
         </Grid>
         {/* Tratamento e Diagnóstico: movidos para a seção de dados médicos (PatientDetailsForm) */}

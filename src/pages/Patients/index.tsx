@@ -1,39 +1,21 @@
 import { useState } from "react";
-import {
-  Box,
-  FormControl,
-  IconButton,
-  Input,
-  InputAdornment,
-  InputLabel,
-  Button,
-} from "@mui/material";
-import SearchIcon from '@mui/icons-material/Search';
+import { Box, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import TablePatients from "../../components/Table/TablePatients";
 import PageHeader from "../../components/PageHeader";
 import { AnimatedPage } from "../../components/AnimatedPage";
+import SearchBar from "../../components/SearchBar";
 
 const Patients = () => {
   const [searchText, setSearchText] = useState('');
 
   const searchComponent = (
-    <FormControl fullWidth variant="standard">
-      <InputLabel htmlFor="search">Buscar Paciente</InputLabel>
-      <Input
-        id="search"
-        type="search"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        endAdornment={
-          <InputAdornment position="end">
-            <IconButton onClick={() => { /* opcional: foco ou busca imediata */ }}>
-              <SearchIcon />
-            </IconButton>
-          </InputAdornment>
-        }
-      />
-    </FormControl>
+    <SearchBar
+      value={searchText}
+      onChange={setSearchText}
+      label="Buscar Paciente"
+      placeholder="Digite o nome, CPF ou RG do paciente"
+    />
   );
 
   const actionButton = (

@@ -9,7 +9,7 @@ import LoadingState from "../../components/LoadingState";
 const MedicalRecordPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { patientId, patientName } = location.state || {};
+  const { patientId, patientName, patient } = location.state || {};
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -63,7 +63,11 @@ const MedicalRecordPage = () => {
     }}>
       <Breadcrumbs items={[
         { label: 'Pacientes', path: '/patients' },
-        { label: patientName || 'Paciente', path: `/patient/information/${patientId}` },
+        { 
+          label: patientName || 'Paciente', 
+          path: '/patient/information',
+          state: { patientId, patient }
+        },
         { label: 'Prontuário Médico' }
       ]} />
       <PageHeader 

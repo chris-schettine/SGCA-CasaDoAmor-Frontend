@@ -6,6 +6,7 @@ import HomeIcon from '@mui/icons-material/Home';
 export interface BreadcrumbItem {
   label: string;
   path?: string;
+  state?: any; // State para passar via React Router
 }
 
 interface BreadcrumbsProps {
@@ -65,6 +66,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
             key={index}
             component={Link}
             to={item.path}
+            state={item.state}
             sx={{
               color: 'text.primary',
               textDecoration: 'none',

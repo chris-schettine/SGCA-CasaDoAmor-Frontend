@@ -47,18 +47,16 @@ export function VirtualizedTable<T extends Record<string, any>>({
   const virtualItems = virtualizer.getVirtualItems();
 
   return (
-    <TableContainer component={Paper} sx={{ height, overflow: 'auto' }} ref={parentRef}>
-      <Table stickyHeader>
+    <TableContainer sx={{ maxHeight: height }} ref={parentRef}>
+      <Table stickyHeader aria-label="virtualized table">
         <TableHead>
           <TableRow>
             {columns.map((column) => (
               <TableCell
                 key={String(column.field)}
+                style={{ minWidth: column.width }}
                 sx={{
-                  width: column.width,
                   fontWeight: 600,
-                  backgroundColor: 'background.paper',
-                  zIndex: 2,
                 }}
               >
                 {column.headerName}
@@ -67,61 +65,77 @@ export function VirtualizedTable<T extends Record<string, any>>({
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* Spacer para manter altura total correta */}
-          {virtualItems.length > 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
+          {/* Espaçador para altura total */}
+          <TableRow>
+            <TableCell
+              colSpan={columns.length}
+              sx={{
+                height: virtualizer.getTotalSize(),
+                padding: 0,
+                border: 0,
+                position: 'relative',
+              }}
+            >
+              {/* Linhas virtualizadas */}
+              <Box
                 sx={{
-                  height: virtualizer.getTotalSize(),
-                  padding: 0,
-                  position: 'relative',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
                 }}
               >
-                {/* Container absoluto para linhas virtualizadas */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
-                  }}
-                >
-                  {virtualItems.map((virtualRow) => {
-                    const row = data[virtualRow.index];
-                    const rowId = getRowId ? getRowId(row) : virtualRow.index;
+                {virtualItems.map((virtualRow) => {
+                  const row = data[virtualRow.index];
+                  const rowId = getRowId ? getRowId(row) : virtualRow.index;
 
-                    return (
-                      <Table key={rowId} sx={{ tableLayout: 'fixed' }}>
-                        <TableBody>
-                          <TableRow
-                            hover
-                            onClick={() => onRowClick?.(row)}
+                  return (
+                    <Box
+                      key={rowId}
+                      sx={{
+                        display: 'table',
+                        width: '100%',
+                        tableLayout: 'fixed',
+                        height: rowHeight,
+                      }}
+                    >
+                      <Box
+                        component="div"
+                        onClick={() => onRowClick?.(row)}
+                        sx={{
+                          display: 'table-row',
+                          cursor: onRowClick ? 'pointer' : 'default',
+                          '&:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      >
+                        {columns.map((column) => (
+                          <Box
+                            key={String(column.field)}
+                            component="div"
                             sx={{
-                              cursor: onRowClick ? 'pointer' : 'default',
-                              height: rowHeight,
+                              display: 'table-cell',
+                              width: column.width,
+                              padding: '16px',
+                              borderBottom: '1px solid',
+                              borderColor: 'divider',
+                              verticalAlign: 'middle',
                             }}
                           >
-                            {columns.map((column) => (
-                              <TableCell
-                                key={String(column.field)}
-                                sx={{ width: column.width }}
-                              >
-                                {column.renderCell
-                                  ? column.renderCell(row)
-                                  : String(row[column.field] ?? '')}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    );
-                  })}
-                </Box>
-              </TableCell>
-            </TableRow>
-          )}
+                            {column.renderCell
+                              ? column.renderCell(row)
+                              : String(row[column.field] ?? '')}
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </TableContainer>
