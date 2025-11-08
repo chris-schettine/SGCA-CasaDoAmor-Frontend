@@ -12,16 +12,18 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   const location = useLocation();
 
+  // ⏳ Aguarda finalizar verificação de autenticação
   if (isLoading) {
     return <LoadingBackdrop />;
   }
 
-  // se o usuário NÃO está autenticado
+  // 🔒 Redireciona para login se NÃO autenticado
   if (!isAuthenticated) {
     // passando o caminho atual, para que após o login, o usuário possa ser redirecionado de volta.
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // ✅ Autenticado - renderiza conteúdo protegido
   return children;
 };
 

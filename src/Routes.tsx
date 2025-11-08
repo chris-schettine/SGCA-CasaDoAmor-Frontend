@@ -57,13 +57,14 @@ const AppRoutes = () => {
   <Suspense fallback={<TableSkeleton rows={10} />}>
     <Routes>
     {/* Rotas Públicas */}
-    <Route path="login" element={<LoginPage />} />
+    <Route path="/login" element={<LoginPage />} />
     
-    <Route path="forgot-password" element={<ForgotPasswordPage />} />
-    <Route path="reset-password" element={<ResetPasswordPage />} />
-    <Route path="verify-email/:token" element={<VerifyEmailPage />} />
-    <Route path="activate-account" element={<ActivateAccountPage />} />
-    <Route path="login/verify-2fa" element={<LoginVerify2FAPage />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+    <Route path="/activate-account" element={<ActivateAccountPage />} />
+    <Route path="/login/verify-2fa" element={<LoginVerify2FAPage />} />
+    
     {/* Rotas Privadas */}
     <Route
       path="/"

@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       token: null,
-      isLoading: true,
+      isLoading: false, // ✅ Inicia como false - persist já restaurou do localStorage
 
       // Actions
       login: (newToken: string, userData: UserType) => {
@@ -59,10 +59,14 @@ export const useAuthStore = create<AuthState>()(
       checkAuthStatus: async () => {
         const { token, user } = get();
         
+        // Se não tem token/user no localStorage, não precisa verificar
         if (!token || !user) {
           set({ isLoading: false, isAuthenticated: false });
           return;
         }
+
+        // ⏳ Inicia verificação
+        set({ isLoading: true });
 
         try {
           // Valida sessão com backend
