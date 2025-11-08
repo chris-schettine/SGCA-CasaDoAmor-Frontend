@@ -2,7 +2,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CheckIcon from '@mui/icons-material/Check';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip, Switch } from "@mui/material"
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../../api/admin.service';
@@ -35,6 +35,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   // keep the full DTOs from the backend so other properties are available if needed
   const [rows, setRows] = useState<UserResponseDTO[]>([]);
+  const [toggling, setToggling] = useState<Record<number, boolean>>({});
   
   const [filterTipo, setFilterTipo] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -177,6 +178,30 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                       >
                         <EditIcon />
                       </IconButton>
+                    </Tooltip>
+                    {/* Toggle active/inactive */}
+                    <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
+                      <span>
+                        <Switch
+                          checked={!!row.ativo}
+                          onChange={async () => {
+                            // prevent multiple toggles
+                            if (toggling[row.id]) return;
+                            try {
+                              setToggling((s) => ({ ...s, [row.id]: true }));
+                              await adminService.toggleUserStatus(row.id);
+                              // update local state optimistically
+                              setRows((prev) => prev.map(r => r.id === row.id ? { ...r, ativo: !r.ativo } : r));
+                            } catch (err) {
+                              console.error('Erro ao alternar status do usuário', err);
+                            } finally {
+                              setToggling((s) => ({ ...s, [row.id]: false }));
+                            }
+                          }}
+                          inputProps={{ 'aria-label': `Ativar/Desativar ${row.nome}` }}
+                          disabled={!!toggling[row.id]}
+                        />
+                      </span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>

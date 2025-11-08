@@ -104,6 +104,10 @@ class AdminService {
     return response.data;
   }
 
+  async toggleUserStatus(id: number): Promise<void> {
+    await api.patch(`/admin/users/${id}/toggle-status`);
+  }
+
   async getPhotoUrl(id: number): Promise<any> {
     const response = await api.get(`/admin/${id}/foto`);
     return response.data;
