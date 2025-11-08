@@ -19,56 +19,13 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-import { CssBaseline, Divider, Button } from '@mui/material';
+import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
-
-type KeyboardShortcut = {
-    key: string;
-    handler: () => void;
-    description: string;
-    ctrl?: boolean;
-};
-
-const useKeyboardShortcuts = (_shortcuts: KeyboardShortcut[]) => {
-    React.useEffect(() => {
-    }, []);
-};
-
-const useAuth = () => {
-    return {
-        user: { nome: "Usuário Mock", tipoUsuario: "ADMINISTRADOR" },
-        logout: () => console.log("Mock: Logout chamado"),
-    };
-};
-
-const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: { open: boolean, onClose: () => void, shortcuts: KeyboardShortcut[] }) => {
-    if (!open) return null;
-    
-    return (
-        <Drawer anchor="right" open={open} onClose={onClose}>
-            <Box sx={{ width: 300, p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                    Ajuda de Atalhos (Mock)
-                </Typography>
-                <List>
-                    {shortcuts.map(s => (
-                        <ListItem key={s.description}>
-                            <ListItemText 
-                                primary={s.description} 
-                                secondary={<code>{s.ctrl ? 'Ctrl + ' : ''}{s.key}</code>} 
-                            />
-                        </ListItem>
-                    ))}
-                </List>
-                <Button onClick={onClose} variant="contained" fullWidth>
-                    Fechar
-                </Button>
-            </Box>
-        </Drawer>
-    );
-};
+import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
+import { useAuth } from '../../hooks/useAuth';
+import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
