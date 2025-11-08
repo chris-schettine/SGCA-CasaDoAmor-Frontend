@@ -5,7 +5,7 @@ import App from './App.tsx'
 import 'react-toastify/dist/ReactToastify.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { useAuthStore } from './stores/useAuthStore'
+import { useAuthStore, setQueryClient } from './stores/useAuthStore'
 
 // Configuração do QueryClient com defaults otimizados
 const queryClient = new QueryClient({
@@ -22,6 +22,9 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// ✅ Passa queryClient para o auth store (para limpar cache no logout)
+setQueryClient(queryClient);
 
 // Componente para inicializar auth
 function AuthInitializer({ children }: { children: React.ReactNode }) {

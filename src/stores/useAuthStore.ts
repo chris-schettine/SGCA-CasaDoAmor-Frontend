@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authService } from '../api/auth.service';
 
+// Importa queryClient para limpar cache no logout
+let queryClientInstance: any = null;
+
+export const setQueryClient = (client: any) => {
+  queryClientInstance = client;
+};
+
 export interface UserType {
   nome: string;
   email: string;
@@ -55,9 +62,16 @@ export const useAuthStore = create<AuthState>()(
             token: null,
           });
           
-          // 🔒 Garante que o localStorage foi limpo
+          // 🔒 Limpa localStorage
           localStorage.removeItem('auth-storage');
-          console.log('[useAuthStore] Logout completo - localStorage limpo');
+          
+          // 🗑️ Limpa cache do TanStack Query
+          if (queryClientInstance) {
+            queryClientInstance.clear();
+            console.log('[useAuthStore] Cache do QueryClient limpo');
+          }
+          
+          console.log('[useAuthStore] Logout completo - tudo limpo');
         }
       },
 
