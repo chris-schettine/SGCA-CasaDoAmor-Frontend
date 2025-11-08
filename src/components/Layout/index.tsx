@@ -280,11 +280,14 @@ export default function Layout() {
         setOpen(prev => !prev);
     }, []);
 
-    const handleLogout = () => {
-        setTimeout(() => {
-            logout();
+    const handleLogout = async () => {
+        try {
+            await logout(); // ✅ Aguarda logout completar
             navigate("/login", { replace: true });
-        }, 1000)
+        } catch (error) {
+            console.error('[Layout] Erro ao fazer logout:', error);
+            navigate("/login", { replace: true }); // Redireciona mesmo com erro
+        }
     };
 
     const shortcuts: KeyboardShortcut[] = React.useMemo(() => [

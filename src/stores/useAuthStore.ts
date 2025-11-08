@@ -48,11 +48,16 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('[useAuthStore] Erro ao fazer logout:', error);
         } finally {
+          // Limpa o estado
           set({
             user: null,
             isAuthenticated: false,
             token: null,
           });
+          
+          // 🔒 Garante que o localStorage foi limpo
+          localStorage.removeItem('auth-storage');
+          console.log('[useAuthStore] Logout completo - localStorage limpo');
         }
       },
 
