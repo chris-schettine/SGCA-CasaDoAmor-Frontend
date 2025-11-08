@@ -1,0 +1,14 @@
+{
+  "projectId": "CHROMATIC_PROJECT_ID",
+  "buildScriptName": "build-storybook",
+  "exitZeroOnChanges": true,
+  "exitOnceUploaded": true,
+  "autoAcceptChanges": "main",
+  "ignoreLastBuildOnBranch": "dev",
+  "externals": [
+    "public/**"
+  ],
+  "skip": {
+    "branch": "skip-chromatic/*"
+  }
+}

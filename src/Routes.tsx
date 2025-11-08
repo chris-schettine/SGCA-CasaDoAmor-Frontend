@@ -1,30 +1,61 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Layout from './components/Layout';
-import Users from './pages/Users';
-import SessionsPage from './pages/Sessions';
-import AdminRoute from './components/AdminRoute';
-import CompanionRegisterPage from './pages/CompanionRegister';
-import Patients from './pages/Patients';
-import PatientRegisterPage from './pages/PatientRegister';
-import UserRegisterPage from './pages/UserRegister';
-import UserEditPage from './pages/UserEdit';
-import MyProfilePage from './pages/MyProfile';
-import LoginPage from './pages/Login';
-import NotFoundPage from './pages/NotFoundPage';
-import PrivateRoute from './components/PrivateRoute';
-import PatientInformation from './pages/PatientInformation';
-import MedicalRecordPage from './pages/MedicalRecord';
-import PatientEditPage from './pages/PatientEdit';
-import VerifyEmailPage from './pages/VerifyEmail';
-import ForgotPasswordPage from './pages/ForgotPassword';
-import ResetPasswordPage from './pages/ResetPassword'; 
-import ActivateAccountPage from './pages/ActivateAccount';
-import LoginVerify2FAPage from './pages/LoginVerify2FA';
-import RelatoryPage from './components/RelatoryPage';
-import AuditLogPage from './pages/AuditLogPage';
+import { TableSkeleton } from './components/SuspenseWrapper';
 
-const AppRoutes = () => (
-  <Routes>
+// Lazy load de componentes principais
+const Layout = lazy(() => import('./components/Layout'));
+const AdminRoute = lazy(() => import('./components/AdminRoute'));
+const PrivateRoute = lazy(() => import('./components/PrivateRoute'));
+
+// Lazy load de páginas com preload
+const LoginPage = lazy(() => import('./pages/Login'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmail'));
+const ActivateAccountPage = lazy(() => import('./pages/ActivateAccount'));
+const LoginVerify2FAPage = lazy(() => import('./pages/LoginVerify2FA'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// Lazy load de páginas privadas
+const Patients = lazy(() => import('./pages/Patients'));
+const PatientInformation = lazy(() => import('./pages/PatientInformation'));
+const MedicalRecordPage = lazy(() => import('./pages/MedicalRecord'));
+const PatientEditPage = lazy(() => import('./pages/PatientEdit'));
+const PatientRegisterPage = lazy(() => import('./pages/PatientRegister'));
+const CompanionRegisterPage = lazy(() => import('./pages/CompanionRegister'));
+const RelatoryPage = lazy(() => import('./components/RelatoryPage'));
+const AuditLogPage = lazy(() => import('./pages/AuditLogPage'));
+
+// Lazy load de páginas de usuários
+const Users = lazy(() => import('./pages/Users'));
+const SessionsPage = lazy(() => import('./pages/Sessions'));
+const UserRegisterPage = lazy(() => import('./pages/UserRegister'));
+const UserEditPage = lazy(() => import('./pages/UserEdit'));
+const MyProfilePage = lazy(() => import('./pages/MyProfile'));
+
+// Preload de rotas críticas
+const preloadRoutes = () => {
+  // Preload Login (rota inicial mais comum)
+  import('./pages/Login');
+  // Preload Patients (dashboard principal após login)
+  import('./pages/Patients');
+  // Preload Layout (sempre necessário em rotas privadas)
+  import('./components/Layout');
+};
+
+const AppRoutes = () => {
+  // Preload automático após 2 segundos de idle
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      preloadRoutes();
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+  <Suspense fallback={<TableSkeleton rows={10} />}>
+    <Routes>
     {/* Rotas Públicas */}
     <Route path="login" element={<LoginPage />} />
     
@@ -75,6 +106,8 @@ const AppRoutes = () => (
     </Route>
 
   </Routes>
-);
+  </Suspense>
+  );
+};
 
 export default AppRoutes;

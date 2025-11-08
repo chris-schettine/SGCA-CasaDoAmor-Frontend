@@ -1,9 +1,10 @@
-import { stylesContainer, stylesDivCheckbox, SubtitleStyles, TitleStyles, typeStyles } from "./styles";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Snackbar, CircularProgress, type AlertColor, type SnackbarCloseReason } from "@mui/material";
+import { Alert, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography } from "@mui/material";
 import CustomCheckbox from "../../components/CustomCheckbox";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import PageHeader from "../../components/PageHeader";
+import LoadingState from "../../components/LoadingState";
 
 const MedicalRecordPage = () => {
   const location = useLocation();
@@ -47,95 +48,105 @@ const MedicalRecordPage = () => {
   }, [patientId, navigate, showSnackbar]);
 
   if (loading) {
-    return (
-      <div css={stylesContainer} style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "50vh"
-      }}>
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingState message="Carregando prontuário médico..." />;
   }
 
   return (
-    <div css={stylesContainer}>
+    <Box sx={{ 
+      display: "flex", 
+      justifyContent: "center", 
+      flexDirection: "column", 
+      gap: "10px", 
+      width: "90%", 
+      minHeight: "56px", 
+      margin: "24px auto" 
+    }}>
       <Breadcrumbs items={[
         { label: 'Pacientes', path: '/patients' },
         { label: patientName || 'Paciente', path: `/patient/information/${patientId}` },
         { label: 'Prontuário Médico' }
       ]} />
-      <h1 css={TitleStyles}>Prontuário médico do paciente {patientName || 'NOME'}</h1>
+      <PageHeader 
+        title={`Prontuário médico do paciente ${patientName || 'NOME'}`}
+        subtitle="Fatores de risco e condições clínicas"
+      />
 
-      <h2 css={SubtitleStyles}>Fatores de riscos</h2>
-
-      <h4 css={typeStyles}>Lesão de pele:</h4>
-      <div style={{ display: "flex", width: "1000px", justifyContent: "space-between", margin: 0 }}>
-        <div css={stylesDivCheckbox}>
+      <Typography component="h4" sx={{ fontSize: "16px", color: "#000", fontWeight: 600, m: 0, pt: "10px" }}>
+        Lesão de pele:
+      </Typography>
+      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Alteração no nível de consciência" />
           <CustomCheckbox label="Déficit de mobilidade e atividade" />
           <CustomCheckbox label="Déficit nutricional" />
           <CustomCheckbox label="Pele úmida/molhada" />
-        </div>
+        </Box>
 
-        <div css={stylesDivCheckbox}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Facção/Cisalhamento" />
           <CustomCheckbox label="Limitação da mobilidade" />
           <CustomCheckbox label="Fora de risco" />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <h4 css={typeStyles}>Flebite</h4>
-      <div style={{ display: "flex", width: "1000px", justifyContent: "space-between", margin: 0 }}>
-        <div css={stylesDivCheckbox}>
+      <Typography component="h4" sx={{ fontSize: "16px", color: "#000", fontWeight: 600, m: 0, pt: "10px" }}>
+        Flebite
+      </Typography>
+      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Criança/Idoso" />
           <CustomCheckbox label="Alteração do lugar da pele" />
           <CustomCheckbox label="Imunodepressão" />
           <CustomCheckbox label="Fragilidade capilar" />
-        </div>
+        </Box>
 
-        <div css={stylesDivCheckbox}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Uso de quimioterapia" />
           <CustomCheckbox label="Medicações hiperosmolares" />
           <CustomCheckbox label="Fora de risco" />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <h4 css={typeStyles}>Queda</h4>
-      <div style={{ display: "flex", width: "1000px", justifyContent: "space-between", margin: 0 }}>
-        <div css={stylesDivCheckbox}>
+      <Typography component="h4" sx={{ fontSize: "16px", color: "#000", fontWeight: 600, m: 0, pt: "10px" }}>
+        Queda
+      </Typography>
+      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Criança/Idoso/Gestante" />
           <CustomCheckbox label="Convulsões" />
           <CustomCheckbox label="Confusão mental/Delirium" />
           <CustomCheckbox label="Visão/audição diminuída" />
-        </div>
+        </Box>
 
-        <div css={stylesDivCheckbox}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Hipotensão postural" />
           <CustomCheckbox label="Uso de álcool/drogas" />
           <CustomCheckbox label="Fora de risco" />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <h4 css={typeStyles}>SAE - Sistema de assistência de enfermagem</h4>
-      <div style={{ display: "flex", width: "1000px", justifyContent: "space-between", margin: 0 }}>
-        <div css={stylesDivCheckbox}>
+      <Typography component="h4" sx={{ fontSize: "16px", color: "#000", fontWeight: 600, m: 0, pt: "10px" }}>
+        SAE - Sistema de assistência de enfermagem
+      </Typography>
+      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Dor caracterizada por relato verbal devido a presença de tumores" />
           <CustomCheckbox label="Risco para integridade da pele prejudicada" />
           <CustomCheckbox label="Déficit no autocuidado para banho e higiene" />
-        </div>
+        </Box>
 
-        <div css={stylesDivCheckbox}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Náuseas e vômitos relacionados ao tratamento oncológico" />
           <CustomCheckbox label="Risco para infecção devido à imunossupressão" />
           <CustomCheckbox label="Ansiedade por incerteza relacionada a risco de morte" />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <h4 css={typeStyles}>Histórico de saúde e doença</h4>
-      <div style={{ display: "flex", width: "1000px", justifyContent: "space-between", margin: 0 }}>
-        <div css={stylesDivCheckbox}>
+      <Typography component="h4" sx={{ fontSize: "16px", color: "#000", fontWeight: 600, m: 0, pt: "10px" }}>
+        Histórico de saúde e doença
+      </Typography>
+      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Tabagismo" />
           <CustomCheckbox label="Neoplasia" />
           <CustomCheckbox label="Doença autoimune" />
@@ -143,18 +154,18 @@ const MedicalRecordPage = () => {
           <CustomCheckbox label="Doença cardiovascular" />
           <CustomCheckbox label="Diabetes" />
           <CustomCheckbox label="Doença renal" />
-        </div>
+        </Box>
 
-        <div css={stylesDivCheckbox}>
+        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <CustomCheckbox label="Dislipidemia" />
           <CustomCheckbox label="Etilismo" />
           <CustomCheckbox label="Hipertensão" />
           <CustomCheckbox label="Transfusão sanguínea" />
           <CustomCheckbox label="Virose na infância" />
           <CustomCheckbox label="Doenças infectocontagiosas" />
-        </div>
+        </Box>
         {/* Outros: _____ */}
-      </div>
+      </Box>
 
       {/* Snackbar Component */}
       <Snackbar
@@ -172,7 +183,7 @@ const MedicalRecordPage = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </div>
+    </Box>
   );
 };
 

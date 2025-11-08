@@ -5,12 +5,12 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { adminService } from '../../../api/admin.service';
-import type { PageUserResponseDTO, UserResponseDTO } from '../../../api/admin.dto';
+import type { UserResponseDTO } from '../../../api/admin.dto';
 import EmptyState from "../../EmptyState";
 import ConfirmationDialog from "../../ConfirmationDialog";
+import { useUsers, useToggleUserStatus } from '../../../hooks/useAdmin';
 
 interface Column {
   id: 'name' | 'function' | 'email' | 'telephone' | 'actions';
@@ -34,42 +34,27 @@ interface TableUsersProps {
 }
 
 const TableUsers = ({ searchText }: TableUsersProps) => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  // keep the full DTOs from the backend so other properties are available if needed
-  const [rows, setRows] = useState<UserResponseDTO[]>([]);
-  const [toggling, setToggling] = useState<Record<number, boolean>>({});
-  
   const [filterTipo, setFilterTipo] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchText || '');
 
   // Confirmation dialog state
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [userToToggle, setUserToToggle] = useState<UserResponseDTO | null>(null);
 
+  // 🚀 TanStack Query - substitui useState + useEffect
+  const { data, isLoading } = useUsers({ page, size: rowsPerPage, searchText: debouncedSearch });
+  const toggleStatusMutation = useToggleUserStatus();
+
+  const rows = data?.content ?? [];
+
   // debounce searchText
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchText || ''), 500);
     return () => clearTimeout(t);
   }, [searchText]);
-
-  useEffect(() => {
-    const fetch = async () => {
-      setLoading(true);
-      try {
-        const pageable = { page, size: rowsPerPage, searchText: debouncedSearch };
-  const res: PageUserResponseDTO = await adminService.listUsers(pageable);
-  // store the full user DTOs; rendering below will read the fields it needs
-  setRows(res.content || []);
-      } catch (err) {
-        console.error('Erro ao buscar usuários', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetch();
-  }, [page, rowsPerPage, debouncedSearch]);
 
   // derive unique tipos from loaded rows for the filter options
   const tipos = Array.from(new Set(rows.map(r => r.tipo).filter(Boolean))).sort();
@@ -84,20 +69,6 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const handleOpenFilter = (e: React.MouseEvent<HTMLElement>) => setAnchorElFilter(e.currentTarget);
   const handleCloseFilter = () => setAnchorElFilter(null);
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  }
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  }
-
-  const navigate = useNavigate();
-  const handleEdit = (id: number) => {
-    navigate(`/user/edit/${id}`);
-  }
-
   const handleToggleClick = (user: UserResponseDTO) => {
     setUserToToggle(user);
     setConfirmDialogOpen(true);
@@ -107,14 +78,10 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
     if (!userToToggle) return;
     
     try {
-      setToggling((s) => ({ ...s, [userToToggle.id]: true }));
-      await adminService.toggleUserStatus(userToToggle.id);
-      // update local state optimistically
-      setRows((prev) => prev.map(r => r.id === userToToggle.id ? { ...r, ativo: !r.ativo } : r));
+      await toggleStatusMutation.mutateAsync(userToToggle.id);
     } catch (err) {
       console.error('Erro ao alternar status do usuário', err);
     } finally {
-      setToggling((s) => ({ ...s, [userToToggle.id]: false }));
       setConfirmDialogOpen(false);
       setUserToToggle(null);
     }
@@ -125,10 +92,23 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
     setUserToToggle(null);
   };
 
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  }
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  }
+
+  const handleEdit = (id: number) => {
+    navigate(`/user/edit/${id}`);
+  }
+
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
       <TableContainer sx={{ maxHeight: 440 }} >
-        {loading ? (
+        {isLoading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
             <CircularProgress />
           </div>
@@ -140,7 +120,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                 <TableCell
                   key={column.id}
                   align={column.align}
-                  style={{ minWidth: column.minWidth, backgroundColor: '#ccc' }}
+                  style={{ minWidth: column.minWidth }}
                 >
                   {column.id === 'function' ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -220,7 +200,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                           color={row.ativo ? 'error' : 'success'}
                           onClick={() => handleToggleClick(row)}
                           aria-label={`${row.ativo ? 'Desativar' : 'Ativar'} ${row.nome}`}
-                          disabled={!!toggling[row.id]}
+                          disabled={toggleStatusMutation.isPending}
                         >
                           {row.ativo ? <BlockIcon /> : <CheckCircleIcon />}
                         </IconButton>

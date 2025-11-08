@@ -1,4 +1,4 @@
-import { Button, type AlertColor } from "@mui/material";
+import { Button, type AlertColor, Box } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,7 @@ import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useNavigate } from "react-router-dom";
 import { companionSchema, type CompanionFormInputs } from "../../schemas/companionSchema";
-import { buttonStyles, cancelButtonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "../PatientRegister/styles";
+import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 
 const CompanionRegisterPage = () => {
@@ -215,8 +215,21 @@ const CompanionRegisterPage = () => {
   const handleConfirmSave = handleSubmit(handleSaveCompanion, onError);
 
   return (
-    <div css={stylesContainer}>
-      <h1 css={TitleStyles}>Cadastrar Acompanhante</h1>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: 'column',
+      position: "relative",
+      minHeight: "56px",
+      margin: "24px auto",
+      paddingBottom: "15px",
+      width: "90%"
+    }}>
+      <PageHeader 
+        title="Cadastrar Acompanhante"
+        subtitle="Preencha os dados do acompanhante do paciente"
+      />
 
       <form
         onSubmit={handleConfirmSave}
@@ -232,18 +245,18 @@ const CompanionRegisterPage = () => {
         />
 
         {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
             variant="contained"
-            css={[buttonStyles, saveButtonStyles]}
+            color="primary"
             onClick={handleOpenSaveDialog}
           >
             {existingCompanionId ? "Vincular Acompanhante Existente" : "Salvar Novo Acompanhante"}
           </Button>
           <Button
-            variant="contained"
+            variant="outlined"
+            color="error"
             onClick={handleOpenCancelDialog}
-            css={[buttonStyles, cancelButtonStyles]}
           >
             Não Cadastrar Acompanhante
           </Button>
@@ -288,7 +301,7 @@ const CompanionRegisterPage = () => {
         confirmButtonText="Sim, Não Cadastrar"
         cancelButtonText="Voltar e Cadastrar"
       />
-    </div>
+    </Box>
   )
 }
 

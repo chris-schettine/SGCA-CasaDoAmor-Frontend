@@ -1,6 +1,6 @@
-import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason } from "@mui/material";
-import { buttonStyles, saveButtonStyles, cancelButtonStyles, stylesContainer, TitleStyles } from "./styles";
+import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, Box } from "@mui/material";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
+import PageHeader from "../../components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
@@ -197,8 +197,21 @@ const UserRegisterPage = () => {
   const handleConfirmSave = handleSubmit(handleSaveUser, onError);
 
   return (
-    <div css={stylesContainer}>
-      <h1 css={TitleStyles}>Cadastrar Profissional</h1>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: 'column',
+      position: "relative",
+      minHeight: "56px",
+      margin: "24px auto",
+      paddingBottom: "15px",
+      width: "90%"
+    }}>
+      <PageHeader 
+        title="Cadastrar Profissional"
+        subtitle="Preencha os dados do novo usuário do sistema"
+      />
       <form noValidate>
 
         <UserForm
@@ -215,15 +228,15 @@ const UserRegisterPage = () => {
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
             variant="contained"
-            css={[buttonStyles, saveButtonStyles]}
+            color="primary"
             onClick={handleOpenSaveDialog}
             aria-label="Salvar cadastro do profissional"
           >
             Salvar
           </Button>
           <Button
-            variant="contained"
-            css={[buttonStyles, cancelButtonStyles]}
+            variant="outlined"
+            color="error"
             onClick={handleOpenCancelDialog}
             aria-label="Cancelar cadastro e voltar"
           >
@@ -270,7 +283,7 @@ const UserRegisterPage = () => {
         confirmButtonText="Sim, Salvar"
         cancelButtonText="Não, Voltar"
       />
-    </div>
+    </Box>
   );
 }
 

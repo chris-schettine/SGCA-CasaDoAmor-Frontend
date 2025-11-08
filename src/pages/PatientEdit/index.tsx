@@ -1,4 +1,4 @@
-import { Button, type AlertColor, CircularProgress } from "@mui/material";
+import { Button, type AlertColor, CircularProgress, Box } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
-import { buttonStyles, cancelButtonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "../PatientRegister/styles";
+import PageHeader from "../../components/PageHeader";
 import Snackbar from '@mui/material/Snackbar';
 import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -280,13 +280,23 @@ const PatientEditPage = () => {
   }, [id, navigate, setValue, showSnackbar, passedPatient]);
 
   if (loading) return (
-    <div css={stylesContainer} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
       <CircularProgress />
-    </div>
+    </Box>
   );
 
   return (
-    <div css={stylesContainer}>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: 'column',
+      position: "relative",
+      minHeight: "56px",
+      margin: "24px auto",
+      paddingBottom: "15px",
+      width: "90%"
+    }}>
       <Breadcrumbs
         items={[
           { label: 'Pacientes', path: '/patients' },
@@ -295,7 +305,7 @@ const PatientEditPage = () => {
         ]}
       />
       
-      <h1 css={TitleStyles}>Editar Paciente</h1>
+      <PageHeader title="Editar Paciente" subtitle="Atualize os dados do paciente" />
       <form noValidate>
 
         {/* Dados Pessoais */}
@@ -319,18 +329,18 @@ const PatientEditPage = () => {
         />
 
         {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', mt: 4, ml: 3 }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
               variant="contained"
-              css={[buttonStyles, saveButtonStyles]}
+              color="primary"
               onClick={handleOpenSaveDialog}
               disabled={loading}
             >
               {loading ? <CircularProgress size={20} color="inherit" /> : 'Salvar'}
             </Button>
           <Button
-            variant="contained"
-            css={[buttonStyles, cancelButtonStyles]}
+            variant="outlined"
+            color="error"
             onClick={handleOpenCancelDialog}
           >
             Cancelar
@@ -376,7 +386,7 @@ const PatientEditPage = () => {
         confirmButtonText="Sim, Salvar"
         cancelButtonText="Não, Voltar"
       />
-    </div>
+    </Box>
   );
 }
 

@@ -1,5 +1,4 @@
 import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
-import { BoxStyles, ButtonStyles, ContainerLoginStyles, imgStyles, TextFieldStyles } from "./styles";
 import { useState } from "react";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -9,6 +8,7 @@ import { authService } from "../../api/auth.service";
 import { Link as RouterLink } from 'react-router-dom'; 
 import { Link as MuiLink } from '@mui/material';
 import { toastError, toastSuccess } from "../../utils/toast";
+import { AnimatedPageScale } from "../../components/AnimatedPage";
 
 const Login = () => {
   const { login } = useAuth();
@@ -88,12 +88,34 @@ const Login = () => {
   }
   };
   return (
-    <Box css={BoxStyles}>
-      <Container css={ContainerLoginStyles}>
-        <img
+    <AnimatedPageScale>
+      <Box sx={{ 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        height: "100vh", 
+        m: 0, 
+        p: 0, 
+        backgroundColor: "#65ACD6" 
+      }}>
+      <Container sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        maxWidth: "450px", 
+        width: "90%", 
+        minHeight: "500px", 
+        padding: "2rem 1.5rem", 
+        backgroundColor: "#fff", 
+        borderRadius: "8px", 
+        boxShadow: "0 0 14px rgba(0, 0, 0, 0.45)" 
+      }}>
+        <Box
+          component="img"
           src="logo1.png"
           alt="Logo Casa do Amor"
-          css={imgStyles}
+          sx={{ width: "180px", mb: 0.5 }}
         />
 
         <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', mt: 1 }}>
@@ -103,14 +125,22 @@ const Login = () => {
           Por favor, faça login para continuar.
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} css={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           
           <TextField
             label="CPF"
             variant="outlined"
             value={cpf}
             onChange={handlerCpfChange}
-            css={TextFieldStyles}
+            sx={{ 
+              width: "300px", 
+              height: "50px", 
+              m: "10px",
+              "& .MuiInputBase-root": {
+                height: 54,
+                borderRadius: 2,
+              }
+            }}
             required
             type="tel"
             autoComplete="username" 
@@ -130,7 +160,15 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            css={TextFieldStyles}
+            sx={{ 
+              width: "300px", 
+              height: "50px", 
+              m: "10px",
+              "& .MuiInputBase-root": {
+                height: 54,
+                borderRadius: 2,
+              }
+            }}
             autoComplete="current-password"
             inputProps={{
               'aria-label': 'Digite sua senha'
@@ -155,8 +193,20 @@ const Login = () => {
 
           <Button
             variant="contained"
-            css={ButtonStyles}
+            color="primary"
+            sx={{ 
+              width: "300px", 
+              mt: "20px", 
+              p: "0.75rem", 
+              fontWeight: "bold", 
+              textTransform: "uppercase",
+              '&:focus-visible': {
+                outline: '3px solid #90caf9',
+                outlineOffset: '2px',
+              }
+            }}
             type="submit"
+            aria-label="Fazer login no sistema"
           >
             Login
           </Button>
@@ -175,7 +225,8 @@ const Login = () => {
         </Box>
       </Container>
     
-    </Box>
+      </Box>
+    </AnimatedPageScale>
   )
 };
 

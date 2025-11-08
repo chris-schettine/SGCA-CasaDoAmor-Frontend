@@ -4,7 +4,50 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-   server: {
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks - bibliotecas grandes
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-core': ['@mui/material', '@mui/system', '@mui/icons-material'],
+          'mui-utils': ['@mui/utils', '@emotion/react', '@emotion/styled'],
+          
+          // Chunks de páginas por funcionalidade
+          'patient-pages': [
+            './src/pages/Patients/index.tsx',
+            './src/pages/PatientRegister/index.tsx',
+            './src/pages/PatientEdit/index.tsx',
+            './src/pages/PatientInformation/index.tsx',
+            './src/pages/CompanionRegister/index.tsx'
+          ],
+          'user-pages': [
+            './src/pages/Users/index.tsx',
+            './src/pages/UserRegister/index.tsx',
+            './src/pages/UserEdit/index.tsx',
+            './src/pages/MyProfile/index.tsx'
+          ],
+          'auth-pages': [
+            './src/pages/Login/index.tsx',
+            './src/pages/ForgotPassword/index.tsx',
+            './src/pages/ResetPassword/index.tsx',
+            './src/pages/VerifyEmail/index.tsx',
+            './src/pages/ActivateAccount/index.tsx',
+            './src/pages/LoginVerify2FA/index.tsx'
+          ],
+          'medical-pages': [
+            './src/pages/MedicalRecord/index.tsx',
+            './src/pages/Sessions/index.tsx',
+            './src/pages/AuditLogPage/index.tsx'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 500,
+    sourcemap: false,
+    minify: 'esbuild'
+  },
+  server: {
     headers:{
       //Tem a prevenção para o site não ser renderizado dentro de um <inframe>
       'X-Frame-Options': 'DENY',

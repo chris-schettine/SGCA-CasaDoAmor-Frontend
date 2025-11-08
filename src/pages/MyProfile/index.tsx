@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Button, Grid, TextField, Typography, CircularProgress, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Button, Grid, TextField, Typography, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { authService } from '../../api/auth.service';
 import { adminService } from '../../api/admin.service';
 import MaskedTextField from '../../components/MaskedTextField';
+import PageHeader from '../../components/PageHeader';
+import LoadingState from '../../components/LoadingState';
 import { useAuth } from '../../hooks/useAuth';
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
 
@@ -227,11 +229,11 @@ const MyProfilePage = () => {
 
   // (2FA removed from profile page)
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><CircularProgress /></div>;
+  if (loading) return <LoadingState message="Carregando perfil..." />;
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>Meu Perfil</Typography>
+      <PageHeader title="Meu Perfil" subtitle="Visualize e edite suas informações pessoais" />
 
       <form onSubmit={handleSubmit(onSaveProfile)}>
         <Grid container spacing={2}>

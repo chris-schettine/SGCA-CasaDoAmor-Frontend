@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, CircularProgress, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper, Chip, Snackbar, Alert } from '@mui/material';
+import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Snackbar, Alert } from '@mui/material';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
+import PageHeader from '../../components/PageHeader';
+import LoadingState from '../../components/LoadingState';
 import { formatISOToLocalDateTime } from '../../utils/formatters';
 
 interface SessaoDTO {
@@ -74,10 +76,13 @@ const SessionsPage = () => {
 
   return (
     <Container sx={{ mt: 3 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>Sessões Ativas</Typography>
+      <PageHeader 
+        title="Sessões Ativas"
+        subtitle="Gerencie as sessões ativas do sistema"
+      />
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>
+        <LoadingState message="Carregando sessões..." />
       ) : (
         <TableContainer component={Paper}>
           <Table>

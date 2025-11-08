@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
-import { buttonStyles, stylesContainer, saveButtonStyles, TitleStyles } from "./styles";
+import PageHeader from "../../components/PageHeader";
 import Snackbar from '@mui/material/Snackbar';
 import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -255,8 +255,21 @@ const PatientRegisterPage = () => {
   };
 
   return (
-    <div css={stylesContainer}>
-      <h1 css={TitleStyles}>Cadastrar Paciente</h1>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: 'column',
+      position: "relative",
+      minHeight: "56px",
+      margin: "24px auto",
+      paddingBottom: "15px",
+      width: "90%"
+    }}>
+      <PageHeader 
+        title="Cadastrar Paciente" 
+        subtitle="Preencha os dados do paciente em duas etapas"
+      />
       
       {/* Stepper */}
       <Box sx={{ width: '100%', mb: 4 }}>
@@ -301,15 +314,14 @@ const PatientRegisterPage = () => {
               variant="outlined"
               onClick={handleBack}
               disabled={activeStep === 0}
-              css={buttonStyles}
             >
               Voltar
             </Button>
             {activeStep < steps.length - 1 && (
               <Button
                 variant="contained"
+                color="primary"
                 onClick={handleNext}
-                css={[buttonStyles, saveButtonStyles]}
               >
                 Próximo
               </Button>
@@ -321,7 +333,7 @@ const PatientRegisterPage = () => {
               <Button
                 type="submit"
                 variant="contained"
-                css={[buttonStyles, saveButtonStyles]}
+                color="primary"
                 aria-label="Salvar cadastro do paciente"
               >
                 Salvar
@@ -329,7 +341,6 @@ const PatientRegisterPage = () => {
             )}
             <Button
               variant="outlined"
-              css={buttonStyles}
               sx={{
                 borderColor: '#d32f2f',
                 color: '#d32f2f',
@@ -385,7 +396,7 @@ const PatientRegisterPage = () => {
         confirmButtonText="Sim, Salvar"
         cancelButtonText="Não, Voltar"
       />
-    </div>
+    </Box>
   );
 }
 

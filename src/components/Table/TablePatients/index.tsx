@@ -2,27 +2,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AssignmentIcon from '@mui/icons-material/Assignment'; 
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Box, CircularProgress, Typography, Tooltip } from "@mui/material"
-import React, { useEffect, useState } from "react";
+import { Paper, TablePagination, IconButton, Box, CircularProgress, Typography, Tooltip } from "@mui/material"
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { pacienteService } from "../../../api/paciente.service";
-import type { PacienteDTO } from "../../../api/paciente.dto";
 import { formatRG } from '../../../utils/formatters';
 import EmptyState from "../../EmptyState";
-
-interface Column {
-  id: 'nome' | 'cpf' | 'rg' | 'acoes';
-  label: string;
-  minWidth?: number;
-  align?: 'center';
-}
-
-const columns: readonly Column[] = [
-  { id: 'nome', label: 'Nome', minWidth: 170 },
-  { id: 'cpf', label: 'CPF', minWidth: 170 },
-  { id: 'rg', label: 'RG', minWidth: 150 },
-  { id: 'acoes', label: 'Ações', minWidth: 170, align: 'center' },
-]
+import { usePatients } from "../../../hooks/usePatients";
+import { VirtualizedTable } from "../../VirtualizedTable";
 
 interface TablePatientsProps {
   searchText?: string;
@@ -32,37 +18,14 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [patients, setPatients] = useState<PacienteDTO[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // 🚀 TanStack Query - substitui useState + useEffect
+  const { data, isLoading, error } = usePatients(rowsPerPage, page * rowsPerPage, searchText);
+  
+  const patients = data?.nodes ?? [];
+  const totalCount = data?.totalCount ?? 0;
 
   const delay = 1000;
-  const searchDebounce = 500;
-
-  useEffect(() => {
-    let mounted = true;
-    const timeout = setTimeout(async () => {
-      try {
-        setLoading(true);
-        const response = await pacienteService.listarPacientes(rowsPerPage, page * rowsPerPage, searchText);
-        if (!mounted) return;
-        setPatients(response.nodes);
-        setTotalCount(response.totalCount);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching patients:", err);
-        setError("Não foi possível carregar os pacientes. Tente novamente mais tarde.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }, searchDebounce);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-    };
-  }, [page, rowsPerPage, searchText]);
 
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -95,7 +58,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     navigate(`/patient/report/${id}`, { state: { patient: patientObj } });
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
         <CircularProgress />
@@ -105,87 +68,110 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   }
 
   if (error) {
-    console.log(error);
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <Typography color="error" variant="h6">{error}</Typography>
+        <Typography color="error" variant="h6">
+          {error instanceof Error ? error.message : 'Erro ao carregar pacientes'}
+        </Typography>
       </Box>
     );
   }
 
+  if (patients.length === 0) {
+    return (
+      <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
+        <EmptyState
+          icon={<PersonAddIcon sx={{ fontSize: 80 }} />}
+          title="Nenhum paciente encontrado"
+          description={searchText ? "Tente usar outros termos de busca ou cadastre um novo paciente." : "Comece cadastrando o primeiro paciente do sistema."}
+          actionLabel="Cadastrar Paciente"
+          onAction={() => navigate('/patient/register')}
+        />
+      </Paper>
+    );
+  }
+
+  // 🚀 Configuração de colunas para tabela virtualizada
+  const virtualColumns = useMemo(() => [
+    {
+      field: 'nome' as const,
+      headerName: 'Nome',
+      width: 250,
+    },
+    {
+      field: 'cpf' as const,
+      headerName: 'CPF',
+      width: 150,
+    },
+    {
+      field: 'rg' as const,
+      headerName: 'RG',
+      width: 150,
+      renderCell: (row: any) => formatRG(row.rg) || '—',
+    },
+    {
+      field: 'acoes' as const,
+      headerName: 'Ações',
+      width: 170,
+      renderCell: (row: any) => (
+        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+          <Tooltip title="Visualizar informações do paciente">
+            <IconButton 
+              color="primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewMedicalRecords(row.id);
+              }}
+              aria-label={`Visualizar informações de ${row.nome}`}
+              size="small"
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Editar dados do paciente">
+            <IconButton 
+              color="success"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.id);
+              }}
+              aria-label={`Editar dados de ${row.nome}`}
+              size="small"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Gerar relatório do paciente">
+            <IconButton 
+              color="secondary" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReport(row.id);
+              }}
+              aria-label={`Gerar relatório de ${row.nome}`}
+              size="small"
+            >
+              <AssignmentIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ], []);
+
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
-      <TableContainer sx={{ maxHeight: 440 }} >
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth, backgroundColor: '#ccc' }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {patients.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} sx={{ p: 0, border: 'none' }}>
-                  <EmptyState
-                    icon={<PersonAddIcon sx={{ fontSize: 80 }} />}
-                    title="Nenhum paciente encontrado"
-                    description={searchText ? "Tente usar outros termos de busca ou cadastre um novo paciente." : "Comece cadastrando o primeiro paciente do sistema."}
-                    actionLabel="Cadastrar Paciente"
-                    onAction={() => navigate('/patient/register')}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : (
-              patients.map((patient) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={patient.id}>
-                      <TableCell>{patient.nome}</TableCell>
-                      <TableCell>{patient.cpf}</TableCell>
-                      <TableCell>{formatRG(patient.rg) || '—'}</TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Visualizar informações do paciente">
-                        <IconButton 
-                          color="primary"
-                          onClick={() => handleViewMedicalRecords(patient.id)}
-                          aria-label={`Visualizar informações de ${patient.nome}`}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      <Tooltip title="Editar dados do paciente">
-                        <IconButton 
-                          color="success"
-                          onClick={() => handleEdit(patient.id)}
-                          aria-label={`Editar dados de ${patient.nome}`}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-
-                      <Tooltip title="Gerar relatório do paciente">
-                        <IconButton 
-                          color="secondary" 
-                          onClick={() => handleReport(patient.id)}
-                          aria-label={`Gerar relatório de ${patient.nome}`}
-                        >
-                          <AssignmentIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* 🚀 Tabela Virtualizada - renderiza apenas linhas visíveis */}
+      <VirtualizedTable
+        data={patients}
+        columns={virtualColumns}
+        rowHeight={53}
+        height={440}
+        getRowId={(row) => row.id}
+      />
+      
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"

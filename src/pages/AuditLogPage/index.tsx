@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
   Paper,
   Table,
   TableBody,
@@ -21,6 +20,8 @@ import {
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
+import LoadingState from '../../components/LoadingState';
+import PageHeader from '../../components/PageHeader';
 
 // --- 1. TIPAGEM E DADOS MOCKADOS ---
 
@@ -163,22 +164,17 @@ export const AuditLogPage = () => {
   };
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ marginLeft: 2 }}>Carregando logs de auditoria...</Typography>
-      </Box>
-    );
+    return <LoadingState message="Carregando logs de auditoria..." />;
   }
 
   const currentLogs = filteredLogs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 
   return (
-    <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 2 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-        📋 Logs de Auditoria do Sistema
-      </Typography>
+    <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
+      <PageHeader 
+        title="📋 Logs de Auditoria do Sistema"
+      />
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>Filtros</Typography>
@@ -242,7 +238,6 @@ export const AuditLogPage = () => {
                 startIcon={<FileDownloadIcon />}
                 onClick={handleExport}
                 disabled={filteredLogs.length === 0}
-                sx={{ backgroundColor: '#09244B', '&:hover': { backgroundColor: '#0C2F58' } }}
               >
                 Exportar ({filteredLogs.length})
               </Button>
@@ -261,7 +256,7 @@ export const AuditLogPage = () => {
                   <TableCell
                     key={column.id}
                     align={column.align}
-                    style={{ minWidth: column.minWidth, backgroundColor: '#eee', fontWeight: 'bold' }}
+                    style={{ minWidth: column.minWidth }}
                   >
                     {column.label}
                   </TableCell>

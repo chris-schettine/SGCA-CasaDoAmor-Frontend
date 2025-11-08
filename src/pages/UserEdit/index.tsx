@@ -1,5 +1,5 @@
-import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, CircularProgress } from "@mui/material";
-import { buttonStyles, saveButtonStyles, cancelButtonStyles, stylesContainer, TitleStyles } from "../UserRegister/styles";
+import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, CircularProgress, Box } from "@mui/material";
+import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
@@ -272,17 +272,27 @@ const UserEditPage = () => {
   const handleConfirmSave = handleSubmit(handleSaveUser, onError);
 
   if (loading) {
-    return <div css={stylesContainer} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}><CircularProgress /></div>;
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}><CircularProgress /></Box>;
   }
 
   return (
-    <div css={stylesContainer}>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: 'column',
+      position: "relative",
+      minHeight: "56px",
+      margin: "24px auto",
+      paddingBottom: "15px",
+      width: "90%"
+    }}>
       <Breadcrumbs items={[
         { label: 'Profissionais', path: '/users' },
         { label: userName || 'Carregando...', path: `/users/${id}` },
         { label: 'Editar' }
       ]} />
-      <h1 css={TitleStyles}>Editar Profissional</h1>
+      <PageHeader title="Editar Profissional" subtitle="Atualize os dados do usuário" />
       <form noValidate>
 
         <UserForm
@@ -300,15 +310,15 @@ const UserEditPage = () => {
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
           <Button
             variant="contained"
-            css={[buttonStyles, saveButtonStyles]}
+            color="primary"
             onClick={handleOpenSaveDialog}
             aria-label="Salvar alterações do profissional"
           >
             Salvar
           </Button>
           <Button
-            variant="contained"
-            css={[buttonStyles, cancelButtonStyles]}
+            variant="outlined"
+            color="error"
             onClick={handleOpenCancelDialog}
             aria-label="Cancelar edição e voltar"
           >
@@ -330,7 +340,7 @@ const UserEditPage = () => {
 
       <ConfirmationDialog open={openSaveDialog} onClose={handleCloseSaveDialog} onConfirm={handleConfirmSave} title="Confirmar Salvamento" message="Tem certeza que deseja salvar o profissional?" confirmButtonText="Sim, Salvar" cancelButtonText="Não, Voltar" />
 
-    </div>
+    </Box>
   );
 }
 

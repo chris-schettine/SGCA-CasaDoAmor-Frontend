@@ -1,32 +1,10 @@
-import { Alert, Button, CircularProgress, css, Snackbar, type AlertColor, type SnackbarCloseReason } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { recordStyles, stylesContainer, TitleStyles } from "./styles";
 import { useCallback, useEffect, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
 import type { PacienteDTO } from "../../api/paciente.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
 import Breadcrumbs from "../../components/Breadcrumbs";
-
-const btnStyles = css({
-  backgroundColor: '#09244B',
-  color: '#fff',
-  width: '200px',
-  '&:hover': {
-    backgroundColor: '#0C2F58'
-  }
-})
-
-const pStyles = css({
-  margin: '0px',
-
-})
-
-const pContainer = css({
-  display: 'flex',
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  gap: '16px'
-})
 
 const PatientInformation = () => {
   const navigate = useNavigate();
@@ -102,61 +80,93 @@ const PatientInformation = () => {
 
   if (loading) {
     return (
-      <div css={stylesContainer} style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
         <CircularProgress />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div css={stylesContainer}>
+    <Box sx={{ 
+      display: "flex", 
+      justifyContent: "center", 
+      flexDirection: "column", 
+      gap: "16px", 
+      width: "90%", 
+      minHeight: "56px", 
+      margin: "24px auto" 
+    }}>
       <Breadcrumbs items={[
         { label: 'Pacientes', path: '/patients' },
         { label: patient?.nome || 'Carregando...' }
       ]} />
       {patient && (
         <>
-          <h1 css={TitleStyles}>{patient.nome}</h1>
-          <div css={pContainer}>
-            <p css={pStyles}><strong>Data de nascimento:</strong> {formatISOToDDMMYYYY(patient.dataNascimento) || 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Naturalidade:</strong> {patient.naturalidade ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Telefone:</strong> {patient.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}> <strong>Endereço:</strong> {patient.logradouro ?? 'Dado não encontrado'}, n° {patient.numero ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Bairro:</strong> {patient.bairro ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Cidade:</strong> {patient.cidade ?? 'Dado não encontrado'} - {patient.estado ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>CEP:</strong> {patient.cep ?? 'Dado não encontrado'}</p>
-            <p css={pStyles}><strong>Complemento:</strong> {patient.complemento ?? 'Dado não encontrado'}</p>
-          </div>
+          <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0 }}>
+            {patient.nome}
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '16px' }}>
+            <Typography component="p" sx={{ m: 0 }}><strong>Data de nascimento:</strong> {formatISOToDDMMYYYY(patient.dataNascimento) || 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>Naturalidade:</strong> {patient.naturalidade ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>Telefone:</strong> {patient.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}> <strong>Endereço:</strong> {patient.logradouro ?? 'Dado não encontrado'}, n° {patient.numero ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>Bairro:</strong> {patient.bairro ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>Cidade:</strong> {patient.cidade ?? 'Dado não encontrado'} - {patient.estado ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>CEP:</strong> {patient.cep ?? 'Dado não encontrado'}</Typography>
+            <Typography component="p" sx={{ m: 0 }}><strong>Complemento:</strong> {patient.complemento ?? 'Dado não encontrado'}</Typography>
+          </Box>
         </>
       )}
 
-      <h1 css={TitleStyles}>Prontuários</h1>
-      <div css={recordStyles}>
+      <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0 }}>
+        Prontuários
+      </Typography>
+      <Box sx={{ display: "flex", width: "100%", gap: "10px" }}>
         <Button
-          css={btnStyles}
+          sx={{ 
+            backgroundColor: '#09244B', 
+            color: '#fff', 
+            width: '200px', 
+            '&:hover': { backgroundColor: '#0C2F58' } 
+          }}
           onClick={() => handleNavigate("medical-record")}
         >
           Médico
         </Button>
         <Button
-          css={btnStyles}
+          sx={{ 
+            backgroundColor: '#09244B', 
+            color: '#fff', 
+            width: '200px', 
+            '&:hover': { backgroundColor: '#0C2F58' } 
+          }}
           onClick={() => handleNavigate("nursing-record")}
         >
           Enfermagem
         </Button>
         <Button
-          css={btnStyles}
+          sx={{ 
+            backgroundColor: '#09244B', 
+            color: '#fff', 
+            width: '200px', 
+            '&:hover': { backgroundColor: '#0C2F58' } 
+          }}
           onClick={() => handleNavigate("nutrition-record")}
         >
           Nutrição
         </Button>
         <Button
-          css={btnStyles}
+          sx={{ 
+            backgroundColor: '#09244B', 
+            color: '#fff', 
+            width: '200px', 
+            '&:hover': { backgroundColor: '#0C2F58' } 
+          }}
           onClick={() => handleNavigate("psychology-record")}
         >
           Psicologia
         </Button>
-      </div>
+      </Box>
 
       {/* Snackbar */}
       <Snackbar
@@ -174,7 +184,7 @@ const PatientInformation = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </div>
+    </Box>
   );
 };
 

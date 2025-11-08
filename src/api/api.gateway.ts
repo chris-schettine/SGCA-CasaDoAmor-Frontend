@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import { forceLogout } from '../contexts/AuthContext';
+import { forceLogout } from '../stores/useAuthStore';
 
 class ApiGateway {
   public gateway: AxiosInstance;
