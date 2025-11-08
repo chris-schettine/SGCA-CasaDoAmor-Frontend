@@ -1,1 +1,0 @@
-import{e as i,j as t}from"./patient-pages-AVkmJGA_.js";import{d as s,N as n}from"./react-vendor-DjnJ9H4W.js";import{L as u}from"./index-DkpdiifC.js";import"./mui-core-DOS4ZzZh.js";import"./mui-utils-DF61i-pU.js";const g=({children:o})=>{const{isAuthenticated:r,isLoading:a}=i(),e=s();return a?t(u,{}):r?o:t(n,{to:"/login",state:{from:e},replace:!0})};export{g as default};

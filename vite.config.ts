@@ -10,8 +10,7 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunks - bibliotecas grandes
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui-core': ['@mui/material', '@mui/system', '@mui/icons-material'],
-          'mui-utils': ['@mui/utils', '@emotion/react', '@emotion/styled'],
+          'mui-core': ['@mui/material', '@mui/system', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
           
           // Chunks de páginas por funcionalidade
           'patient-pages': [
