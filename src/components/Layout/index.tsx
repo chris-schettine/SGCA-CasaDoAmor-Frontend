@@ -18,6 +18,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -290,6 +291,7 @@ export default function Layout() {
 
     const navItems = [
         { to: "/patients", primary: "Pacientes", Icon: GroupsIcon },
+        { to: "/companions", primary: "Acompanhantes", Icon: SupervisorAccountIcon },
         { to: "/users", primary: "Usuários", Icon: PeopleAltIcon, requiredRole: 'ADMINISTRADOR' },
         { to: "/sessions", primary: "Sessões Ativas", Icon: HistoryIcon, requiredRole: 'ADMINISTRADOR' },
         { to: "/auditoria", primary: "Auditoria", Icon: GavelIcon, requiredRole: 'ADMINISTRADOR' },
