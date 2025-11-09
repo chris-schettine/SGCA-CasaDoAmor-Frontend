@@ -22,6 +22,7 @@ import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
+import { toastSuccessCritical } from "../../utils/toast";
 
 const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
@@ -214,7 +215,7 @@ const PatientRegisterPage = () => {
 
       const response = await pacienteService.registrarPaciente(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
-      showSnackbar("✓ Paciente cadastrado com sucesso!", "success", 8000); // Operação crítica - 8 segundos
+      toastSuccessCritical("✓ Paciente cadastrado com sucesso!"); // Operação crítica - 8 segundos
       setTimeout(() => {
         navigate('/patient/companion/register', { 
           state: { 

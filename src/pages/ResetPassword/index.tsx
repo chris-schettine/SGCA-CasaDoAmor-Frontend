@@ -1,8 +1,9 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
+import { toastError, toastSuccess } from "../../utils/toast";
 
 const BoxStyles = {
   display: 'flex',
@@ -36,27 +37,13 @@ const ResetPasswordPage = () => {
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
-
-  const showSnackbar = (message: string, severity: "success" | "error") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
 
   useEffect(() => {
     const urlToken = query.get('token');
     if (urlToken) {
       setToken(urlToken);
     } else {
-      showSnackbar("Token de redefinição inválido ou ausente na URL.", "error");
+      toastError("Token de redefinição inválido ou ausente na URL.");
     }
   }, [query]); 
 
@@ -64,12 +51,12 @@ const ResetPasswordPage = () => {
     e.preventDefault();
 
     if (novaSenha !== confirmarSenha) {
-      showSnackbar("As senhas não coincidem.", "error");
+      toastError("As senhas não coincidem.");
       return;
     }
 
     if (!token) {
-      showSnackbar("Token de redefinição inválido ou ausente.", "error");
+      toastError("Token de redefinição inválido ou ausente.");
       return;
     }
 
@@ -78,7 +65,7 @@ const ResetPasswordPage = () => {
     try {
       await authService.resetPassword({ token, novaSenha }); 
       
-      showSnackbar("Senha redefinida com sucesso! Você já pode fazer login.", "success");
+      toastSuccess("Senha redefinida com sucesso! Você já pode fazer login.");
       
       setTimeout(() => {
         navigate('/login'); 
@@ -87,7 +74,7 @@ const ResetPasswordPage = () => {
     } catch (error: any) {
       console.error("Erro ao redefinir senha:", error);
       const message = error.response?.data?.message || "Erro ao processar a solicitação. O token pode estar expirado.";
-      showSnackbar(message, "error");
+      toastError(message);
       setIsLoading(false);
     }
   };
@@ -133,22 +120,6 @@ const ResetPasswordPage = () => {
           {isLoading ? <CircularProgress size={24} color="inherit" /> : "Salvar Nova Senha"}
         </Button>
       </Container>
-      
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

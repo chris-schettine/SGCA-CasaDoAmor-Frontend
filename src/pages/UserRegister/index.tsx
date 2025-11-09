@@ -1,8 +1,8 @@
-import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, Box } from "@mui/material";
+import { Button, Grid, Box } from "@mui/material";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import PageHeader from "../../components/PageHeader";
 import { useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
 import { userSchemaConditional as userSchema, type UserFormInputs } from "../../schemas/userSchema";
 import { useForm, type FieldErrors } from "react-hook-form";
@@ -13,24 +13,10 @@ import { formatDateToISO, removeNonNumeric } from '../../utils/formatters';
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
+import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
-
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
-    if (reason === "clickaway") return;
-    setSnackbarOpen(false);
-  };
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -44,7 +30,7 @@ const UserRegisterPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
 
   const handleConfirmCancel = () => {
-    showSnackbar("Profissional não salvo", "error");
+    toastError("Profissional não salvo");
     setTimeout(() => navigate('/users'), 1000);
     setOpenCancelDialog(false);
   };
@@ -121,12 +107,12 @@ const UserRegisterPage = () => {
             if (!hasComplemento) setValue('complemento', addressData.complemento || '');
           } else {
             setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
-            showSnackbar('CEP não encontrado ou inválido.', 'warning');
+            toastWarn('CEP não encontrado ou inválido.');
           }
         } catch (err) {
           console.error('Erro ao buscar CEP:', err);
           setError('cep', { type: 'manual', message: 'Erro ao buscar CEP. Tente novamente.' });
-          showSnackbar('Erro ao buscar CEP. Tente novamente.', 'error');
+          toastError('Erro ao buscar CEP. Tente novamente.');
         }
       }
     };
@@ -134,7 +120,7 @@ const UserRegisterPage = () => {
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
       handleCepSearch(cepValue);
     }
-  }, [cepValue, setValue, setError, clearErrors, showSnackbar, watch]);
+  }, [cepValue, setValue, setError, clearErrors, toastError, toastWarn, watch]);
 
   // Atalho Ctrl+S para salvar
   useSaveShortcut(() => {
@@ -191,20 +177,20 @@ const UserRegisterPage = () => {
 
 
       setOpenSaveDialog(false);
-      showSnackbar('Profissional cadastrado com sucesso!', 'success');
+      toastSuccess('Profissional cadastrado com sucesso!');
       setTimeout(() => navigate('/users'), 1200);
 
     } catch (error: any) {
       console.error('Erro ao cadastrar profissional:', error);
       const message = error.response?.data?.message || 'Erro ao processar usuário. Tente novamente.';
-      showSnackbar(message, 'error');
+      toastError(message);
       setOpenSaveDialog(false);
     }
   };
 
   const onError = (errors: FieldErrors<UserFormInputs>) => {
     console.log('Erros de validação do usuário:', errors);
-    showSnackbar('Por favor, corrija os erros no formulário do usuário.', 'error');
+    toastError('Por favor, corrija os erros no formulário do usuário.');
     setOpenSaveDialog(false);
   };
 
@@ -258,23 +244,6 @@ const UserRegisterPage = () => {
           </Button>
         </Grid>
       </form>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Diálogo de Confirmação para Cancelar */}
       <ConfirmationDialog

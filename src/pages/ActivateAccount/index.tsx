@@ -1,8 +1,9 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
+import { toastError, toastSuccess } from "../../utils/toast";
 
 
 const BoxStyles = {
@@ -24,7 +25,7 @@ const ContainerFormStyles = {
   width: { xs: '90%', sm: '400px' },
 };
 
-// Hook para ler parâmetros de busca (ex: ?token=...)
+// Hook p n=...)
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
@@ -42,40 +43,29 @@ const ActivateAccountPage = () => {
   
   const [isLoading, setIsLoading] = useState(false);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
+  
   // Pega o token da URL assim que a página carrega
   useEffect(() => {
     const urlToken = query.get('token');
     if (urlToken) {
       setToken(urlToken);
     } else {
-      showSnackbar("Token de ativação não encontrado na URL.", "error");
+      toastError("Token de ativação não encontrado na URL.");
     }
   }, [query]);
 
-  const showSnackbar = (message: string, severity: "success" | "error") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (novaSenha !== confirmarSenha) {
-      showSnackbar("As novas senhas não coincidem.", "error");
+      toastError("As novas senhas não coincidem.");
       return;
     }
     
     if (!token) {
-      showSnackbar("Token de ativação inválido.", "error");
+      toastError("Token de ativação inválido.");
       return;
     }
 
@@ -91,7 +81,7 @@ const ActivateAccountPage = () => {
         confirmarSenha,
       });
       
-      showSnackbar("Conta ativada com sucesso! Você já pode fazer login com sua nova senha.", "success");
+      toastSuccess("Conta ativada com sucesso! Você já pode fazer login com sua nova senha.");
       
       setTimeout(() => {
         navigate('/login'); // Redireciona para o login
@@ -100,7 +90,7 @@ const ActivateAccountPage = () => {
     } catch (error: any) {
       console.error("Erro ao ativar conta:", error);
       const message = error.response?.data?.message || "Erro ao processar a ativação. O token pode estar expirado ou os dados incorretos.";
-      showSnackbar(message, "error");
+      toastError(message);
       setIsLoading(false);
     }
   };
@@ -164,23 +154,6 @@ const ActivateAccountPage = () => {
           {isLoading ? <CircularProgress size={24} color="inherit" /> : "Ativar Conta"}
         </Button>
       </Container>
-
-      {/* Snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

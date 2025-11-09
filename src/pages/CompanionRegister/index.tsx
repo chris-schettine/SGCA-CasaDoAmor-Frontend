@@ -1,12 +1,9 @@
-import { Button, type AlertColor, Box } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
-import { useCallback, useEffect, useState } from "react";
-import Snackbar from '@mui/material/Snackbar';
-import type { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { companionSchema, type CompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
@@ -16,6 +13,7 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import CompanionForm from "../../components/CompanionForm";
 import { formatDateToISO } from "../../utils/formatters";
 import { DevTools } from "../../utils/devTools";
+import { toastWarn, toastSuccessCritical, toastError } from "../../utils/toast";
 
 const CompanionRegisterPage = () => {
   const navigate = useNavigate();
@@ -24,35 +22,18 @@ const CompanionRegisterPage = () => {
   
   const registrarAcompanhanteMutation = useRegistrarAcompanhante();
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
 
   // Verificar se temos o pacienteId
   useEffect(() => {
     if (!patientId) {
-      showSnackbar("Nenhum paciente selecionado. Redirecionando...", "warning");
+      toastWarn("Nenhum paciente selecionado. Redirecionando...");
       setTimeout(() => {
         navigate('/patients');
       }, 2000);
     }
-  }, [patientId, navigate, showSnackbar]);
+  }, [patientId, navigate, toastWarn]);
 
   const {
     register,
@@ -117,7 +98,7 @@ const CompanionRegisterPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
   
   const handleConfirmCancel = () => {
-    showSnackbar("Acompanhante não cadastrado", "warning");
+    toastWarn("Acompanhante não cadastrado");
     setTimeout(() => {
       navigate('/patients');
     }, 1000);
@@ -156,20 +137,20 @@ const CompanionRegisterPage = () => {
       
       await registrarAcompanhanteMutation.mutateAsync(dto);
       setOpenSaveDialog(false);
-      showSnackbar("✓ Acompanhante cadastrado com sucesso!", "success");
+      toastSuccessCritical("✓ Acompanhante cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patients');
       }, 2000);
     } catch (error) {
       console.error("Erro ao cadastrar acompanhante:", error);
-      showSnackbar("Erro ao cadastrar acompanhante. Tente novamente.", "error");
+      toastError("Erro ao cadastrar acompanhante. Tente novamente.");
       setOpenSaveDialog(false);
     }
   };
 
   const onError = (errors: FieldErrors<CompanionFormInputs>) => {
     console.log("Erros de validação do Acompanhante:", errors);
-    showSnackbar("Por favor, corrija os erros no formulário do acompanhante.", "error");
+    toastError("Por favor, corrija os erros no formulário do acompanhante.");
     setOpenSaveDialog(false);
   };
 
@@ -232,23 +213,6 @@ const CompanionRegisterPage = () => {
           </Button>
         </Grid>
       </form>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Confirmation Dialog */}
       <ConfirmationDialog

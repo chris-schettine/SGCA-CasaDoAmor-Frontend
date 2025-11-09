@@ -4,7 +4,7 @@ import { toast, type ToastOptions, Bounce } from 'react-toastify';
  * Ajustadas para melhor experiência (autoClose maior, pausa ao perder foco, etc.).
  */
 export const defaultToastOptions: ToastOptions = {
-  position: 'bottom-right',
+  position: 'top-center',
   autoClose: 5000, // 5 segundos — tempo suficiente para ler a mensagem
   hideProgressBar: false,
   closeOnClick: true,
@@ -35,6 +35,10 @@ const toastError = (message: string, options: ToastOptions = {}) => {
   toast.error(message, { ...defaultToastOptions, ...options });
 };
 
+const toastErrorCritical = (message: string, options: ToastOptions = {}) => {
+  toast.error(message, { ...criticalToastOptions, ...options });
+};
+
 const toastInfo = (message: string, options: ToastOptions = {}) => {
   toast.info(message, { ...defaultToastOptions, ...options });
 };
@@ -43,6 +47,6 @@ const toastWarn = (message: string, options: ToastOptions = {}) => {
   toast.warn(message, { ...defaultToastOptions, ...options });
 };
 
-export { toast, toastSuccess, toastSuccessCritical, toastError, toastInfo, toastWarn };
+export { toast, toastSuccess, toastSuccessCritical, toastError, toastErrorCritical, toastInfo, toastWarn };
 
 // EOF

@@ -1,8 +1,9 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress, Link as MuiLink, type AlertColor, type SnackbarCloseReason } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
+import { Box, Button, Container, TextField, Typography, CircularProgress, Link as MuiLink } from "@mui/material";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { useAuth } from "../../hooks/useAuth";
+import { toastError, toastSuccess } from "../../utils/toast";
 
 // --- Estilos Básicos ---
 const BoxStyles = {
@@ -28,7 +29,6 @@ const ContainerFormStyles = {
 // Hook para ler parâmetros de busca (ex: ?token=...)
 // (removed unused useQuery helper)
 
-
 const LoginVerify2FAPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth(); // Função do AuthContext
@@ -37,27 +37,6 @@ const LoginVerify2FAPage = () => {
   const [codigo, setCodigo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-
-  // --- Estados e Funções do Snackbar ---
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (
-    _event?: React.SyntheticEvent | Event, 
-    reason?: SnackbarCloseReason 
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
  
   useEffect(() => {
     const cpfSalvo = sessionStorage.getItem('cpfFor2FA');
@@ -65,10 +44,10 @@ const LoginVerify2FAPage = () => {
       setCpf(cpfSalvo);
     } else {
       
-      showSnackbar("Erro: CPF não encontrado para verificação 2FA. Retornando ao login.", "error");
+      toastError("Erro: CPF não encontrado para verificação 2FA. Retornando ao login.");
       setTimeout(() => navigate('/login'), 2000); 
     }
-  }, [navigate, showSnackbar]);
+  }, [navigate, toastError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,13 +102,13 @@ const LoginVerify2FAPage = () => {
       // Call login with the token and the (preferably) full user object
       login(token, finalUser as any);
 
-      showSnackbar('Código verificado com sucesso!', 'success');
+      toastSuccess('Código verificado com sucesso!');
       setTimeout(() => navigate('/'), 1500);
 
     } catch (error: any) {
       console.error("Erro ao verificar 2FA:", error);
       const message = error.response?.data?.message || "Código inválido ou expirado.";
-      showSnackbar(message, "error");
+      toastError(message);
       setIsLoading(false);
     }
   };
@@ -139,11 +118,11 @@ const LoginVerify2FAPage = () => {
     setResendLoading(true);
     try {
         await authService.resend2FA(); //
-        showSnackbar("Novo código enviado para seu e-mail.", "success");
+        toastSuccess("Novo código enviado para seu e-mail.");
     } catch (error: any) {
         console.error("Erro ao reenviar código:", error);
         const message = error.response?.data?.message || "Erro ao reenviar código.";
-        showSnackbar(message, "error");
+        toastError(message);
     } finally {
         setResendLoading(false);
     }
@@ -186,23 +165,6 @@ const LoginVerify2FAPage = () => {
             </MuiLink>
         </Box>
       </Container>
-
-      {/* Snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

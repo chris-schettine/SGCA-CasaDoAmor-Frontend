@@ -1,7 +1,8 @@
-import { Alert, Box, Button, Container, Snackbar, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
+import { toastError, toastSuccessCritical } from "../../utils/toast";
 
 
 const BoxStyles = {
@@ -28,21 +29,6 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
- 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
-
-  const showSnackbar = (message: string, severity: "success" | "error") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -51,7 +37,7 @@ const ForgotPassword = () => {
 
       await authService.forgotPassword({ email }); //
       
-      showSnackbar("Se este e-mail estiver cadastrado, um link de recuperação foi enviado.", "success");
+      toastSuccessCritical("Se este e-mail estiver cadastrado, um link de recuperação foi enviado.");
       
       setTimeout(() => {
         navigate('/login'); 
@@ -60,7 +46,7 @@ const ForgotPassword = () => {
     } catch (error: any) {
       console.error("Erro ao solicitar recuperação:", error);
       const message = error.response?.data?.message || "Erro ao processar a solicitação.";
-      showSnackbar(message, "error");
+      toastError(message);
       setIsLoading(false);
     }
   };
@@ -93,23 +79,6 @@ const ForgotPassword = () => {
           {isLoading ? <CircularProgress size={24} color="inherit" /> : "Enviar Link"}
         </Button>
       </Container>
-
-      
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

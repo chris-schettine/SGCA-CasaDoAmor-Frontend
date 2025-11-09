@@ -38,17 +38,23 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
       field: 'cpf' as const,
       headerName: 'CPF',
       width: 150,
+      headerAlign: 'center' as const,
+      align: 'center' as const,
     },
     {
       field: 'rg' as const,
       headerName: 'RG',
       width: 150,
+      headerAlign: 'center' as const,
+      align: 'center' as const,
       renderCell: (row: any) => formatRG(row.rg) || '—',
     },
     {
       field: 'acoes' as const,
       headerName: 'Ações',
       width: 170,
+      headerAlign: 'center' as const,
+      align: 'center' as const,
       renderCell: (row: any) => (
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
           <Tooltip title="Visualizar informações do paciente">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { Box, CircularProgress, Container, Typography, Alert, Button } from "@mui/material";
+import { toastErrorCritical } from "../../utils/toast";
 // (Estilos - pode reutilizar de outras páginas)
 const BoxStyles = {
   display: 'flex',
@@ -30,7 +31,7 @@ const VerifyEmailPage = () => {
     const verifyToken = async () => {
       if (!token) {
         setStatus('error');
-        setErrorMessage('Token de verificação não encontrado.');
+        toastErrorCritical('Token de verificação não encontrado.');
         return;
       }
 
@@ -40,7 +41,8 @@ const VerifyEmailPage = () => {
         setStatus('success');
       } catch (error: any) {
         console.error("Erro ao verificar email:", error);
-        setErrorMessage(error.response?.data?.message || "Erro ao verificar. O token pode ser inválido ou ter expirado.");
+        //setErrorMessage(error.response?.data?.message || "Erro ao verificar. O token pode ser inválido ou ter expirado.");
+        toastErrorCritical("Erro ao verificar. O token pode ser inválido ou ter expirado.");
         setStatus('error');
       }
     };

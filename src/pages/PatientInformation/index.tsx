@@ -1,4 +1,4 @@
-import { Alert, Button, CircularProgress, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography, Card, CardContent, Chip } from "@mui/material";
+import { Button, CircularProgress, type AlertColor, type SnackbarCloseReason, Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
@@ -8,6 +8,7 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import { useAcompanhantesPorPaciente } from "../../hooks/useAcompanhantes";
 import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
+import { toastError, toastWarn } from "../../utils/toast";
 
 const PatientInformation = () => {
   const navigate = useNavigate();
@@ -21,10 +22,6 @@ const PatientInformation = () => {
   console.log('[PatientInformation] location.state:', location.state);
   console.log('[PatientInformation] patientId:', patientId);
   console.log('[PatientInformation] passedPatient:', passedPatient);
-
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
 
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<PacienteDTO | null>(passedPatient || null);
@@ -60,19 +57,6 @@ const PatientInformation = () => {
 
   console.log('[PatientInformation] patient state:', patient);
 
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
   // Buscar dados do paciente
   useEffect(() => {
     console.log('[PatientInformation useEffect] Starting...');
@@ -89,7 +73,7 @@ const PatientInformation = () => {
     // Se não há patientId nem paciente passado, redirecionar
     if (!patientId && !passedPatient) {
       console.log('[PatientInformation useEffect] No patientId and no passedPatient, redirecting...');
-      showSnackbar("Você precisa selecionar o paciente", "warning");
+      toastWarn("Você precisa selecionar o paciente");
       setTimeout(() => {
         navigate("/patients");
       }, delay);
@@ -118,7 +102,7 @@ const PatientInformation = () => {
             setPatient(response.nodes[0]);
           } else {
             console.log('[PatientInformation fetchPatient] Patient not found in response');
-            showSnackbar('Paciente não encontrado', 'warning');
+            toastWarn('Paciente não encontrado');
             setTimeout(() => {
               navigate("/patients");
             }, delay);
@@ -126,7 +110,7 @@ const PatientInformation = () => {
           setLoading(false);
         } catch (error) {
           console.error('[PatientInformation fetchPatient] Error:', error);
-          showSnackbar("Erro ao buscar dados do paciente", "error");
+          toastError("Erro ao buscar dados do paciente");
           setLoading(false);
           setTimeout(() => {
             navigate("/patients");
@@ -136,7 +120,7 @@ const PatientInformation = () => {
 
       fetchPatient();
     }
-  }, [patientId, passedPatient, patient, navigate, showSnackbar]);
+  }, [patientId, passedPatient, patient, navigate, toastError, toastWarn]);
 
   const handleNavigate = (record: string) => {
     navigate(`/patient/information/${record}`, {
@@ -406,23 +390,6 @@ const PatientInformation = () => {
           Psicologia
         </Button>
       </Box>
-
-      {/* Snackbar */}
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose("clickaway")}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

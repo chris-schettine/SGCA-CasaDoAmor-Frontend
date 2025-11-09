@@ -1,10 +1,10 @@
-import { Alert, Button, CircularProgress, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography, Card, CardContent, Chip } from "@mui/material";
+import { Button, CircularProgress, Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useState } from "react";
 import type { AcompanhanteDTO } from "../../api/acompanhante.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
 import Breadcrumbs from "../../components/Breadcrumbs";
 import EditIcon from '@mui/icons-material/Edit';
+import { toastWarn } from "../../utils/toast";
 
 const CompanionInformation = () => {
   const navigate = useNavigate();
@@ -12,26 +12,9 @@ const CompanionInformation = () => {
   const state = location.state as { acompanhante?: AcompanhanteDTO } | null;
   const acompanhante = state?.acompanhante;
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
   // Se não há acompanhante, redirecionar
   if (!acompanhante) {
-    showSnackbar("Acompanhante não encontrado", "warning");
+    toastWarn("Acompanhante não encontrado");
     setTimeout(() => {
       navigate("/companions");
     }, 2000);
@@ -183,23 +166,6 @@ const CompanionInformation = () => {
           </Box>
         </CardContent>
       </Card>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

@@ -1,12 +1,9 @@
-import { Button, type AlertColor, Box } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
-import { useCallback, useEffect, useState } from "react";
-import Snackbar from '@mui/material/Snackbar';
-import type { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { editCompanionSchema, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
@@ -17,6 +14,7 @@ import type { AcompanhanteDTO } from "../../api/acompanhante.dto";
 import CompanionForm from "../../components/CompanionForm";
 import { formatDateToISO, formatISOToDDMMYYYY } from "../../utils/formatters";
 import { DevTools } from "../../utils/devTools";
+import { toastWarn, toastError, toastInfo, toastSuccessCritical } from "../../utils/toast";
 
 const CompanionEditPage = () => {
   const navigate = useNavigate();
@@ -26,22 +24,6 @@ const CompanionEditPage = () => {
   
   const editarAcompanhanteMutation = useEditarAcompanhante();
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (reason: SnackbarCloseReason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -49,12 +31,12 @@ const CompanionEditPage = () => {
   // Verificar se temos o acompanhante
   useEffect(() => {
     if (!acompanhante && !id) {
-      showSnackbar("Acompanhante não encontrado. Redirecionando...", "warning");
+      toastWarn("Acompanhante não encontrado. Redirecionando...");
       setTimeout(() => {
         navigate(-1);
       }, 2000);
     }
-  }, [acompanhante, id, navigate, showSnackbar]);
+  }, [acompanhante, id, navigate, toastWarn]);
 
   const {
     register,
@@ -118,7 +100,7 @@ const CompanionEditPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
   
   const handleConfirmCancel = () => {
-    showSnackbar("Edição cancelada", "info");
+    toastInfo("Edição cancelada");
     setTimeout(() => {
       navigate(-1);
     }, 1000);
@@ -128,7 +110,7 @@ const CompanionEditPage = () => {
   const handleSaveCompanion = async (data: EditCompanionFormInputs) => {
     console.log("Formulário Válido, Dados do Acompanhante:", data);
     if (!id) {
-      showSnackbar("ID do acompanhante não encontrado", "error");
+      toastError("ID do acompanhante não encontrado");
       return;
     }
 
@@ -162,20 +144,20 @@ const CompanionEditPage = () => {
       
       await editarAcompanhanteMutation.mutateAsync({ id, dto });
       setOpenSaveDialog(false);
-      showSnackbar("✓ Acompanhante atualizado com sucesso!", "success");
+      toastSuccessCritical("✓ Acompanhante atualizado com sucesso!");
       setTimeout(() => {
         navigate(-1);
       }, 2000);
     } catch (error) {
       console.error("Erro ao atualizar acompanhante:", error);
-      showSnackbar("Erro ao atualizar acompanhante. Tente novamente.", "error");
+      toastError("Erro ao atualizar acompanhante. Tente novamente.");
       setOpenSaveDialog(false);
     }
   };
 
   const onError = (errors: FieldErrors<EditCompanionFormInputs>) => {
     console.log("Erros de validação do Acompanhante:", errors);
-    showSnackbar("Por favor, corrija os erros no formulário do acompanhante.", "error");
+    toastError("Por favor, corrija os erros no formulário do acompanhante.");
     setOpenSaveDialog(false);
   };
 
@@ -239,22 +221,6 @@ const CompanionEditPage = () => {
         </Grid>
       </form>
 
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Confirmation Dialog */}
       <ConfirmationDialog

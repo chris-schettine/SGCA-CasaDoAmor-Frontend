@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Button, Grid, TextField, Typography, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { authService } from '../../api/auth.service';
 import { adminService } from '../../api/admin.service';
@@ -8,15 +8,13 @@ import PageHeader from '../../components/PageHeader';
 import LoadingState from '../../components/LoadingState';
 import { useAuth } from '../../hooks/useAuth';
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
+import { toastError, toastSuccess, toastWarn } from '../../utils/toast';
 
 
 const MyProfilePage = () => {
   const { token, user, login } = useAuth();
   const [rawUser, setRawUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success'| 'error' | 'warning' | 'info'>('success');
 
   const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register } = useForm({ mode: 'onBlur' });
 
@@ -143,12 +141,6 @@ const MyProfilePage = () => {
     fetch();
   }, [reset]);
 
-  const showSnackbar = (msg: string, severity: typeof snackbarSeverity) => {
-    setSnackbarMessage(msg);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
   const onSaveProfile = async (data: any) => {
     if (!rawUser) return;
     try {
@@ -204,26 +196,26 @@ const MyProfilePage = () => {
       // call login with current token to update context
       login(token || '', merged);
 
-      showSnackbar('Perfil atualizado com sucesso', 'success');
+      toastSuccess('Perfil atualizado com sucesso');
     } catch (err: any) {
       console.error('Erro ao salvar perfil', err);
-      showSnackbar(err?.response?.data?.message || 'Erro ao salvar perfil', 'error');
+      toastError(err?.response?.data?.message || 'Erro ao salvar perfil');
     }
   };
 
   const onChangePassword = async (data: any) => {
     const { senhaAtual, novaSenha, confirmarSenha } = data;
     if (novaSenha !== confirmarSenha) {
-      showSnackbar('A nova senha e a confirmação não coincidem', 'warning');
+      toastWarn('A nova senha e a confirmação não coincidem');
       return;
     }
     try {
       await authService.changePassword({ senhaAtual, novaSenha });
-      showSnackbar('Senha alterada com sucesso', 'success');
+      toastSuccess('Senha alterada com sucesso');
       // optionally clear pw fields - forms are uncontrolled here so not doing it
     } catch (err: any) {
       console.error('Erro ao alterar senha', err);
-      showSnackbar(err?.response?.data?.message || 'Erro ao alterar senha', 'error');
+      toastError(err?.response?.data?.message || 'Erro ao alterar senha');
     }
   };
 
@@ -433,12 +425,6 @@ const MyProfilePage = () => {
           </Grid>
         </form>
       </Box>
-
-      {/* 2FA removed from profile page */}
-
-      <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)}>
-        <Alert severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMessage}</Alert>
-      </Snackbar>
     </Box>
   );
 };

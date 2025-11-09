@@ -9,6 +9,7 @@ import {
   TableRow,
   Paper,
   Box,
+  type TableCellProps,
 } from '@mui/material';
 
 interface Column<T> {
@@ -16,6 +17,8 @@ interface Column<T> {
   headerName: string;
   width?: number;
   renderCell?: (row: T) => React.ReactNode;
+  align?: TableCellProps['align'];
+  headerAlign?: TableCellProps['align'];
 }
 
 interface VirtualizedTableProps<T> {
@@ -55,6 +58,7 @@ export function VirtualizedTable<T extends Record<string, any>>({
               <TableCell
                 key={String(column.field)}
                 style={{ minWidth: column.width }}
+                align={column.headerAlign || column.align || 'left'}
                 sx={{
                   fontWeight: 600,
                 }}
@@ -122,6 +126,7 @@ export function VirtualizedTable<T extends Record<string, any>>({
                               borderBottom: '1px solid',
                               borderColor: 'divider',
                               verticalAlign: 'middle',
+                              textAlign: column.align || 'left',
                             }}
                           >
                             {column.renderCell

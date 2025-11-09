@@ -1,39 +1,21 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
-import { Alert, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
 import CustomCheckbox from "../../components/CustomCheckbox";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import PageHeader from "../../components/PageHeader";
 import LoadingState from "../../components/LoadingState";
+import { toastWarn } from "../../utils/toast";
 
 const MedicalRecordPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { patientId, patientName, patient } = location.state || {};
-
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
   const [loading, setLoading] = useState(true);
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (
-    reason: SnackbarCloseReason
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   useEffect(() => {
     if (!patientId) {
-      showSnackbar("Você precisa selecionar o paciente", "warning");
+      toastWarn("Você precisa selecionar o paciente");
       setTimeout(() => {
         navigate("/patients");
       }, 2000)
@@ -45,7 +27,7 @@ const MedicalRecordPage = () => {
 
       return () => clearTimeout(timeout);
     }
-  }, [patientId, navigate, showSnackbar]);
+  }, [patientId, navigate, toastWarn]);
 
   if (loading) {
     return <LoadingState message="Carregando prontuário médico..." />;
@@ -168,25 +150,8 @@ const MedicalRecordPage = () => {
           <CustomCheckbox label="Virose na infância" />
           <CustomCheckbox label="Doenças infectocontagiosas" />
         </Box>
-        {/* Outros: _____ */}
+      
       </Box>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

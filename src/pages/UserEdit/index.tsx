@@ -12,6 +12,7 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
+import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
 
 
 const UserEditPage = () => {
@@ -60,7 +61,7 @@ const UserEditPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
 
   const handleConfirmCancel = () => {
-    showSnackbar("Alterações não salvas", "error");
+    toastError("Alterações não salvas");
     setTimeout(() => {
       navigate('/users');
     }, 1000);
@@ -173,7 +174,7 @@ const UserEditPage = () => {
         reset(defaultValues);
       } catch (error: any) {
         console.error('Erro ao buscar usuário', error);
-        showSnackbar('Erro ao carregar usuário', 'error');
+        toastError('Erro ao carregar usuário');
       } finally {
         setLoading(false);
       }
@@ -206,19 +207,19 @@ const UserEditPage = () => {
             if (!hasComplemento) setValue('complemento', addressData.complemento || '');
           } else {
             setError('cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
-            showSnackbar('CEP não encontrado ou inválido.', 'warning');
+            toastWarn('CEP não encontrado ou inválido.');
           }
         } catch (err) {
           console.error('Erro ao buscar CEP:', err);
           setError('cep', { type: 'manual', message: 'Erro ao buscar CEP. Tente novamente.' });
-          showSnackbar('Erro ao buscar CEP. Tente novamente.', 'error');
+          toastError('Erro ao buscar CEP. Tente novamente.');
         }
       }
     };
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
       handleCepSearch(cepValue);
     }
-  }, [cepValue, setValue, setError, clearErrors, showSnackbar]);
+  }, [cepValue, setValue, setError, clearErrors, toastError, toastWarn]);
 
   const handleSaveUser = async (data: UserFormInputs) => {
     if (!id) return;
@@ -267,19 +268,19 @@ const UserEditPage = () => {
       }
 
       setOpenSaveDialog(false);
-      showSnackbar('Usuário atualizado com sucesso', 'success');
+      toastSuccess('Usuário atualizado com sucesso');
       setTimeout(() => navigate('/users'), 1200);
     } catch (error: any) {
       console.error('Erro ao atualizar usuário', error);
       const message = error.response?.data?.message || 'Erro ao atualizar usuário';
-      showSnackbar(message, 'error');
+      toastError(message);
       setOpenSaveDialog(false);
     }
   };
 
   const onError = (errors: FieldErrors<UserFormInputs>) => {
     console.log('Erros de validação do usuário:', errors);
-    showSnackbar('Por favor, corrija os erros no formulário do usuário.', 'error');
+    toastError('Por favor, corrija os erros no formulário do usuário.');
     setOpenSaveDialog(false);
   };
 

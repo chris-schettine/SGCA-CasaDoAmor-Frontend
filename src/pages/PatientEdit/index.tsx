@@ -1,4 +1,4 @@
-import { Button, type AlertColor, CircularProgress, Box } from "@mui/material";
+import { Button, CircularProgress, Box } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,9 +11,6 @@ import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
 import PageHeader from "../../components/PageHeader";
-import Snackbar from '@mui/material/Snackbar';
-import type { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
 import type { PacienteDTO, EditarPacienteDTO } from "../../api/paciente.dto";
@@ -24,6 +21,7 @@ import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import { DevTools } from "../../utils/devTools";
+import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
 
 const PatientEditPage = () => {
   const navigate = useNavigate();
@@ -32,30 +30,11 @@ const PatientEditPage = () => {
   const passedPatient = (location.state as any)?.patient as PacienteDTO | undefined;
   const { isAuthenticated } = useAuth();
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (
-    reason: SnackbarCloseReason
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const {
     register,
@@ -135,7 +114,7 @@ const PatientEditPage = () => {
   const handleSavePatient = async (data: PatientFormInputs) => {
     try {
       if (!isAuthenticated) {
-        showSnackbar("Usuário não autenticado. Faça login novamente.", "error");
+        toastError("Usuário não autenticado. Faça login novamente.");
         setTimeout(() => {
           navigate('/login');
         }, 2000)
@@ -143,7 +122,7 @@ const PatientEditPage = () => {
       }
 
       if (!id) {
-        showSnackbar("ID do paciente não fornecido.", "error");
+        toastError("ID do paciente não fornecido.");
         return;
       }
 
@@ -188,7 +167,7 @@ const PatientEditPage = () => {
       setLoading(false);
 
       setOpenSaveDialog(false);
-      showSnackbar("Paciente atualizado com sucesso!", "success");
+      toastSuccess("Paciente atualizado com sucesso!");
       setTimeout(() => {
         navigate('/patients');
       }, 1500);
@@ -198,20 +177,20 @@ const PatientEditPage = () => {
       setOpenSaveDialog(false);
 
       if (isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-        showSnackbar("Sessão expirada ou sem permissão. Faça login novamente.", "error");
+        toastError("Sessão expirada ou sem permissão. Faça login novamente.");
         setTimeout(() => {
           navigate('/login');
         }, 1200);
         return;
       }
 
-      showSnackbar("Erro ao editar paciente. Tente novamente.", "error");
+      toastError("Erro ao editar paciente. Tente novamente.");
     }
   };
 
   const onError = (errors: FieldErrors<PatientFormInputs>) => {
     console.log("Erros de validação:", errors);
-    showSnackbar("Por favor, corrija os erros no formulário.", "error");
+    toastError("Por favor, corrija os erros no formulário.");
     setOpenSaveDialog(false);
   };
 
@@ -254,7 +233,7 @@ const PatientEditPage = () => {
             type: "manual",
             message: "CEP não encontrado ou inválido."
           });
-          showSnackbar("CEP não encontrado ou inválido.", "warning");
+          toastWarn("CEP não encontrado ou inválido.");
         }
       } catch (err) {
         console.error("Erro ao buscar CEP:", err);
@@ -262,7 +241,7 @@ const PatientEditPage = () => {
           type: "manual",
           message: "Erro ao buscar CEP. Tente novamente."
         });
-        showSnackbar("Erro ao buscar CEP. Tente novamente.", "error");
+        toastError("Erro ao buscar CEP. Tente novamente.");
       } finally {
         setIsCepLoading(false);
       }
@@ -273,7 +252,7 @@ const PatientEditPage = () => {
       setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
       setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
     }
-  }, [setValue, setError, clearErrors, showSnackbar]);
+  }, [setValue, setError, clearErrors, toastWarn, toastError]);
 
   useEffect(() => {
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
@@ -317,20 +296,20 @@ const PatientEditPage = () => {
           fillWithPatient(response.nodes[0]);
           setPatientName(response.nodes[0].dadoPessoal?.nome ?? '');
         } else {
-          showSnackbar('Paciente não encontrado', 'warning');
+          toastWarn('Paciente não encontrado');
           setTimeout(() => navigate('/patients'), 1500);
         }
         setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar paciente:', err);
-        showSnackbar('Erro ao carregar dados do paciente', 'error');
+        toastError('Erro ao carregar dados do paciente');
         setLoading(false);
         setTimeout(() => navigate('/patients'), 1500);
       }
     };
 
     fetchPatientFallback();
-  }, [id, navigate, setValue, showSnackbar, passedPatient]);
+  }, [id, navigate, setValue, toastError, toastWarn, passedPatient]);
 
   if (loading) return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -400,23 +379,6 @@ const PatientEditPage = () => {
           </Button>
         </Grid>
       </form>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Diálogo de Confirmação para Cancelar */}
       <ConfirmationDialog
