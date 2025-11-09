@@ -11,6 +11,7 @@ import { adminService } from '../../api/admin.service';
 import Breadcrumbs from "../../components/Breadcrumbs";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
+import { DevTools } from "../../utils/devTools";
 
 
 const UserEditPage = () => {
@@ -88,6 +89,19 @@ const UserEditPage = () => {
   useSaveShortcut(() => {
     handleSubmit(handleSaveUser, onError)();
   });
+
+  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const form = document.querySelector('form');
+      const cleanup = DevTools.addFakeDataButton(
+        form,
+        DevTools.fillUserFormWithFakeData,
+        setValue
+      );
+      return cleanup;
+    }
+  }, [setValue]);
 
   useEffect(() => {
     const fetch = async () => {

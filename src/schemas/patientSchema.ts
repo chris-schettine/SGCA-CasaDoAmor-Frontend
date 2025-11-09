@@ -26,12 +26,18 @@ export const patientSchema = z.object({
   numero: requiredString,
   complemento: z.string().trim().optional(),
   email: z.string().email("E-mail inválido").min(1, "O e-mail é obrigatório").transform(s => s.trim()),
-  estadoCivil: z.enum(["SOLTEIRO", "CASADO", "DIVORCIADO", "VIUVO", "SEPARADO", "UNIAO_ESTAVEL"], {
-    errorMap: () => ({ message: "Selecione um estado civil válido." }),
-  }).optional(),
-  tratamento: z.enum(["RADIOTERAPIA","QUIMIOTERAPIA","AMBOS","OUTRO"], {
-    errorMap: () => ({ message: "Selecione um tipo de tratamento válido." }),
-  }).optional(),
+  estadoCivil: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(["SOLTEIRO", "CASADO", "DIVORCIADO", "VIUVO", "SEPARADO", "UNIAO_ESTAVEL"], {
+      errorMap: () => ({ message: "Selecione um estado civil válido." }),
+    }).optional(),
+  ),
+  tratamento: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(["RADIOTERAPIA","QUIMIOTERAPIA","AMBOS","OUTRO"], {
+      errorMap: () => ({ message: "Selecione um tipo de tratamento válido." }),
+    }).optional(),
+  ),
   tratamentoOutroDescricao: z.string().trim().optional(),
   diagnostico: requiredString,
   condicaoChegada: z.enum(["de_ambulancia", "maca", "cadeira_rodas", "nenhum"], {
@@ -48,15 +54,24 @@ export const patientSchema = z.object({
   }),
   seForOutra: z.string().trim().optional().transform(e => e === "" ? undefined : e),
   // Campos clínicos adicionais
-  tipoSondaNasal: z.enum(["SNG","SNE","OROGASTRICA"], {
-    errorMap: () => ({ message: "Selecione um tipo de sonda nasal válido." }),
-  }).optional(),
-  tipoSondaCirurgica: z.enum(["G","J","GJ"], {
-    errorMap: () => ({ message: "Selecione um tipo de sonda cirúrgica válido." }),
-  }).optional(),
-  tipoSondaVesical: z.enum(["NAO","FOLEY","CISTOSTOMIA","OUTRA"], {
-    errorMap: () => ({ message: "Selecione um tipo de sonda vesical válido." }),
-  }).optional(),
+  tipoSondaNasal: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(["SNG","SNE","OROGASTRICA"], {
+      errorMap: () => ({ message: "Selecione um tipo de sonda nasal válido." }),
+    }).optional(),
+  ),
+  tipoSondaCirurgica: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(["G","J","GJ"], {
+      errorMap: () => ({ message: "Selecione um tipo de sonda cirúrgica válido." }),
+    }).optional(),
+  ),
+  tipoSondaVesical: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(["NAO","FOLEY","CISTOSTOMIA","OUTRA"], {
+      errorMap: () => ({ message: "Selecione um tipo de sonda vesical válido." }),
+    }).optional(),
+  ),
   tipoSanguineo: z.enum(["A_POSITIVO","A_NEGATIVO","B_POSITIVO","B_NEGATIVO","AB_POSITIVO","AB_NEGATIVO","O_POSITIVO","O_NEGATIVO"], {
     errorMap: () => ({ message: "Selecione o tipo sanguíneo do paciente." }),
   }),
@@ -81,6 +96,12 @@ export const patientSchema = z.object({
     necessidadesEspeciais: z.string().trim().optional(),
   }).optional(),
 }).superRefine((data, ctx) => {
+
+  if (data.usoSonda === 'nao') {
+    data.tipoSondaNasal = undefined;
+    data.tipoSondaCirurgica = undefined;
+    data.tipoSondaVesical = undefined;
+  }
 
   // Validação condicional para tratamento OUTRO
   if (data.tratamento === 'OUTRO' && (!data.tratamentoOutroDescricao || data.tratamentoOutroDescricao.trim() === '')) {

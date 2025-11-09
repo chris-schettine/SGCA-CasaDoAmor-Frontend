@@ -7,22 +7,24 @@ import { useCallback, useEffect, useState } from "react";
 import Snackbar from '@mui/material/Snackbar';
 import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import { useNavigate, useLocation } from "react-router-dom";
-import { companionSchema, type CompanionFormInputs } from "../../schemas/companionSchema";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { editCompanionSchema, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
-import { useRegistrarAcompanhante } from "../../hooks/useAcompanhantes";
+import { useEditarAcompanhante } from "../../hooks/useAcompanhantes";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import type { AcompanhanteDTO } from "../../api/acompanhante.dto";
 import CompanionForm from "../../components/CompanionForm";
-import { formatDateToISO } from "../../utils/formatters";
+import { formatDateToISO, formatISOToDDMMYYYY } from "../../utils/formatters";
 import { DevTools } from "../../utils/devTools";
 
-const CompanionRegisterPage = () => {
+const CompanionEditPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patientId, patientName } = location.state || {};
+  const { id } = useParams<{ id: string }>();
+  const acompanhante = (location.state as { acompanhante?: AcompanhanteDTO })?.acompanhante;
   
-  const registrarAcompanhanteMutation = useRegistrarAcompanhante();
+  const editarAcompanhanteMutation = useEditarAcompanhante();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -44,15 +46,15 @@ const CompanionRegisterPage = () => {
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
 
-  // Verificar se temos o pacienteId
+  // Verificar se temos o acompanhante
   useEffect(() => {
-    if (!patientId) {
-      showSnackbar("Nenhum paciente selecionado. Redirecionando...", "warning");
+    if (!acompanhante && !id) {
+      showSnackbar("Acompanhante não encontrado. Redirecionando...", "warning");
       setTimeout(() => {
-        navigate('/patients');
+        navigate(-1);
       }, 2000);
     }
-  }, [patientId, navigate, showSnackbar]);
+  }, [acompanhante, id, navigate, showSnackbar]);
 
   const {
     register,
@@ -63,34 +65,34 @@ const CompanionRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
-  } = useForm<CompanionFormInputs>({
-    resolver: zodResolver(companionSchema),
+  } = useForm<EditCompanionFormInputs>({
+    resolver: zodResolver(editCompanionSchema),
     mode: "onBlur",
-    defaultValues: {
+    defaultValues: acompanhante ? {
       dadoPessoal: {
-        nome: "",
-        nomeMae: "",
-        dataNascimento: "",
-        cpf: "",
-        rg: "",
-        naturalidade: "",
-        profissao: "",
-        telefone: "",
-        estadoCivil: undefined,
+        nome: acompanhante.dadoPessoal?.nome || "",
+        nomeMae: acompanhante.dadoPessoal?.nomeMae || "",
+        dataNascimento: acompanhante.dadoPessoal?.dataNascimento ? formatISOToDDMMYYYY(acompanhante.dadoPessoal.dataNascimento) : "",
+        cpf: acompanhante.dadoPessoal?.cpf || "",
+        rg: acompanhante.dadoPessoal?.rg || "",
+        naturalidade: acompanhante.dadoPessoal?.naturalidade || "",
+        profissao: acompanhante.dadoPessoal?.profissao || "",
+        telefone: acompanhante.dadoPessoal?.telefone || "",
+        estadoCivil: acompanhante.dadoPessoal?.estadoCivil || undefined,
       },
       endereco: {
-        logradouro: "",
-        numero: undefined,
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        estado: undefined,
-        cep: "",
+        logradouro: acompanhante.endereco?.logradouro || "",
+        numero: acompanhante.endereco?.numero || undefined,
+        complemento: acompanhante.endereco?.complemento || "",
+        bairro: acompanhante.endereco?.bairro || "",
+        cidade: acompanhante.endereco?.cidade || "",
+        estado: (acompanhante.endereco?.estado as "AC" | "AL" | "AP" | "AM" | "BA" | "CE" | "DF" | "ES" | "GO" | "MA" | "MT" | "MS" | "MG" | "PA" | "PB" | "PR" | "PE" | "PI" | "RJ" | "RN" | "RS" | "RO" | "RR" | "SC" | "SP" | "SE" | "TO" | undefined) || undefined,
+        cep: acompanhante.endereco?.cep || "",
       },
-      parentesco: undefined as any,
-      pacienteId: patientId || "",
-      podeAjudarNaCozinha: false,
-    },
+      parentesco: acompanhante.parentesco,
+      podeAjudarNaCozinha: acompanhante.podeAjudarNaCozinha,
+      ativo: acompanhante.ativo,
+    } : undefined
   });
 
   // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
@@ -100,12 +102,11 @@ const CompanionRegisterPage = () => {
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillCompanionFormWithFakeData,
-        setValue,
-        clearErrors
+        setValue
       );
       return cleanup;
     }
-  }, [setValue, clearErrors]);
+  }, [setValue]);
 
   const handleOpenSaveDialog = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
@@ -117,15 +118,20 @@ const CompanionRegisterPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
   
   const handleConfirmCancel = () => {
-    showSnackbar("Acompanhante não cadastrado", "warning");
+    showSnackbar("Edição cancelada", "info");
     setTimeout(() => {
-      navigate('/patients');
+      navigate(-1);
     }, 1000);
     setOpenCancelDialog(false);
   };
 
-  const handleSaveCompanion = async (data: CompanionFormInputs) => {
+  const handleSaveCompanion = async (data: EditCompanionFormInputs) => {
     console.log("Formulário Válido, Dados do Acompanhante:", data);
+    if (!id) {
+      showSnackbar("ID do acompanhante não encontrado", "error");
+      return;
+    }
+
     try {
       // Converter para o DTO esperado pela API
       const dto = {
@@ -150,24 +156,24 @@ const CompanionRegisterPage = () => {
           cep: data.endereco.cep || "",
         },
         parentesco: data.parentesco,
-        pacienteId: data.pacienteId,
         podeAjudarNaCozinha: data.podeAjudarNaCozinha,
+        ativo: data.ativo,
       };
       
-      await registrarAcompanhanteMutation.mutateAsync(dto);
+      await editarAcompanhanteMutation.mutateAsync({ id, dto });
       setOpenSaveDialog(false);
-      showSnackbar("✓ Acompanhante cadastrado com sucesso!", "success");
+      showSnackbar("✓ Acompanhante atualizado com sucesso!", "success");
       setTimeout(() => {
-        navigate('/patients');
+        navigate(-1);
       }, 2000);
     } catch (error) {
-      console.error("Erro ao cadastrar acompanhante:", error);
-      showSnackbar("Erro ao cadastrar acompanhante. Tente novamente.", "error");
+      console.error("Erro ao atualizar acompanhante:", error);
+      showSnackbar("Erro ao atualizar acompanhante. Tente novamente.", "error");
       setOpenSaveDialog(false);
     }
   };
 
-  const onError = (errors: FieldErrors<CompanionFormInputs>) => {
+  const onError = (errors: FieldErrors<EditCompanionFormInputs>) => {
     console.log("Erros de validação do Acompanhante:", errors);
     showSnackbar("Por favor, corrija os erros no formulário do acompanhante.", "error");
     setOpenSaveDialog(false);
@@ -189,13 +195,13 @@ const CompanionRegisterPage = () => {
     }}>
       <Breadcrumbs items={[
         { label: 'Pacientes', path: '/patients' },
-        { label: patientName || 'Paciente' },
-        { label: 'Cadastrar Acompanhante' }
+        { label: acompanhante?.pacienteNome || 'Paciente' },
+        { label: 'Editar Acompanhante' }
       ]} />
       
       <PageHeader 
-        title="Cadastrar Acompanhante"
-        subtitle={`Preencha os dados do acompanhante do paciente ${patientName || ''}`}
+        title="Editar Acompanhante"
+        subtitle={`Atualize os dados de ${acompanhante?.dadoPessoal?.nome || 'acompanhante'}`}
       />
 
       <form
@@ -210,7 +216,7 @@ const CompanionRegisterPage = () => {
           setValue={setValue as any}
           setError={setError as any}
           clearErrors={clearErrors as any}
-          isEditMode={false}
+          isEditMode={true}
         />
 
         {/* Botões Salvar e Cancelar */}
@@ -219,16 +225,16 @@ const CompanionRegisterPage = () => {
             variant="contained"
             color="primary"
             onClick={handleOpenSaveDialog}
-            disabled={registrarAcompanhanteMutation.isPending}
+            disabled={editarAcompanhanteMutation.isPending}
           >
-            {registrarAcompanhanteMutation.isPending ? "Salvando..." : "Salvar Acompanhante"}
+            {editarAcompanhanteMutation.isPending ? "Salvando..." : "Salvar Alterações"}
           </Button>
           <Button
             variant="outlined"
             color="error"
             onClick={handleOpenCancelDialog}
           >
-            Não Cadastrar Acompanhante
+            Cancelar
           </Button>
         </Grid>
       </form>
@@ -255,24 +261,24 @@ const CompanionRegisterPage = () => {
         open={openSaveDialog}
         onClose={handleCloseSaveDialog}
         onConfirm={handleConfirmSave}
-        title="Confirmar Salvamento do Acompanhante"
-        message="Tem certeza que deseja salvar os dados do acompanhante?"
+        title="Confirmar Alterações"
+        message="Tem certeza que deseja salvar as alterações do acompanhante?"
         confirmButtonText="Sim, Salvar"
         cancelButtonText="Não, Voltar"
       />
 
-      {/* Diálogo de Confirmação para Não Cadastrar/Cancelar */}
+      {/* Diálogo de Confirmação para Cancelar */}
       <ConfirmationDialog
         open={openCancelDialog}
         onClose={handleCloseCancelDialog}
         onConfirm={handleConfirmCancel}
-        title="Não Cadastrar Acompanhante"
-        message="Tem certeza que não quer cadastrar um acompanhante para este paciente? Você pode adicioná-lo depois."
-        confirmButtonText="Sim, Não Cadastrar"
-        cancelButtonText="Voltar e Cadastrar"
+        title="Cancelar Edição"
+        message="Tem certeza que deseja cancelar? As alterações não serão salvas."
+        confirmButtonText="Sim, Cancelar"
+        cancelButtonText="Voltar"
       />
     </Box>
   )
 }
 
-export default CompanionRegisterPage;
+export default CompanionEditPage;

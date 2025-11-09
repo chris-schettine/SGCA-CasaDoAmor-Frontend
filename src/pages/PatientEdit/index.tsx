@@ -6,6 +6,7 @@ import { patientSchema, type PatientFormInputs } from '../../schemas/patientSche
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
+import { isAxiosError } from "axios";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
@@ -22,6 +23,7 @@ import { formatDateToISO, removeNonNumeric, formatISOToDDMMYYYY } from "../../ut
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import { DevTools } from "../../utils/devTools";
 
 const PatientEditPage = () => {
   const navigate = useNavigate();
@@ -64,8 +66,8 @@ const PatientEditPage = () => {
     setValue,
     setError,
     clearErrors,
-  } = useForm<PatientFormInputs>({
-    resolver: zodResolver(patientSchema),
+  } = useForm<PatientFormInputs, any, PatientFormInputs>({
+    resolver: zodResolver(patientSchema) as any,
     mode: "onBlur",
     defaultValues: {
       nomeCompletoPaciente: "",
@@ -85,7 +87,12 @@ const PatientEditPage = () => {
       numero: "",
       complemento: "",
       tratamento: undefined,
+      estadoCivil: undefined,
       diagnostico: "",
+      tipoSondaNasal: undefined,
+      tipoSondaCirurgica: undefined,
+      tipoSondaVesical: undefined,
+      tipoSanguineo: undefined,
       seForOutra: "",
     }
   });
@@ -97,6 +104,33 @@ const PatientEditPage = () => {
   useSaveShortcut(() => {
     handleSubmit(handleSavePatient, onError)();
   });
+
+  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const form = document.querySelector('form');
+      const cleanup = DevTools.addFakeDataButton(
+        form,
+        DevTools.fillPatientFormWithFakeData,
+        setValue,
+        clearErrors
+      );
+      return cleanup;
+    }
+  }, [setValue, clearErrors]);
+
+  // Quando o usuário indica que não usa sonda, limpamos valores e erros relacionados
+  const usoSondaValue = watch('usoSonda');
+
+  useEffect(() => {
+    if (usoSondaValue === 'nao') {
+      setValue('tipoSondaNasal', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('tipoSondaCirurgica', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('tipoSondaVesical', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('seForOutra', '', { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      clearErrors(['tipoSondaNasal', 'tipoSondaCirurgica', 'tipoSondaVesical', 'seForOutra']);
+    }
+  }, [usoSondaValue, setValue, clearErrors]);
 
   const handleSavePatient = async (data: PatientFormInputs) => {
     try {
@@ -161,8 +195,17 @@ const PatientEditPage = () => {
     } catch (error) {
       console.error("Erro ao editar paciente:", error);
       setLoading(false);
-      showSnackbar("Erro ao editar paciente. Tente novamente.", "error");
       setOpenSaveDialog(false);
+
+      if (isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+        showSnackbar("Sessão expirada ou sem permissão. Faça login novamente.", "error");
+        setTimeout(() => {
+          navigate('/login');
+        }, 1200);
+        return;
+      }
+
+      showSnackbar("Erro ao editar paciente. Tente novamente.", "error");
     }
   };
 

@@ -1,10 +1,13 @@
-import { Alert, Button, CircularProgress, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, type AlertColor, type SnackbarCloseReason, Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
 import type { PacienteDTO } from "../../api/paciente.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
 import Breadcrumbs from "../../components/Breadcrumbs";
+import { useAcompanhantesPorPaciente } from "../../hooks/useAcompanhantes";
+import PersonIcon from '@mui/icons-material/Person';
+import AddIcon from '@mui/icons-material/Add';
 
 const PatientInformation = () => {
   const navigate = useNavigate();
@@ -25,6 +28,35 @@ const PatientInformation = () => {
 
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<PacienteDTO | null>(passedPatient || null);
+
+  // Buscar acompanhantes do paciente
+  const { data: acompanhantes, isLoading: isLoadingAcompanhantes } = useAcompanhantesPorPaciente(patient?.id);
+
+  const filteredAcompanhantes = useMemo(() => {
+    if (!acompanhantes) {
+      return [];
+    }
+    if (!patient) {
+      return acompanhantes;
+    }
+
+    const byId = acompanhantes.filter((acompanhante) => (acompanhante as any)?.pacienteId === patient.id);
+    if (byId.length > 0) {
+      return byId;
+    }
+
+    const patientName = patient.dadoPessoal?.nome?.trim().toLowerCase();
+    if (patientName) {
+      const byName = acompanhantes.filter((acompanhante) =>
+        acompanhante.pacienteNome?.trim().toLowerCase() === patientName
+      );
+      if (byName.length > 0) {
+        return byName;
+      }
+    }
+
+    return acompanhantes;
+  }, [acompanhantes, patient]);
 
   console.log('[PatientInformation] patient state:', patient);
 
@@ -227,10 +259,105 @@ const PatientInformation = () => {
               <Typography sx={{ mt: 1 }}>Nenhum dado social registrado.</Typography>
             )}
           </Box>
+
+          {/* Acompanhantes */}
+          <Box sx={{ mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography component="h2" sx={{ fontSize: 18, fontWeight: 600 }}>
+                Acompanhantes
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                size="small"
+                onClick={() => navigate('/patient/companion/register', { 
+                  state: { 
+                    patientId: patient.id, 
+                    patientName: patient.dadoPessoal?.nome 
+                  } 
+                })}
+                sx={{ backgroundColor: '#09244B', '&:hover': { backgroundColor: '#0C2F58' } }}
+              >
+                Adicionar Acompanhante
+              </Button>
+            </Box>
+
+            {isLoadingAcompanhantes ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : filteredAcompanhantes.length > 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {filteredAcompanhantes.map((acompanhante) => (
+                  <Card key={acompanhante.id} sx={{ boxShadow: 1 }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <PersonIcon color="primary" />
+                            <Typography variant="h6" component="h3" sx={{ fontSize: 16, fontWeight: 600 }}>
+                              {acompanhante.dadoPessoal?.nome}
+                            </Typography>
+                            <Chip 
+                              label={acompanhante.parentesco} 
+                              size="small" 
+                              color="primary" 
+                              variant="outlined"
+                            />
+                            {!acompanhante.ativo && (
+                              <Chip label="Inativo" size="small" color="error" />
+                            )}
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                            <Typography variant="body2">
+                              <strong>CPF:</strong> {acompanhante.dadoPessoal?.cpf || '—'}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Telefone:</strong> {acompanhante.dadoPessoal?.telefone || '—'}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Profissão:</strong> {acompanhante.dadoPessoal?.profissao || '—'}
+                            </Typography>
+                          </Box>
+
+                          {acompanhante.endereco && (
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                              <strong>Endereço:</strong> {acompanhante.endereco.logradouro}, {acompanhante.endereco.numero} - {acompanhante.endereco.bairro}, {acompanhante.endereco.cidade}/{acompanhante.endereco.estado}
+                            </Typography>
+                          )}
+
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            <strong>Pode ajudar na cozinha:</strong> {acompanhante.podeAjudarNaCozinha ? 'Sim' : 'Não'}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => navigate(`/companion/edit/${acompanhante.id}`, { 
+                              state: { acompanhante } 
+                            })}
+                          >
+                            Editar
+                          </Button>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            ) : (
+              <Typography sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                Nenhum acompanhante cadastrado para este paciente.
+              </Typography>
+            )}
+          </Box>
         </>
       )}
 
-      <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0 }}>
+      <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0, mt: 3 }}>
         Prontuários
       </Typography>
       <Box sx={{ display: "flex", width: "100%", gap: "10px" }}>

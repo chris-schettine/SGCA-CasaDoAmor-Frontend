@@ -6,6 +6,7 @@ import { patientSchema, type PatientFormInputs } from '../../schemas/patientSche
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
+import { isAxiosError } from "axios";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
@@ -20,6 +21,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
+import { DevTools } from "../../utils/devTools";
 
 const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
@@ -63,8 +65,8 @@ const PatientRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
-  } = useForm<PatientFormInputs>({
-    resolver: zodResolver(patientSchema),
+  } = useForm<PatientFormInputs, any, PatientFormInputs>({
+    resolver: zodResolver(patientSchema) as any,
     mode: "onBlur",
     defaultValues: {
       nomeCompletoPaciente: "",
@@ -98,6 +100,33 @@ const PatientRegisterPage = () => {
       handleSubmit(handleSavePatient, onError)();
     }
   }, activeStep === steps.length - 1);
+
+  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const form = document.querySelector('form');
+      const cleanup = DevTools.addFakeDataButton(
+        form,
+        DevTools.fillPatientFormWithFakeData,
+        setValue,
+        clearErrors
+      );
+      return cleanup;
+    }
+  }, [setValue, clearErrors]);
+
+  // Quando o usuário indica que não usa sonda, limpamos valores e erros relacionados
+  const usoSondaValue = watch('usoSonda');
+
+  useEffect(() => {
+    if (usoSondaValue === 'nao') {
+      setValue('tipoSondaNasal', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('tipoSondaCirurgica', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('tipoSondaVesical', undefined, { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      setValue('seForOutra', '', { shouldValidate: false, shouldDirty: false, shouldTouch: false });
+      clearErrors(['tipoSondaNasal', 'tipoSondaCirurgica', 'tipoSondaVesical', 'seForOutra']);
+    }
+  }, [usoSondaValue, setValue, clearErrors]);
 
   const handleSavePatient = async (data: PatientFormInputs) => {
     console.log("Formulário Válido, Dados:", data);
@@ -183,16 +212,30 @@ const PatientRegisterPage = () => {
         } : undefined,
       };
 
-      await pacienteService.registrarPaciente(paciente); // chamada real com token automático
+      const response = await pacienteService.registrarPaciente(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
       showSnackbar("✓ Paciente cadastrado com sucesso!", "success", 8000); // Operação crítica - 8 segundos
       setTimeout(() => {
-        navigate('/patient/companion/register');
+        navigate('/patient/companion/register', { 
+          state: { 
+            patientId: response.id,
+            patientName: response.dadoPessoal?.nome 
+          } 
+        });
       }, 2000)
     } catch (error) {
       console.error("Erro ao cadastrar paciente:", error);
-      showSnackbar("Erro ao cadastrar paciente. Tente novamente.", "error");
       setOpenSaveDialog(false);
+
+      if (isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+        showSnackbar("Sessão expirada ou sem permissão. Faça login novamente.", "error", 6000);
+        setTimeout(() => {
+          navigate('/login');
+        }, 1200);
+        return;
+      }
+
+      showSnackbar("Erro ao cadastrar paciente. Tente novamente.", "error");
     }
   };
 

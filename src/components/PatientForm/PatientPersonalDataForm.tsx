@@ -12,7 +12,7 @@ interface PatientPersonalDataFormProps {
   errors: FieldErrors<PatientFormInputs>;
   watch: UseFormWatch<PatientFormInputs>;
   setValue: UseFormSetValue<PatientFormInputs>;
-  control: Control<PatientFormInputs>;
+  control: Control<PatientFormInputs, any, PatientFormInputs>;
   handleCepSearch: (cep: string, targetFieldPrefix: "" | "acompanhante") => Promise<void>;
   isCepLoading: boolean;
   disabledFields?: (keyof PatientFormInputs)[];
@@ -301,24 +301,31 @@ const PatientPersonalDataForm = (
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            id="estado-civil"
-            label="Estado Civil"
-            variant="outlined"
-            fullWidth
-            select
-            {...register('estadoCivil')}
-            error={!!errors.estadoCivil}
-            helperText={errors.estadoCivil?.message || 'Selecione o estado civil do paciente (opcional).'}
-          >
-            <MenuItem value="">Selecione...</MenuItem>
-            <MenuItem value="SOLTEIRO">Solteiro(a)</MenuItem>
-            <MenuItem value="CASADO">Casado(a)</MenuItem>
-            <MenuItem value="DIVORCIADO">Divorciado(a)</MenuItem>
-            <MenuItem value="VIUVO">Viúvo(a)</MenuItem>
-            <MenuItem value="SEPARADO">Separado(a)</MenuItem>
-            <MenuItem value="UNIAO_ESTAVEL">União Estável</MenuItem>
-          </TextField>
+          <Controller
+            name="estadoCivil"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                value={field.value ?? ''}
+                id="estado-civil"
+                label="Estado Civil"
+                variant="outlined"
+                fullWidth
+                select
+                error={!!errors.estadoCivil}
+                helperText={errors.estadoCivil?.message || 'Selecione o estado civil do paciente (opcional).'}
+              >
+                <MenuItem value="">Selecione...</MenuItem>
+                <MenuItem value="SOLTEIRO">Solteiro(a)</MenuItem>
+                <MenuItem value="CASADO">Casado(a)</MenuItem>
+                <MenuItem value="DIVORCIADO">Divorciado(a)</MenuItem>
+                <MenuItem value="VIUVO">Viúvo(a)</MenuItem>
+                <MenuItem value="SEPARADO">Separado(a)</MenuItem>
+                <MenuItem value="UNIAO_ESTAVEL">União Estável</MenuItem>
+              </TextField>
+            )}
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Controller

@@ -75,13 +75,17 @@ class ApiGateway {
           }
         } else if (error.response?.status === 403) {
           const url: string | undefined = error.config?.url;
-          // If /auth/me returned 403, it's safer to force logout (session invalid or permission removed)
-          if (url && url.includes('/auth/me')) {
-            console.warn('[API Gateway] /auth/me retornou 403 - forçando logout');
+          // Lista de endpoints protegidos que requerem autenticação válida
+          const protectedEndpoints = ['/auth/me', '/pacientes', '/usuarios', '/acompanhantes', '/admins'];
+          const isProtectedEndpoint = protectedEndpoints.some(endpoint => url?.includes(endpoint));
+          
+          if (isProtectedEndpoint) {
+            console.warn('[API Gateway] 403 em endpoint protegido - forçando logout:', url);
             try {
               forceLogout();
             } catch (e) {
-              console.error('[API Gateway] Erro ao executar forceLogout após 403 /auth/me', e);
+              console.error('[API Gateway] Erro ao executar forceLogout após 403', e);
+              // fallback: limpa e redireciona
               localStorage.removeItem('auth-storage');
               if (window.location.pathname !== '/login') window.location.href = '/login';
             }

@@ -12,6 +12,7 @@ import type { CreateUserDTO, UpdateUserDTO } from '../../api/admin.dto';
 import { formatDateToISO, removeNonNumeric } from '../../utils/formatters';
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
+import { DevTools } from "../../utils/devTools";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -82,6 +83,19 @@ const UserRegisterPage = () => {
 
   // Alerta de mudanças não salvas
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
+
+  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const form = document.querySelector('form');
+      const cleanup = DevTools.addFakeDataButton(
+        form,
+        DevTools.fillUserFormWithFakeData,
+        setValue
+      );
+      return cleanup;
+    }
+  }, [setValue]);
 
   // CEP auto-fill logic (similar to edit page)
   const cepValue = watch('cep');

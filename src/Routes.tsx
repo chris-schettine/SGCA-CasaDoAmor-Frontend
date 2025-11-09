@@ -23,6 +23,7 @@ const MedicalRecordPage = lazy(() => import('./pages/MedicalRecord'));
 const PatientEditPage = lazy(() => import('./pages/PatientEdit'));
 const PatientRegisterPage = lazy(() => import('./pages/PatientRegister'));
 const CompanionRegisterPage = lazy(() => import('./pages/CompanionRegister'));
+const CompanionEditPage = lazy(() => import('./pages/CompanionEdit'));
 const RelatoryPage = lazy(() => import('./components/RelatoryPage'));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'));
 
@@ -100,6 +101,7 @@ const AppRoutes = () => {
       {/* Cadastros */}
       <Route path="patient/register" element={<PatientRegisterPage />} />
       <Route path="patient/companion/register" element={<CompanionRegisterPage />} />
+      <Route path="companion/edit/:id" element={<CompanionEditPage />} />
       <Route path="user/register" element={<UserRegisterPage />} />
       <Route path="user/edit/:id" element={<UserEditPage />} />
 
