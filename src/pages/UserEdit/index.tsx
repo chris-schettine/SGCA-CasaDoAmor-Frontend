@@ -1,8 +1,8 @@
-import { Alert, Button, Grid, Snackbar, type AlertColor, type SnackbarCloseReason, CircularProgress, Box } from "@mui/material";
+import { Button, Grid, CircularProgress, Box } from "@mui/material";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate, useParams } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
 import { userSchemaConditional as userSchema, type UserFormInputs } from "../../schemas/userSchema";
 import { useForm, type FieldErrors } from "react-hook-form";
@@ -19,26 +19,8 @@ const UserEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>("");
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = (
-    reason: SnackbarCloseReason
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -180,7 +162,7 @@ const UserEditPage = () => {
       }
     };
     fetch();
-  }, [id, reset, showSnackbar]);
+  }, [id, reset, toastError]);
 
   // CEP auto-fill logic (same as patients)
   const cepValue = watch('cep');
@@ -351,15 +333,6 @@ const UserEditPage = () => {
           </Button>
         </Grid>
       </form>
-
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert onClose={() => handleSnackbarClose('clickaway')} severity={snackbarSeverity} variant="filled" sx={{ width: '100%' }}>{snackbarMessage}</Alert>
-      </Snackbar>
 
       <ConfirmationDialog open={openCancelDialog} onClose={handleCloseCancelDialog} onConfirm={handleConfirmCancel} title="Confirmar Cancelamento" message="Tem certeza que deseja cancelar? Você perderá todos os dados preenchidos." confirmButtonText="Sim, Cancelar" cancelButtonText="Não, Continuar Editando" />
 

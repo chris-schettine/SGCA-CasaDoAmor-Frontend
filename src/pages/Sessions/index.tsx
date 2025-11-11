@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Snackbar, Alert, Box, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Box, useMediaQuery, useTheme } from '@mui/material';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import PageHeader from '../../components/PageHeader';
 import LoadingState from '../../components/LoadingState';
 import { formatISOToLocalDateTime } from '../../utils/formatters';
 import MobileCard from '../../components/Table/MobileCard';
+import { toastError, toastSuccess } from '../../utils/toast';
 
 interface SessaoDTO {
   id: number;
@@ -29,9 +30,6 @@ const SessionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success'|'error'|'info'|'warning'>('success');
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -44,9 +42,7 @@ const SessionsPage = () => {
       setSessions(resp.sessoes || []);
     } catch (err: any) {
       console.error('Erro ao buscar sessões', err);
-      setSnackbarMessage(err?.response?.data?.message || 'Erro ao buscar sessões');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toastError(err?.response?.data?.message || 'Erro ao buscar sessões');
     } finally {
       setLoading(false);
     }
@@ -63,18 +59,14 @@ const SessionsPage = () => {
     if (!selectedId) return;
     try {
       await authService.revokeSession(selectedId);
-      setSnackbarMessage('Sessão revogada com sucesso');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      toastSuccess('Sessão revogada com sucesso');
       setConfirmOpen(false);
       setSelectedId(null);
       // refresh
       await fetchSessions();
     } catch (err: any) {
       console.error('Erro ao revogar sessão', err);
-      setSnackbarMessage(err?.response?.data?.message || 'Erro ao revogar sessão');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toastError(err?.response?.data?.message || 'Erro ao revogar sessão');
     }
   };
 
@@ -173,15 +165,6 @@ const SessionsPage = () => {
         confirmButtonText="Revogar"
         cancelButtonText="Cancelar"
       />
-
-      <Snackbar 
-        open={snackbarOpen} 
-        autoHideDuration={4000} 
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMessage}</Alert>
-      </Snackbar>
     </Container>
   );
 };

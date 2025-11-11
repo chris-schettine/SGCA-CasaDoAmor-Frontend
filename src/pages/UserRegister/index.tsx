@@ -175,7 +175,6 @@ const UserRegisterPage = () => {
       await adminService.updateUser(newUserId, updateDTO);
       
 
-
       setOpenSaveDialog(false);
       toastSuccess('Profissional cadastrado com sucesso!');
       setTimeout(() => navigate('/users'), 1200);

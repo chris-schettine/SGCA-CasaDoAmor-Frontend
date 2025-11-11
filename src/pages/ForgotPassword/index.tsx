@@ -2,7 +2,7 @@ import { Box, Button, Container, TextField, Typography, CircularProgress } from 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
-import { toastError, toastSuccessCritical } from "../../utils/toast";
+import { toastSuccessCritical, toastErrorCritical } from "../../utils/toast";
 
 
 const BoxStyles = {
@@ -46,7 +46,7 @@ const ForgotPassword = () => {
     } catch (error: any) {
       console.error("Erro ao solicitar recuperação:", error);
       const message = error.response?.data?.message || "Erro ao processar a solicitação.";
-      toastError(message);
+      toastErrorCritical(message);
       setIsLoading(false);
     }
   };

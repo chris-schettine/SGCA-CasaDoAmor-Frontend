@@ -1,4 +1,4 @@
-import { Button, type AlertColor, Stepper, Step, StepLabel, Box } from "@mui/material";
+import { Button, Stepper, Step, StepLabel, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,9 +11,6 @@ import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
 import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
 import PageHeader from "../../components/PageHeader";
-import Snackbar from '@mui/material/Snackbar';
-import type { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
 import type { RegistrarPacienteDTO } from "../../api/paciente.dto";
@@ -22,7 +19,7 @@ import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
-import { toastSuccessCritical } from "../../utils/toast";
+import { toastError, toastErrorCritical, toastSuccessCritical, toastWarn } from "../../utils/toast";
 
 const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
@@ -31,31 +28,11 @@ const PatientRegisterPage = () => {
   const { isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
-  const [snackbarAutoHide, setSnackbarAutoHide] = useState(6000);
 
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
 
   const [isCepLoading, setIsCepLoading] = useState(false);
-
-  const showSnackbar = useCallback((message: string, severity: AlertColor, autoHideDuration: number = 6000) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-    setSnackbarAutoHide(autoHideDuration);
-  }, []);
-
-  const handleSnackbarClose = (
-    reason: SnackbarCloseReason
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const {
     register,
@@ -133,7 +110,7 @@ const PatientRegisterPage = () => {
     console.log("Formulário Válido, Dados:", data);
     try {
       if (!isAuthenticated) {
-        showSnackbar("Usuário não autenticado. Faça login novamente.", "error");
+        toastError("Usuário não autenticado. Faça login novamente.");
         setTimeout(() => {
           navigate('/login'); // Redireciona para a página de login
         }, 2000)
@@ -215,7 +192,7 @@ const PatientRegisterPage = () => {
 
       const response = await pacienteService.registrarPaciente(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
-      toastSuccessCritical("✓ Paciente cadastrado com sucesso!"); // Operação crítica - 8 segundos
+      toastSuccessCritical("✓ Paciente cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patient/companion/register', { 
           state: { 
@@ -229,14 +206,14 @@ const PatientRegisterPage = () => {
       setOpenSaveDialog(false);
 
       if (isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-        showSnackbar("Sessão expirada ou sem permissão. Faça login novamente.", "error", 6000);
+        toastErrorCritical("Sessão expirada ou sem permissão. Faça login novamente.");
         setTimeout(() => {
           navigate('/login');
         }, 1200);
         return;
       }
 
-      showSnackbar("Erro ao cadastrar paciente. Tente novamente.", "error");
+      toastError("Erro ao cadastrar paciente. Tente novamente.");
     }
   };
 
@@ -260,9 +237,9 @@ const PatientRegisterPage = () => {
     
     if (errorFields.length > 0) {
       const firstErrorField = fieldLabels[errorFields[0]] || errorFields[0];
-      showSnackbar(`Por favor, corrija o campo: ${firstErrorField}`, "error");
+      toastError(`Por favor, corrija o campo: ${firstErrorField}`);
     } else {
-      showSnackbar("Por favor, corrija os erros no formulário.", "error");
+      toastError("Por favor, corrija os erros no formulário.");
     }
     
     setOpenSaveDialog(false);
@@ -275,9 +252,6 @@ const PatientRegisterPage = () => {
     navigate('/patients');
   };
 
-  /*const handleOpenSaveDialog = () => {
-    handleSubmit(() => setOpenSaveDialog(true), onError)();
-  };*/
   const handleCloseSaveDialog = () => setOpenSaveDialog(false);
   const handleConfirmSave = handleSubmit(handleSavePatient as any, onError);
 
@@ -310,7 +284,7 @@ const PatientRegisterPage = () => {
             type: "manual",
             message: "CEP não encontrado ou inválido."
           });
-          showSnackbar("CEP não encontrado ou inválido.", "warning");
+          toastWarn("CEP não encontrado ou inválido.");
         }
       } catch (err) {
         console.error("Erro ao buscar CEP:", err);
@@ -318,7 +292,7 @@ const PatientRegisterPage = () => {
           type: "manual",
           message: "Erro ao buscar CEP. Tente novamente."
         });
-        showSnackbar("Erro ao buscar CEP. Tente novamente.", "error");
+        toastError("Erro ao buscar CEP. Tente novamente.");
       } finally {
         setIsCepLoading(false);
       }
@@ -329,7 +303,7 @@ const PatientRegisterPage = () => {
       setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
       setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
     }
-  }, [setValue, setError, clearErrors, showSnackbar]);
+  }, [setValue, setError, clearErrors, toastError, toastWarn]);
 
   useEffect(() => {
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
@@ -460,23 +434,6 @@ const PatientRegisterPage = () => {
           </Box>
         </Grid>
       </form>
-
-      {/* Snackbar Component */}
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        open={snackbarOpen}
-        autoHideDuration={snackbarAutoHide}
-        onClose={(_, reason) => handleSnackbarClose(reason as SnackbarCloseReason)}
-      >
-        <Alert
-          onClose={() => handleSnackbarClose('clickaway')}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Diálogo de Confirmação para Cancelar */}
       <ConfirmationDialog
