@@ -39,7 +39,6 @@ export interface AcompanhanteDTO {
   endereco: EnderecoDTO;
   parentesco: ParentescoEnum;
   ativo: boolean;
-  pacienteId?: string;
   pacienteNome: string;
 }
 

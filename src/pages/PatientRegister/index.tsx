@@ -353,9 +353,10 @@ const PatientRegisterPage = () => {
       flexDirection: 'column',
       position: "relative",
       minHeight: "56px",
-      margin: "24px auto",
-      paddingBottom: "15px",
-      width: "90%"
+      margin: { xs: "16px auto", sm: "24px auto" },
+      paddingBottom: { xs: "10px", sm: "15px" },
+      width: { xs: '100%', sm: '95%', md: '90%' },
+      px: { xs: 2, sm: 3 }
     }}>
       <PageHeader 
         title="Cadastrar Paciente" 
@@ -363,7 +364,7 @@ const PatientRegisterPage = () => {
       />
       
       {/* Stepper */}
-      <Box sx={{ width: '100%', mb: 4 }}>
+      <Box sx={{ width: '100%', mb: { xs: 3, sm: 4 } }}>
         <Stepper activeStep={activeStep}>
           {steps.map((label) => (
             <Step key={label}>
@@ -399,12 +400,20 @@ const PatientRegisterPage = () => {
         )}
 
         {/* Botões de Navegação */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4, ml: 3, mr: 3 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+        <Grid size={{ xs: 12 }} sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          gap: 2, 
+          mt: { xs: 3, sm: 4 }, 
+          mx: { xs: 0, sm: 3 }
+        }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
             <Button
               variant="outlined"
               onClick={handleBack}
               disabled={activeStep === 0}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Voltar
             </Button>
@@ -413,19 +422,21 @@ const PatientRegisterPage = () => {
                 variant="contained"
                 color="primary"
                 onClick={handleNext}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Próximo
               </Button>
             )}
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
             {activeStep === steps.length - 1 && (
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 aria-label="Salvar cadastro do paciente"
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Salvar
               </Button>
@@ -433,6 +444,7 @@ const PatientRegisterPage = () => {
             <Button
               variant="outlined"
               sx={{
+                width: { xs: '100%', sm: 'auto' },
                 borderColor: '#d32f2f',
                 color: '#d32f2f',
                 '&:hover': {

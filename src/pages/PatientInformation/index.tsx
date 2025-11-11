@@ -145,10 +145,11 @@ const PatientInformation = () => {
       display: "flex", 
       justifyContent: "center", 
       flexDirection: "column", 
-      gap: "16px", 
-      width: "90%", 
+      gap: { xs: "12px", sm: "16px" }, 
+      width: { xs: '100%', sm: '95%', md: '90%' }, 
       minHeight: "56px", 
-      margin: "24px auto" 
+      margin: { xs: "16px auto", sm: "24px auto" },
+      px: { xs: 2, sm: 3 }
     }}>
       <Breadcrumbs items={[
         { label: 'Pacientes', path: '/patients' },
@@ -156,18 +157,18 @@ const PatientInformation = () => {
       ]} />
       {patient && (
         <>
-          <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0 }}>
+          <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: "#000", fontWeight: 600, m: 0 }}>
             {patient.dadoPessoal?.nome}
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '16px' }}>
-              <Typography component="p" sx={{ m: 0 }}><strong>Data de nascimento:</strong> {formatISOToDDMMYYYY(patient.dadoPessoal?.dataNascimento) || 'Dado não encontrado'}</Typography>
-              <Typography component="p" sx={{ m: 0 }}><strong>Naturalidade:</strong> {patient.dadoPessoal?.naturalidade ?? 'Dado não encontrado'}</Typography>
-              <Typography component="p" sx={{ m: 0 }}><strong>Telefone:</strong> {patient.dadoPessoal?.telefone ? patient.dadoPessoal.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') : 'Dado não encontrado'}</Typography>
-              <Typography component="p" sx={{ m: 0 }}><strong>Estado Civil:</strong> {patient.dadoPessoal?.estadoCivil ?? 'Dado não encontrado'}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: '8px', sm: '12px' } }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: { xs: '12px', sm: '16px' } }}>
+              <Typography component="p" sx={{ m: 0, fontSize: { xs: '14px', sm: '16px' } }}><strong>Data de nascimento:</strong> {formatISOToDDMMYYYY(patient.dadoPessoal?.dataNascimento) || 'Dado não encontrado'}</Typography>
+              <Typography component="p" sx={{ m: 0, fontSize: { xs: '14px', sm: '16px' } }}><strong>Naturalidade:</strong> {patient.dadoPessoal?.naturalidade ?? 'Dado não encontrado'}</Typography>
+              <Typography component="p" sx={{ m: 0, fontSize: { xs: '14px', sm: '16px' } }}><strong>Telefone:</strong> {patient.dadoPessoal?.telefone ? patient.dadoPessoal.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3') : 'Dado não encontrado'}</Typography>
+              <Typography component="p" sx={{ m: 0, fontSize: { xs: '14px', sm: '16px' } }}><strong>Estado Civil:</strong> {patient.dadoPessoal?.estadoCivil ?? 'Dado não encontrado'}</Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '16px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: { xs: '12px', sm: '16px' } }}>
               <Typography component="p" sx={{ m: 0 }}> <strong>Endereço:</strong> {patient.endereco?.logradouro ?? 'Dado não encontrado'}, n° {patient.endereco?.numero ?? 'Dado não encontrado'}</Typography>
               <Typography component="p" sx={{ m: 0 }}><strong>Bairro:</strong> {patient.endereco?.bairro ?? 'Dado não encontrado'}</Typography>
               <Typography component="p" sx={{ m: 0 }}><strong>Cidade:</strong> {patient.endereco?.cidade ?? 'Dado não encontrado'} - {patient.endereco?.estado ?? 'Dado não encontrado'}</Typography>
@@ -341,15 +342,20 @@ const PatientInformation = () => {
         </>
       )}
 
-      <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0, mt: 3 }}>
+      <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: "#000", fontWeight: 600, m: 0, mt: 3 }}>
         Prontuários
       </Typography>
-      <Box sx={{ display: "flex", width: "100%", gap: "10px" }}>
+      <Box sx={{ 
+        display: "flex", 
+        flexDirection: { xs: 'column', sm: 'row' },
+        width: "100%", 
+        gap: { xs: "8px", sm: "10px" }
+      }}>
         <Button
           sx={{ 
             backgroundColor: '#09244B', 
             color: '#fff', 
-            width: '200px', 
+            width: { xs: '100%', sm: '200px' }, 
             '&:hover': { backgroundColor: '#0C2F58' } 
           }}
           onClick={() => handleNavigate("medical-record")}
@@ -360,7 +366,7 @@ const PatientInformation = () => {
           sx={{ 
             backgroundColor: '#09244B', 
             color: '#fff', 
-            width: '200px', 
+            width: { xs: '100%', sm: '200px' }, 
             '&:hover': { backgroundColor: '#0C2F58' } 
           }}
           onClick={() => handleNavigate("nursing-record")}
@@ -371,7 +377,7 @@ const PatientInformation = () => {
           sx={{ 
             backgroundColor: '#09244B', 
             color: '#fff', 
-            width: '200px', 
+            width: { xs: '100%', sm: '200px' }, 
             '&:hover': { backgroundColor: '#0C2F58' } 
           }}
           onClick={() => handleNavigate("nutrition-record")}

@@ -81,12 +81,7 @@ export const acompanhanteService = {
     const response = await api.get<ListaAcompanhantesDTO>(
       `/acompanhantes/?pacienteId=${pacienteId}&limit=100`
     );
-    const nodes = response.data.nodes ?? [];
-    const filteredById = nodes.filter((acompanhante) => acompanhante.pacienteId === pacienteId);
-    console.log('[acompanhanteService] Acompanhantes encontrados:', nodes.length, '| filtrados:', filteredById.length);
-    if (filteredById.length > 0) {
-      return filteredById;
-    }
-    return nodes;
+    console.log('[acompanhanteService] Acompanhantes encontrados:', response.data.nodes.length);
+    return response.data.nodes;
   },
 };

@@ -30,7 +30,12 @@ const Patients = () => {
 
   return (
     <AnimatedPage>
-      <Box sx={{ width: '90%', margin: '0 auto', py: 3 }}>
+      <Box sx={{ 
+        width: { xs: '100%', sm: '95%', md: '90%' }, 
+        margin: '0 auto', 
+        py: { xs: 2, sm: 3 },
+        px: { xs: 1, sm: 2 }
+      }}>
         <PageHeader 
           title="Pacientes"
           searchComponent={searchComponent}

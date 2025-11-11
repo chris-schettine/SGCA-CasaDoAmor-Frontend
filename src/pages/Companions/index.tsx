@@ -13,13 +13,18 @@ const Companions = () => {
       value={searchText}
       onChange={setSearchText}
       label="Buscar Acompanhante"
-      placeholder="Digite o nome, CPF ou nome do paciente"
+      placeholder="Digite o nome, CPF ou RG do acompanhante"
     />
   );
 
   return (
     <AnimatedPage>
-      <Box sx={{ width: '90%', margin: '0 auto', py: 3 }}>
+      <Box sx={{ 
+        width: { xs: '100%', sm: '95%', md: '90%' }, 
+        margin: '0 auto', 
+        py: { xs: 2, sm: 3 },
+        px: { xs: 1, sm: 2 }
+      }}>
         <PageHeader 
           title="Acompanhantes"
           searchComponent={searchComponent}

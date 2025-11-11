@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Snackbar, Alert } from '@mui/material';
+import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Snackbar, Alert, Box, useMediaQuery, useTheme } from '@mui/material';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import PageHeader from '../../components/PageHeader';
 import LoadingState from '../../components/LoadingState';
 import { formatISOToLocalDateTime } from '../../utils/formatters';
+import MobileCard from '../../components/Table/MobileCard';
 
 interface SessaoDTO {
   id: number;
@@ -31,6 +32,9 @@ const SessionsPage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success'|'error'|'info'|'warning'>('success');
+  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -83,6 +87,42 @@ const SessionsPage = () => {
 
       {loading ? (
         <LoadingState message="Carregando sessões..." />
+      ) : isMobile ? (
+        <Box sx={{ mt: 2 }}>
+          {sessions.map(s => (
+            <MobileCard
+              key={s.id}
+              title={s.usuario?.nome || 'Usuário'}
+              subtitle={`CPF: ${s.usuario?.cpf || '-'}`}
+              fields={[
+                { label: 'IP Origem', value: s.ipOrigem || '-' },
+                { label: 'Criado Em', value: formatISOToLocalDateTime(s.criadoEm) || s.criadoEm },
+                { label: 'Expira Em', value: formatISOToLocalDateTime(s.expiraEm) || s.expiraEm },
+                { 
+                  label: 'Status', 
+                  value: (
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {s.ativo ? <Chip label="Ativo" color="success" size="small" /> : <Chip label="Inativo" size="small" />}
+                      {s.atual && <Chip label="Atual" color="primary" size="small" />}
+                    </Box>
+                  )
+                },
+              ]}
+              actions={
+                <Button 
+                  variant="outlined" 
+                  color="error" 
+                  size="small" 
+                  onClick={() => handleRevokeClick(s.id)} 
+                  disabled={s.atual}
+                  fullWidth
+                >
+                  Revogar
+                </Button>
+              }
+            />
+          ))}
+        </Box>
       ) : (
         <TableContainer component={Paper}>
           <Table>

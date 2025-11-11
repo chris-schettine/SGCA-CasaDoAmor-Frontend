@@ -4,30 +4,23 @@ import CheckIcon from '@mui/icons-material/Check';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip } from "@mui/material"
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip, useMediaQuery, useTheme } from "@mui/material"
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import type { UserResponseDTO } from '../../../api/admin.dto';
 import EmptyState from "../../EmptyState";
 import ConfirmationDialog from "../../ConfirmationDialog";
 import { useUsers, useToggleUserStatus } from '../../../hooks/useAdmin';
+import MobileCard from '../MobileCard';
 
 interface Column {
   id: 'name' | 'function' | 'email' | 'telephone' | 'actions';
   label: string;
   minWidth?: number;
   align?: 'center';
+  hideOnMobile?: boolean;
+  hideOnTablet?: boolean;
 }
-
-const columns: readonly Column[] = [
-  { id: 'name', label: 'Nome', minWidth: 170 },
-  { id: 'function', label: 'Função', minWidth: 100 },
-  { id: 'email', label: 'E-mail', minWidth: 170 },
-  { id: 'telephone', label: 'Telefone', minWidth: 100 },
-  { id: 'actions', label: 'Ações', minWidth: 100, align: 'center' },
-]
-
-// we intentionally store full UserResponseDTO objects in state, no small Row type needed
 
 interface TableUsersProps {
   searchText?: string;
@@ -35,10 +28,26 @@ interface TableUsersProps {
 
 const TableUsers = ({ searchText }: TableUsersProps) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filterTipo, setFilterTipo] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState(searchText || '');
+
+  // Definir colunas responsivas
+  const columns: readonly Column[] = [
+    { id: 'name', label: 'Nome', minWidth: isMobile ? 120 : 170 },
+    { id: 'function', label: 'Função', minWidth: 100, hideOnMobile: false },
+    { id: 'email', label: 'E-mail', minWidth: 170, hideOnTablet: true },
+    { id: 'telephone', label: 'Telefone', minWidth: 100, hideOnMobile: true },
+    { id: 'actions', label: 'Ações', minWidth: isMobile ? 80 : 100, align: 'center' },
+  ].filter(col => {
+    if (isMobile && col.hideOnMobile) return false;
+    if (isTablet && col.hideOnTablet) return false;
+    return true;
+  }) as readonly Column[];
 
   // Confirmation dialog state
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -107,11 +116,67 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
-      <TableContainer sx={{ maxHeight: 440 }} >
+      <TableContainer sx={{ 
+        maxHeight: isMobile ? 'none' : 440,
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      }} >
         {isLoading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
             <CircularProgress />
           </div>
+        ) : isMobile ? (
+          <Box sx={{ p: 2 }}>
+            {displayRows.length === 0 ? (
+              <EmptyState
+                icon={<PersonAddIcon sx={{ fontSize: 80 }} />}
+                title="Nenhum usuário encontrado"
+                description={searchText || filterTipo ? "Tente ajustar os filtros de busca ou cadastre um novo usuário." : "Comece cadastrando o primeiro usuário do sistema."}
+                actionLabel="Cadastrar Usuário"
+                onAction={() => navigate('/user/register')}
+              />
+            ) : (
+              displayRows.map((row) => (
+                <MobileCard
+                  key={row.id}
+                  title={row.nome}
+                  subtitle={row.tipo}
+                  fields={[
+                    { label: 'Email', value: row.email },
+                    { label: 'Telefone', value: row.telefone },
+                    { label: 'Status', value: row.ativo ? 'Ativo' : 'Inativo' },
+                  ]}
+                  actions={
+                    <>
+                      <Tooltip title="Editar dados do usuário">
+                        <IconButton 
+                          color="success"
+                          onClick={() => handleEdit(row.id)}
+                          aria-label={`Editar dados de ${row.nome}`}
+                          size="medium"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
+                        <span>
+                          <IconButton
+                            color={row.ativo ? 'error' : 'success'}
+                            onClick={() => handleToggleClick(row)}
+                            aria-label={`${row.ativo ? 'Desativar' : 'Ativar'} ${row.nome}`}
+                            disabled={toggleStatusMutation.isPending}
+                            size="medium"
+                          >
+                            {row.ativo ? <BlockIcon /> : <CheckCircleIcon />}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </>
+                  }
+                />
+              ))
+            )}
+          </Box>
         ) : (
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
@@ -178,34 +243,38 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
               </TableRow>
             ) : (
               displayRows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.nome}</TableCell>
-                  <TableCell>{row.tipo}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.telefone}</TableCell>
+                <TableRow key={row.id} hover>
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.nome}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.tipo}</TableCell>
+                  {!isTablet && <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.email}</TableCell>}
+                  {!isMobile && <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.telefone}</TableCell>}
                   <TableCell align="center">
-                    <Tooltip title="Editar dados do usuário">
-                      <IconButton 
-                        color="success"
-                        onClick={() => handleEdit(row.id)}
-                        aria-label={`Editar dados de ${row.nome}`}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    {/* Toggle active/inactive button */}
-                    <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
-                      <span>
-                        <IconButton
-                          color={row.ativo ? 'error' : 'success'}
-                          onClick={() => handleToggleClick(row)}
-                          aria-label={`${row.ativo ? 'Desativar' : 'Ativar'} ${row.nome}`}
-                          disabled={toggleStatusMutation.isPending}
+                    <Box sx={{ display: 'flex', gap: isMobile ? 0.25 : 0.5, justifyContent: 'center' }}>
+                      <Tooltip title="Editar dados do usuário">
+                        <IconButton 
+                          color="success"
+                          onClick={() => handleEdit(row.id)}
+                          aria-label={`Editar dados de ${row.nome}`}
+                          size={isMobile ? "medium" : "small"}
                         >
-                          {row.ativo ? <BlockIcon /> : <CheckCircleIcon />}
+                          <EditIcon fontSize={isMobile ? "medium" : "small"} />
                         </IconButton>
-                      </span>
-                    </Tooltip>
+                      </Tooltip>
+                      {/* Toggle active/inactive button */}
+                      <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
+                        <span>
+                          <IconButton
+                            color={row.ativo ? 'error' : 'success'}
+                            onClick={() => handleToggleClick(row)}
+                            aria-label={`${row.ativo ? 'Desativar' : 'Ativar'} ${row.nome}`}
+                            disabled={toggleStatusMutation.isPending}
+                            size={isMobile ? "medium" : "small"}
+                          >
+                            {row.ativo ? <BlockIcon fontSize={isMobile ? "medium" : "small"} /> : <CheckCircleIcon fontSize={isMobile ? "medium" : "small"} />}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))
@@ -215,13 +284,27 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
         )}
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
         component="div"
-  count={filteredRows.length}
+        count={filteredRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage={isMobile ? "Por página:" : "Linhas por página:"}
+        labelDisplayedRows={({ from, to, count }) => 
+          isMobile 
+            ? `${from}-${to} de ${count}`
+            : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+        }
+        sx={{
+          '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          },
+          '.MuiTablePagination-select': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          },
+        }}
       />
 
       {/* Confirmation Dialog */}

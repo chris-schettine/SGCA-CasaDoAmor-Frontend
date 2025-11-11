@@ -22,6 +22,7 @@ export interface PageHeaderProps {
 
 /**
  * Componente padronizado para cabeçalhos de páginas
+ * Design responsivo mobile-first
  * 
  * Uso:
  * ```tsx
@@ -39,9 +40,9 @@ export const PageHeader = ({
   searchComponent 
 }: PageHeaderProps) => {
   return (
-    <Box sx={{ mb: 3, width: '100%' }}>
+    <Box sx={{ mb: { xs: 2, sm: 3 }, width: '100%' }}>
       {/* Título e subtítulo */}
-      <Box sx={{ mb: searchComponent || action ? 3 : 0 }}>
+      <Box sx={{ mb: searchComponent || action ? { xs: 2, sm: 3 } : 0 }}>
         <Typography 
           variant="h1" 
           gutterBottom={!!subtitle}
@@ -49,12 +50,17 @@ export const PageHeader = ({
             fontWeight: 700,
             color: 'primary.main',
             mb: subtitle ? 1 : 0,
+            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
           }}
         >
           {title}
         </Typography>
         {subtitle && (
-          <Typography variant="body1" color="text.secondary">
+          <Typography 
+            variant="body1" 
+            color="text.secondary"
+            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+          >
             {subtitle}
           </Typography>
         )}
@@ -65,19 +71,26 @@ export const PageHeader = ({
         <Box 
           sx={{ 
             display: 'flex', 
-            flexWrap: 'wrap',
-            gap: 2,
-            alignItems: 'center',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1.5, sm: 2 },
+            alignItems: { xs: 'stretch', sm: 'center' },
             justifyContent: 'space-between',
           }}
         >
           {searchComponent && (
-            <Box sx={{ flex: '1 1 auto', minWidth: '250px', maxWidth: '500px' }}>
+            <Box sx={{ 
+              flex: { xs: '1 1 auto', sm: '1 1 auto' }, 
+              minWidth: { xs: '100%', sm: '250px' }, 
+              maxWidth: { xs: '100%', sm: '500px' } 
+            }}>
               {searchComponent}
             </Box>
           )}
           {action && (
-            <Box sx={{ flex: '0 0 auto' }}>
+            <Box sx={{ 
+              flex: '0 0 auto',
+              width: { xs: '100%', sm: 'auto' }
+            }}>
               {action}
             </Box>
           )}

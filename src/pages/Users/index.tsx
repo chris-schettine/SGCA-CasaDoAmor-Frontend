@@ -19,6 +19,7 @@ const Users = () => {
         type="search"
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
+        placeholder="Digite os dados para pesquisa"
         endAdornment={
           <InputAdornment position="end">
             <IconButton>
@@ -35,13 +36,19 @@ const Users = () => {
       component={Link}
       to="/user/register"
       variant="contained"
+      sx={{ width: { xs: '100%', sm: 'auto' } }}
     >
       Adicionar
     </Button>
   ) : undefined;
 
   return (
-    <Box sx={{ width: '90%', margin: '0 auto', py: 3 }}>
+    <Box sx={{ 
+      width: { xs: '100%', sm: '95%', md: '90%' }, 
+      margin: '0 auto', 
+      py: { xs: 2, sm: 3 },
+      px: { xs: 1, sm: 2 }
+    }}>
       <PageHeader 
         title="Profissionais"
         searchComponent={searchComponent}

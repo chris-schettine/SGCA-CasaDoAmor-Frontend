@@ -325,9 +325,10 @@ const PatientEditPage = () => {
       flexDirection: 'column',
       position: "relative",
       minHeight: "56px",
-      margin: "24px auto",
-      paddingBottom: "15px",
-      width: "90%"
+      margin: { xs: "16px auto", sm: "24px auto" },
+      paddingBottom: { xs: "10px", sm: "15px" },
+      width: { xs: '100%', sm: '95%', md: '90%' },
+      px: { xs: 2, sm: 3 }
     }}>
       <Breadcrumbs
         items={[
@@ -361,12 +362,20 @@ const PatientEditPage = () => {
         />
 
         {/* Botões Salvar e Cancelar */}
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 4, ml: 3 }}>
+        <Grid size={{ xs: 12 }} sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'flex-start', 
+          gap: 2, 
+          mt: { xs: 3, sm: 4 }, 
+          mx: { xs: 0, sm: 3 }
+        }}>
           <Button
               variant="contained"
               color="primary"
               onClick={handleOpenSaveDialog}
               disabled={loading}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               {loading ? <CircularProgress size={20} color="inherit" /> : 'Salvar'}
             </Button>
@@ -374,6 +383,7 @@ const PatientEditPage = () => {
             variant="outlined"
             color="error"
             onClick={handleOpenCancelDialog}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Cancelar
           </Button>

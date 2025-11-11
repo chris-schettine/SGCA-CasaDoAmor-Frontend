@@ -49,9 +49,27 @@ export function VirtualizedTable<T extends Record<string, any>>({
 
   const virtualItems = virtualizer.getVirtualItems();
 
+  // Calculate total width for horizontal scroll
+  const totalWidth = columns.reduce((sum, col) => sum + (col.width || 150), 0);
+
   return (
-    <TableContainer sx={{ maxHeight: height }} ref={parentRef}>
-      <Table stickyHeader aria-label="virtualized table">
+    <TableContainer 
+      sx={{ 
+        maxHeight: height,
+        overflowX: 'auto',
+        overflowY: 'auto',
+        // Better mobile scroll behavior
+        WebkitOverflowScrolling: 'touch',
+      }} 
+      ref={parentRef}
+    >
+      <Table 
+        stickyHeader 
+        aria-label="virtualized table"
+        sx={{ 
+          minWidth: { xs: totalWidth, md: 'auto' },
+        }}
+      >
         <TableHead>
           <TableRow>
             {columns.map((column) => (
@@ -61,6 +79,7 @@ export function VirtualizedTable<T extends Record<string, any>>({
                 align={column.headerAlign || column.align || 'left'}
                 sx={{
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {column.headerName}

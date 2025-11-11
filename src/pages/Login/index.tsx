@@ -106,9 +106,9 @@ const Login = () => {
         display: "flex", 
         alignItems: "center", 
         justifyContent: "center", 
-        height: "100vh", 
+        minHeight: "100vh", 
         m: 0, 
-        p: 0, 
+        p: { xs: 2, sm: 3 }, 
         backgroundColor: "#65ACD6" 
       }}>
       <Container sx={{ 
@@ -116,10 +116,10 @@ const Login = () => {
         flexDirection: "column", 
         alignItems: "center", 
         justifyContent: "center", 
-        maxWidth: "450px", 
-        width: "90%", 
-        minHeight: "500px", 
-        padding: "2rem 1.5rem", 
+        maxWidth: { xs: "100%", sm: "450px" }, 
+        width: "100%", 
+        minHeight: { xs: "auto", sm: "500px" }, 
+        padding: { xs: "1.5rem 1rem", sm: "2rem 1.5rem" }, 
         backgroundColor: "#fff", 
         borderRadius: "8px", 
         boxShadow: "0 0 14px rgba(0, 0, 0, 0.45)" 
@@ -128,29 +128,55 @@ const Login = () => {
           component="img"
           src="logo1.png"
           alt="Logo Casa do Amor"
-          sx={{ width: "180px", mb: 0.5 }}
+          sx={{ width: { xs: "140px", sm: "180px" }, mb: 0.5 }}
         />
 
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', mt: 1 }}>
+        <Typography 
+          variant="h5" 
+          component="h1" 
+          sx={{ 
+            fontWeight: 'bold', 
+            mt: 1,
+            fontSize: { xs: '1.25rem', sm: '1.5rem' },
+            textAlign: 'center'
+          }}
+        >
           Sistema de Gerenciamento da Casa do Amor
         </Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: 'text.secondary', 
+            mb: 2,
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            textAlign: 'center'
+          }}
+        >
           Por favor, faça login para continuar.
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <Box 
+          component="form" 
+          onSubmit={handleSubmit} 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '1rem',
+            width: '100%',
+            maxWidth: '300px'
+          }}
+        >
           
           <TextField
             label="CPF"
             variant="outlined"
             value={cpf}
             onChange={handlerCpfChange}
+            fullWidth
             sx={{ 
-              width: "300px", 
-              height: "50px", 
-              m: "10px",
               "& .MuiInputBase-root": {
-                height: 54,
+                height: { xs: 48, sm: 54 },
                 borderRadius: 2,
               }
             }}
@@ -174,11 +200,8 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             sx={{ 
-              width: "300px", 
-              height: "50px", 
-              m: "10px",
               "& .MuiInputBase-root": {
-                height: 54,
+                height: { xs: 48, sm: 54 },
                 borderRadius: 2,
               }
             }}
@@ -195,6 +218,7 @@ const Login = () => {
                       onClick={handleClickShowPassword}
                       onMouseDown={handleMouseDownPassword}
                       edge="end"
+                      size="small"
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -207,12 +231,13 @@ const Login = () => {
           <Button
             variant="contained"
             color="primary"
+            fullWidth
             sx={{ 
-              width: "300px", 
               mt: "20px", 
-              p: "0.75rem", 
+              p: { xs: "0.65rem", sm: "0.75rem" }, 
               fontWeight: "bold", 
               textTransform: "uppercase",
+              fontSize: { xs: '0.875rem', sm: '1rem' },
               '&:focus-visible': {
                 outline: '3px solid #90caf9',
                 outlineOffset: '2px',
@@ -232,6 +257,7 @@ const Login = () => {
             to="/forgot-password" 
             variant="body2"
             underline="hover"
+            sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}
           >
             Esqueci minha senha
           </MuiLink>

@@ -5,8 +5,18 @@ import { createTheme } from '@mui/material/styles';
  * 
  * Paleta de cores baseada na identidade visual da instituição
  * Tipografia e componentes padronizados para consistência em toda aplicação
+ * Design responsivo mobile-first
  */
 export const theme = createTheme({
+  breakpoints: {
+    values: {
+      xs: 0,      // mobile portrait
+      sm: 600,    // mobile landscape / tablet portrait
+      md: 900,    // tablet landscape
+      lg: 1200,   // desktop
+      xl: 1536,   // large desktop
+    },
+  },
   palette: {
     primary: {
       main: '#09244B', // Casa do Amor Blue (azul escuro institucional)
@@ -57,55 +67,82 @@ export const theme = createTheme({
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontSize: '2rem', // 32px
+      fontSize: '1.75rem', // 28px mobile
       fontWeight: 700,
       lineHeight: 1.2,
       color: '#09244B',
+      '@media (min-width:600px)': {
+        fontSize: '2rem', // 32px tablet+
+      },
     },
     h2: {
-      fontSize: '1.75rem', // 28px
+      fontSize: '1.5rem', // 24px mobile
       fontWeight: 600,
       lineHeight: 1.3,
       color: '#09244B',
+      '@media (min-width:600px)': {
+        fontSize: '1.75rem', // 28px tablet+
+      },
     },
     h3: {
-      fontSize: '1.5rem', // 24px
+      fontSize: '1.25rem', // 20px mobile
       fontWeight: 600,
       lineHeight: 1.4,
       color: '#000000',
+      '@media (min-width:600px)': {
+        fontSize: '1.5rem', // 24px tablet+
+      },
     },
     h4: {
-      fontSize: '1.25rem', // 20px
+      fontSize: '1.125rem', // 18px mobile
       fontWeight: 600,
       lineHeight: 1.4,
       color: '#000000',
+      '@media (min-width:600px)': {
+        fontSize: '1.25rem', // 20px tablet+
+      },
     },
     h5: {
-      fontSize: '1.125rem', // 18px
+      fontSize: '1rem', // 16px
       fontWeight: 500,
       lineHeight: 1.5,
       color: '#000000',
+      '@media (min-width:600px)': {
+        fontSize: '1.125rem', // 18px tablet+
+      },
     },
     h6: {
-      fontSize: '1rem', // 16px
+      fontSize: '0.875rem', // 14px mobile
       fontWeight: 500,
       lineHeight: 1.5,
       color: '#000000',
+      '@media (min-width:600px)': {
+        fontSize: '1rem', // 16px tablet+
+      },
     },
     body1: {
-      fontSize: '1rem', // 16px
+      fontSize: '0.875rem', // 14px mobile
       fontWeight: 400,
       lineHeight: 1.5,
+      '@media (min-width:600px)': {
+        fontSize: '1rem', // 16px tablet+
+      },
     },
     body2: {
-      fontSize: '0.875rem', // 14px
+      fontSize: '0.8125rem', // 13px mobile
       fontWeight: 400,
       lineHeight: 1.43,
+      '@media (min-width:600px)': {
+        fontSize: '0.875rem', // 14px tablet+
+      },
     },
     button: {
-      fontSize: '0.875rem', // 14px
+      fontSize: '0.8125rem', // 13px mobile
       fontWeight: 500,
       textTransform: 'none', // Remove uppercase automático
+      '@media (min-width:600px)': {
+        fontSize: '0.875rem', // 14px tablet+
+      },
     },
   },
   spacing: 8, // Base de 8px para todos os espaçamentos
@@ -118,10 +155,15 @@ export const theme = createTheme({
         root: {
           textTransform: 'none', // Remove uppercase
           borderRadius: 8,
-          padding: '10px 24px',
-          fontSize: '0.875rem',
+          padding: '8px 16px',
+          fontSize: '0.8125rem',
           fontWeight: 500,
           boxShadow: 'none',
+          minWidth: 'auto',
+          '@media (min-width:600px)': {
+            padding: '10px 24px',
+            fontSize: '0.875rem',
+          },
           '&:hover': {
             boxShadow: 'none',
           },
@@ -129,6 +171,22 @@ export const theme = createTheme({
         contained: {
           '&:hover': {
             boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          },
+        },
+        sizeSmall: {
+          padding: '6px 12px',
+          fontSize: '0.75rem',
+          '@media (min-width:600px)': {
+            padding: '8px 16px',
+            fontSize: '0.8125rem',
+          },
+        },
+        sizeLarge: {
+          padding: '10px 20px',
+          fontSize: '0.875rem',
+          '@media (min-width:600px)': {
+            padding: '12px 28px',
+            fontSize: '0.9375rem',
           },
         },
       },
@@ -159,10 +217,20 @@ export const theme = createTheme({
           backgroundColor: '#09244B',
           color: '#FFFFFF',
           fontWeight: 600,
-          fontSize: '0.875rem',
+          fontSize: '0.75rem',
+          padding: '12px 8px',
+          '@media (min-width:600px)': {
+            fontSize: '0.875rem',
+            padding: '16px',
+          },
         },
         root: {
-          padding: '16px',
+          padding: '12px 8px',
+          fontSize: '0.8125rem',
+          '@media (min-width:600px)': {
+            padding: '16px',
+            fontSize: '0.875rem',
+          },
         },
       },
     },

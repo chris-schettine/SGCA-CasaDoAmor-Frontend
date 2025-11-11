@@ -16,12 +16,16 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  useMediaQuery,
+  useTheme,
+  Chip,
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
 import LoadingState from '../../components/LoadingState';
 import PageHeader from '../../components/PageHeader';
+import MobileCard from '../../components/Table/MobileCard';
 
 // --- 1. TIPAGEM E DADOS MOCKADOS ---
 
@@ -47,6 +51,9 @@ const columns = [
 // --- 2. COMPONENTE PRINCIPAL ---
 
 export const AuditLogPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -248,59 +255,99 @@ export const AuditLogPage = () => {
 
       {/* Tabela de Logs */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader aria-label="logs de auditoria">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {currentLogs.length === 0 ? (
+        {isMobile ? (
+          <Box sx={{ p: 2 }}>
+            {currentLogs.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography>Nenhum log encontrado com os filtros aplicados.</Typography>
+              </Box>
+            ) : (
+              currentLogs.map((log) => (
+                <MobileCard
+                  key={log.id}
+                  title={log.usuario}
+                  subtitle={log.dataHora}
+                  fields={[
+                    { label: 'Ação', value: log.tipoAcao },
+                    { label: 'Objeto', value: log.objetoAfetado },
+                    { 
+                      label: 'Resultado', 
+                      value: log.resultado === 'SUCESSO' 
+                        ? <Chip label="Sucesso" color="success" size="small" /> 
+                        : <Chip label="Falha" color="error" size="small" />
+                    },
+                    ...(log.motivoFalha ? [{ label: 'Motivo', value: log.motivoFalha }] : []),
+                    ...(log.ipOrigem ? [{ label: 'IP', value: log.ipOrigem }] : []),
+                  ]}
+                />
+              ))
+            )}
+          </Box>
+        ) : (
+          <TableContainer sx={{ maxHeight: 600 }}>
+            <Table stickyHeader aria-label="logs de auditoria">
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    Nenhum log encontrado com os filtros aplicados.
-                  </TableCell>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{ minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                currentLogs.map((log) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={log.id}>
-                    {columns.map((column) => {
-                      const value = log[column.id as keyof AuditLogEntry];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {value}
-                        </TableCell>
-                      );
-                    })}
+              </TableHead>
+              <TableBody>
+                {currentLogs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} align="center">
+                      Nenhum log encontrado com os filtros aplicados.
+                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  currentLogs.map((log) => (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={log.id}>
+                      {columns.map((column) => {
+                        const value = log[column.id as keyof AuditLogEntry];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         
         {/* Paginação */}
         <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
+          rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 50]}
           component="div"
           count={filteredLogs.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Logs por página:"
+          labelRowsPerPage={isMobile ? "Por página:" : "Logs por página:"}
           labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+            isMobile 
+              ? `${from}-${to} de ${count}`
+              : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
           }
+          sx={{
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            },
+            '.MuiTablePagination-select': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            },
+          }}
         />
       </Paper>
     </Box>
