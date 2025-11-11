@@ -25,7 +25,6 @@ type Status = 'verifying' | 'success' | 'error';
 const VerifyEmailPage = () => {
   const { token } = useParams<{ token: string }>(); // Pega o :token da URL
   const [status, setStatus] = useState<Status>('verifying');
-  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -82,7 +81,7 @@ const VerifyEmailPage = () => {
         return (
           <>
             <Alert severity="error" sx={{ mb: 2 }}>
-              {errorMessage}
+              toastErrorCritical("Erro ao verificar. O token pode ser inválido ou ter expirado.");
             </Alert>
             <Button 
               component={Link} 
