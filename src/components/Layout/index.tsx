@@ -76,7 +76,11 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     flexGrow: 1,
     minWidth: 0,
     padding: theme.spacing(1),
+    // Espaço para o AppBar fixo
     marginTop: theme.spacing(7),
+    // Permite scroll natural
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
     [theme.breakpoints.up('sm')]: {
         padding: theme.spacing(2),
         marginTop: theme.spacing(8),
@@ -482,6 +486,7 @@ export default function Layout() {
                 onClose={handleDrawerToggle}
                 onOpen={handleDrawerToggle}
                 disableBackdropTransition
+                disableScrollLock // Permite scroll da página principal quando drawer está aberto
                 ModalProps={{
                     keepMounted: true, // Better mobile performance
                 }}

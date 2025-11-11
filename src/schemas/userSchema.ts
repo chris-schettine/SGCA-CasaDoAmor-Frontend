@@ -35,7 +35,7 @@ export const userSchema = z.object({
   cidade: requiredString,
   numero: requiredString,
   complemento: z.string().trim().optional(),
-  perfisIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil de acesso para o usuário"),
+  perfisIds: z.array(z.number()).min(1, "Selecione um perfil de acesso para o usuário").max(1, "Selecione apenas um perfil de acesso"),
 });
 
 // Conditional validation: require professional fields only for certain tipos

@@ -1,4 +1,4 @@
-import { Box, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText, Tooltip } from "@mui/material";
+import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText, Tooltip } from "@mui/material";
 import InfoIcon from '@mui/icons-material/Info';
 import MaskedTextField from "../MaskedTextField";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch, type UseFormSetValue, type UseFormSetError, type UseFormClearErrors } from "react-hook-form";
@@ -245,7 +245,7 @@ const UserForm = (
           />
         </Grid>
 
-        {/* NOVO CAMPO: Perfis de Acesso */}
+        {/* CAMPO: Perfil de Acesso (único) */}
         <Grid size={{ xs: 12 }}>
           <Controller
             name="perfisIds" 
@@ -253,24 +253,19 @@ const UserForm = (
             defaultValue={[]} 
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.perfisIds}>
-                <InputLabel id="perfis-label">Perfis de Acesso</InputLabel>
+                <InputLabel id="perfil-label">Perfil de Acesso *</InputLabel>
                 <Select
-                  labelId="perfis-label"
+                  labelId="perfil-label"
                   id="perfisIds"
-                  multiple 
-                  label="Perfis de Acesso"
-                  value={field.value ?? []}
-                  onChange={(e) => field.onChange((e.target as HTMLInputElement).value as unknown as number[])}
+                  label="Perfil de Acesso *"
+                  value={(field.value && field.value.length > 0) ? field.value[0] : ''}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    // Sempre mantém como array com um único elemento
+                    field.onChange(selectedId ? [selectedId as number] : []);
+                  }}
                   onBlur={field.onBlur}
                   name={field.name}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {(selected as number[]).map((id) => {
-                        const perfil = roles.find(p => p.id === id);
-                        return <Chip key={id} label={perfil ? perfil.nome : id} />;
-                      })}
-                    </Box>
-                  )}
                 >
                   {roles.map((perfil) => (
                     <MenuItem key={perfil.id} value={perfil.id}>
