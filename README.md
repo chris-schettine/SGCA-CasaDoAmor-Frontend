@@ -94,3 +94,43 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 - Casa do Amor pela oportunidade de contribuir com a instituição
 - Todos os contribuidores que dedicaram tempo para melhorar este projeto
+
+## 🆕 Novas funcionalidades e melhorias (últimas alterações)
+
+As mudanças recentes trazem funcionalidades e refatorações importantes para autenticação, consumo de API e usabilidade durante o desenvolvimento. Principais pontos adicionados até o momento:
+
+- 🔐 Gestão de autenticação e tokens
+	- Implementado gerenciamento de tokens e tratamento de erros no `apiGateway` e no `AuthContext`.
+	- Melhor tratamento de respostas de login e mensagens de erro para o usuário.
+
+- 🧭 Serviço de Pacientes (refactor)
+	- Substituído `apiGateway` por um serviço focado (`pessoaFisicaService`) para manipular dados de pacientes (CRUD).
+	- Refatoração do gerenciamento de pacientes para consumir a nova API e suporte à edição de paciente.
+
+- 🔁 SPA & Deploy
+	- Adicionado `vercel.json` com rewrite para direcionar todas as rotas para `index.html` (suporte ao React Router em produção no Vercel).
+
+- 🛡️ Content Security Policy (desenvolvimento)
+	- Configurações de CSP e headers de segurança adicionadas no `vite.config.ts` para proteger contra clickjacking e sniffing durante o desenvolvimento.
+	- CSP relaxada em modo dev para permitir HMR (várias portas localhost). Em produção, recomenda-se usar uma política mais restrita.
+
+- 🧾 Usuários e permissões
+	- Página de edição de usuário e rota de administração adicionadas.
+	- Filtros por função do usuário (ex.: profissionais) adicionados nas listagens.
+
+- 🔐 2FA e gerenciamento de sessões
+	- Implementado suporte inicial a 2FA (páginas de login/perfil) e página de gerenciamento de sessões.
+
+- ✅ Testes e qualidade
+	- Adicionados testes unitários para `Login` e `PrivateRoute`.
+
+- 🐞 Ajustes de robustez
+	- Correções na criação/edição de usuário e normalização de respostas de API (evita crashes quando o backend retorna envelopes paginados em vez de arrays).
+
+## 🛠️ Notas de desenvolvimento importantes
+
+- Variável de ambiente para API: `VITE_API_BASE_URL` (ex.: `http://144.22.182.60:8888`). Certifique-se de reiniciar o servidor Vite após editar o `.env`.
+- Vite pode escolher uma porta diferente (ex.: `5174`) se a padrão (`5173`) estiver ocupada; o CSP de desenvolvimento já foi ajustado para permitir HMR em portas locais comuns.
+- Para deploy no Vercel, confirme que `vercel.json` está no root do projeto e que a build gera os arquivos estáticos esperados.
+
+Se quiser, eu posso gerar uma seção de changelog mais detalhada (por data e autor) a partir dos commits recentes ou extrair os diffs relevantes para cada funcionalidade listada.
