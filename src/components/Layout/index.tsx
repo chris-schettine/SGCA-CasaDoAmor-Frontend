@@ -602,13 +602,29 @@ export default function Layout() {
                         src="logo2.png" 
                         alt="Icone Casa do Amor" 
                         onClick={() => navigate('/patients')}
-                        sx={{
-                            width: open ? "80px" : "50px",
+                        
+                        sx={{ 
+                            width: open ? "120px" : "80px",
                             height: "auto",
                             objectFit: 'contain',
                             transition: theme.transitions.create('width'),
                             flexShrink: 0,
-                        }} 
+                            display: { xs: 'none', sm: 'block' },
+                            fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
+                            cursor: 'pointer',
+                            userSelect: 'none', // Previne seleção de texto ao clicar
+                            WebkitTapHighlightColor: 'transparent', // Remove highlight azul no mobile
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            '&:active': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                transform: 'scale(0.98)',
+                            },
+                            transition: 'all 150ms ease-in-out',
+                        }}
                     />
                     
                     {open && (
