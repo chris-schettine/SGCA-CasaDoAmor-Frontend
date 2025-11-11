@@ -14,9 +14,9 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // Para Pacientes
-import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew'; // Para Acompanhantes (você terá que adicionar essa rota)
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'; // Para Usuários
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import HistoryIcon from '@mui/icons-material/History';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -30,6 +30,7 @@ import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
 import ConsentimentoLGPDCheck from '../ConsentimentoLGPDCheck';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
+import Footer from '../Footer';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
@@ -71,24 +72,15 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'ope
     }),
 );
 
+
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     open?: boolean;
-}>(({ theme }) => ({
+}>(() => ({
     flexGrow: 1,
     minWidth: 0,
-    padding: theme.spacing(1),
-    // Espaço para o AppBar fixo
-    marginTop: theme.spacing(7),
-    // Permite scroll natural
-    overflowY: 'auto',
-    WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
-    [theme.breakpoints.up('sm')]: {
-        padding: theme.spacing(2),
-        marginTop: theme.spacing(8),
-    },
-    [theme.breakpoints.up('md')]: {
-        padding: theme.spacing(2),
-    },
+    display: 'flex', 
+    flexDirection: 'column',
+   
 }));
 
 const AppBar = styled(MuiAppBar, {
@@ -103,10 +95,8 @@ const AppBar = styled(MuiAppBar, {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
     }),
-    // Mobile: full width
     width: '100%',
     marginLeft: 0,
-    // Desktop: adapt to drawer
     [theme.breakpoints.up('md')]: {
         width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${closedDrawerWidth}px)`,
         marginLeft: open ? drawerWidth : closedDrawerWidth,
@@ -119,7 +109,6 @@ const AppBar = styled(MuiAppBar, {
     },
 }));
 
-
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -127,6 +116,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
 }));
+
 
 interface NavItemProps {
     to: string;
@@ -150,32 +140,16 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
-        
-        // Mobile: sempre fecha o drawer e navega
         if (theme.breakpoints.values.md && window.innerWidth < theme.breakpoints.values.md) {
             navigate(to);
             onToggleDrawer();
             return;
         }
-        
-        // Desktop: comportamento original
-        if (open && isCurrentActive) {
-            onToggleDrawer();
-            return;
-        }
-
-        if (!open && isCurrentActive) {
-            onToggleDrawer();
-            return;
-        }
-
-        if (!isCurrentActive && !open) {
-            onToggleDrawer();
-        }
-        
+        if (open && isCurrentActive) { onToggleDrawer(); return; }
+        if (!open && isCurrentActive) { onToggleDrawer(); return; }
+        if (!isCurrentActive && !open) { onToggleDrawer(); }
         navigate(to);
     };
-
 
     if (requiredRole && user?.tipoUsuario !== requiredRole) {
         return null;
@@ -187,78 +161,29 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
                 <ListItemButton
                     onClick={handleNavigation}
                     sx={{
-                        minHeight: 56, // Aumentado de 48px para melhor touch target no mobile
+                        minHeight: 56,
                         justifyContent: open ? 'initial' : 'center',
                         px: 2.5,
-                        py: 1.5, // Padding vertical aumentado
+                        py: 1.5,
                         borderRadius: '8px',
-                        
                         backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
-                        
-                        '&:hover': {
-                            backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)',
-                        },
-                        
-                        // Feedback tátil mobile aprimorado
-                        '&:active': {
-                            backgroundColor: isCurrentActive 
-                                ? 'rgba(9, 36, 75, 0.9)' // Leve transparência quando ativo
-                                : 'rgba(0, 0, 0, 0.15)',
-                            transform: 'scale(0.98)',
-                        },
-                        
-                        // Transição suave
-                        transition: theme => theme.transitions.create(
-                            ['background-color', 'transform'], 
-                            {
-                                duration: 150, // Mais rápido para feedback imediato
-                            }
-                        ),
-                        
-                        // Remove highlight azul no mobile
+                        '&:hover': { backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)' },
+                        '&:active': { backgroundColor: isCurrentActive ? 'rgba(9, 36, 75, 0.9)' : 'rgba(0, 0, 0, 0.15)', transform: 'scale(0.98)' },
+                        transition: theme => theme.transitions.create(['background-color', 'transform'], { duration: 150 }),
                         WebkitTapHighlightColor: 'transparent',
-                        
                         margin: '4px 8px',
                         width: 'auto',
                     }}
                 >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 0,
-                            justifyContent: 'center',
-                            color: isCurrentActive ? activeTextColor : '#000000da',
-                            // Ícones ligeiramente maiores no mobile para melhor visibilidade
-                            fontSize: { xs: '1.5rem', md: '1.25rem' },
-                        }}
-                    >
+                    <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : '#000000da', fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
                         <Icon sx={{ fontSize: 'inherit' }} />
                     </ListItemIcon>
-                    <ListItemText
-                        primary={primary}
-                        sx={{
-                            opacity: open ? 1 : 0,
-                            width: '100%',
-                            textAlign: 'left',
-                            transition: theme => theme.transitions.create('opacity'),
-                            overflow: 'hidden'
-                        }}
-                        slotProps={{
-                            primary: {
-                                sx: {
-                                    color: isCurrentActive ? activeTextColor : '#000000da',
-                                    fontWeight: isCurrentActive ? 700 : 600, // Mais contraste
-                                    fontSize: { xs: '1rem', md: '0.938rem' }, // Ligeiramente maior no mobile
-                                }
-                            }
-                        }}
-                    />
+                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : '#000000da', fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
                 </ListItemButton>
             </Tooltip> 
         </ListItem>
     );
 };
-
 
 export default function Layout() {
     const { logout } = useAuth();
@@ -273,406 +198,146 @@ export default function Layout() {
 
     const handleLogout = async () => {
         try {
-            await logout(); // ✅ Aguarda logout completar
+            await logout();
             navigate("/login", { replace: true });
         } catch (error) {
             console.error('[Layout] Erro ao fazer logout:', error);
-            navigate("/login", { replace: true }); // Redireciona mesmo com erro
+            navigate("/login", { replace: true });
         }
     };
 
     const shortcuts: KeyboardShortcut[] = React.useMemo(() => [
-        {
-            key: '?',
-            handler: () => setShortcutsHelpOpen(true),
-            description: 'Exibir ajuda de atalhos',
-        },
-        {
-            key: 'k',
-            ctrl: true,
-            handler: () => setShortcutsHelpOpen(true),
-            description: 'Exibir ajuda de atalhos',
-        },
-        {
-            key: 'Escape',
-            handler: () => setShortcutsHelpOpen(false),
-            description: 'Fechar diálogos',
-        },
-        {
-            key: 'p',
-            ctrl: true,
-            handler: () => navigate('/patients'),
-            description: 'Ir para Pacientes',
-        },
-        {
-            key: 'u',
-            ctrl: true,
-            handler: () => navigate('/users'),
-            description: 'Ir para Profissionais',
-        },
-        {
-            key: 'm',
-            ctrl: true,
-            handler: () => navigate('/my-profile'),
-            description: 'Ir para Meu Perfil',
-        },
+        { key: '?', handler: () => setShortcutsHelpOpen(true), description: 'Exibir ajuda de atalhos' },
+        { key: 'k', ctrl: true, handler: () => setShortcutsHelpOpen(true), description: 'Exibir ajuda de atalhos' },
+        { key: 'Escape', handler: () => setShortcutsHelpOpen(false), description: 'Fechar diálogos' },
+        { key: 'p', ctrl: true, handler: () => navigate('/patients'), description: 'Ir para Pacientes' },
+        { key: 'u', ctrl: true, handler: () => navigate('/users'), description: 'Ir para Profissionais' },
+        { key: 'm', ctrl: true, handler: () => navigate('/my-profile'), description: 'Ir para Meu Perfil' },
     ], [navigate]);
 
     useKeyboardShortcuts(shortcuts);
-
     const { user } = useAuth();
-
     const navItems = [
         { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 
         { to: "/companions", primary: "Acompanhantes", Icon: AccessibilityNewIcon }, 
         { to: "/users", primary: "Usuários", Icon: ManageAccountsIcon, requiredRole: 'ADMINISTRADOR' }, 
-        
         { to: "/sessions", primary: "Sessões Ativas", Icon: HistoryIcon, requiredRole: 'ADMINISTRADOR' },
         { to: "/auditoria", primary: "Auditoria", Icon: GavelIcon, requiredRole: 'ADMINISTRADOR' },
     ];
 
-
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <CssBaseline />
             <AppBar position="fixed" open={open}>
-                <Toolbar>
-                    {/* Menu icon for mobile */}
+                 
+                 <Toolbar>
                     <IconButton
                         color="inherit"
                         aria-label="abrir menu"
                         edge="start"
                         onClick={handleDrawerToggle}
-                        sx={{ 
-                            mr: 2,
-                            display: { xs: 'block', md: 'none' },
-                            // Touch target mínimo de 48x48px (Material Design + Apple HIG)
-                            minWidth: '48px',
-                            minHeight: '48px',
-                            // Feedback visual aprimorado
-                            '&:active': {
-                                transform: 'scale(0.95)',
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            },
-                            transition: 'transform 150ms ease-in-out',
-                        }}
+                        sx={{ mr: 2, display: { xs: 'block', md: 'none' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }}
                     >
                         <MenuIcon sx={{ fontSize: '1.75rem' }} />
                     </IconButton>
-                    
-                    {/* Título clicável para voltar à home */}
-                    <Typography 
-                        variant="h6" 
-                        noWrap 
-                        component="div" 
-                        onClick={() => navigate('/patients')}
-                        sx={{ 
-                            display: { xs: 'none', sm: 'block' },
-                            fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
-                            cursor: 'pointer',
-                            userSelect: 'none', // Previne seleção de texto ao clicar
-                            WebkitTapHighlightColor: 'transparent', // Remove highlight azul no mobile
-                            padding: '8px 12px',
-                            borderRadius: '4px',
-                            '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            '&:active': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                transform: 'scale(0.98)',
-                            },
-                            transition: 'all 150ms ease-in-out',
-                        }}
-                    >
+                    <Typography variant="h6" noWrap component="div" onClick={() => navigate('/patients')} sx={{ display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' }, transition: 'all 150ms ease-in-out' }}>
                         SISTEMA DE GERENCIAMENTO DA CASA DO AMOR
                     </Typography>
-                    
-                    {/* Título mobile clicável */}
-                    <Typography 
-                        variant="h6" 
-                        noWrap 
-                        component="div" 
-                        onClick={() => navigate('/patients')}
-                        sx={{ 
-                            display: { xs: 'block', sm: 'none' },
-                            fontSize: '0.938rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            WebkitTapHighlightColor: 'transparent',
-                            padding: '8px',
-                            borderRadius: '4px',
-                            '&:active': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                transform: 'scale(0.98)',
-                            },
-                            transition: 'all 150ms ease-in-out',
-                        }}
-                    >
+                    <Typography variant="h6" noWrap component="div" onClick={() => navigate('/patients')} sx={{ display: { xs: 'block', sm: 'none' }, fontSize: '0.938rem', fontWeight: 600, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px', borderRadius: '4px', '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' }, transition: 'all 150ms ease-in-out' }}>
                         SGCA
                     </Typography>
-
                     <Box sx={{ flexGrow: 1 }} />
-
-                    {/* Atalhos de teclado - apenas desktop */}
                     <Tooltip title="Atalhos de teclado (?)">
-                        <IconButton
-                            color="inherit"
-                            onClick={() => setShortcutsHelpOpen(true)}
-                            aria-label="atalhos de teclado"
-                            sx={{ 
-                                mr: { xs: 0.5, sm: 1 },
-                                display: { xs: 'none', sm: 'inline-flex' }, // Oculto no mobile para economizar espaço
-                                minWidth: '48px',
-                                minHeight: '48px',
-                                '&:active': {
-                                    transform: 'scale(0.95)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                },
-                                transition: 'transform 150ms ease-in-out',
-                            }}
-                            size="small"
-                        >
+                        <IconButton color="inherit" onClick={() => setShortcutsHelpOpen(true)} aria-label="atalhos de teclado" sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <KeyboardIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
-
                     <Tooltip title={user?.nome ? `Meu perfil — ${user.nome}` : 'Meu perfil'}>
-                        <IconButton
-                            color="inherit"
-                            onClick={() => navigate('/profile')}
-                            aria-label="perfil"
-                            sx={{ 
-                                mr: { xs: 0.5, sm: 1 },
-                                minWidth: '48px',
-                                minHeight: '48px',
-                                '&:active': {
-                                    transform: 'scale(0.95)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                },
-                                transition: 'transform 150ms ease-in-out',
-                            }}
-                            size="small"
-                        >
+                        <IconButton color="inherit" onClick={() => navigate('/profile')} aria-label="perfil" sx={{ mr: { xs: 0.5, sm: 1 }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <AccountCircleIcon sx={{ fontSize: '1.5rem' }} />
                         </IconButton>
                     </Tooltip>
-                    
                     <Tooltip title="Sair"> 
-                        <IconButton
-                            color="inherit"
-                            onClick={handleLogout}
-                            aria-label="logout"
-                            edge="end"
-                            sx={{
-                                minWidth: '48px',
-                                minHeight: '48px',
-                                '&:active': {
-                                    transform: 'scale(0.95)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                },
-                                transition: 'transform 150ms ease-in-out',
-                            }}
-                            size="small"
-                        >
+                        <IconButton color="inherit" onClick={handleLogout} aria-label="logout" edge="end" sx={{ minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <LogoutIcon sx={{ fontSize: '1.5rem' }} />
                         </IconButton>
                     </Tooltip>
                 </Toolbar>
             </AppBar>
 
-            {/* Mobile drawer (swipeable for better UX) */}
             <SwipeableDrawer
                 variant="temporary"
                 open={open}
                 onClose={handleDrawerToggle}
                 onOpen={handleDrawerToggle}
                 disableBackdropTransition
-                disableScrollLock // Permite scroll da página principal quando drawer está aberto
-                ModalProps={{
-                    keepMounted: true, // Better mobile performance
-                }}
-                sx={{
-                    display: { xs: 'block', md: 'none' },
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        backgroundColor: "#C5E4F2",
-                        boxShadow: 'none',
-                        border: 'none',
-                        zIndex: (theme) => theme.zIndex.drawer + 2, // Acima do AppBar
-                    },
-                    '& .MuiBackdrop-root': {
-                        zIndex: (theme) => theme.zIndex.drawer + 1, // Backdrop entre AppBar e Drawer
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Escurece o fundo
-                    }
-                }}
+                disableScrollLock
+                ModalProps={{ keepMounted: true }}
+                sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth, backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', zIndex: (theme) => theme.zIndex.drawer + 2 }, '& .MuiBackdrop-root': { zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
             >
-                {/* Header do menu mobile - sem logo para economizar espaço vertical */}
-                <DrawerHeader sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    padding: theme.spacing(1, 2),
-                    minHeight: '56px', // Reduzido de 64px para economizar espaço
-                    backgroundColor: '#65ACD6', // Mesma cor do AppBar para continuidade visual
-                }}>
-                    <Typography
-                        variant="subtitle1"
-                        sx={{
-                            flexGrow: 1,
-                            fontWeight: 600,
-                            color: '#FFFFFF',
-                            fontSize: '1rem',
-                        }}
-                    >
-                        Menu
-                    </Typography>
-                    <IconButton
-                        color="inherit"
-                        aria-label="fechar menu"
-                        onClick={handleDrawerToggle}
-                        sx={{ 
-                            color: '#FFFFFF',
-                            flexShrink: 0,
-                            minWidth: '48px',
-                            minHeight: '48px',
-                            // Feedback tátil
-                            '&:active': {
-                                transform: 'scale(0.95)',
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            },
-                        }}
-                    >
+                <DrawerHeader sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: theme.spacing(1, 2), minHeight: '56px', backgroundColor: '#65ACD6' }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600, color: '#FFFFFF', fontSize: '1rem' }}>Menu</Typography>
+                    <IconButton color="inherit" aria-label="fechar menu" onClick={handleDrawerToggle} sx={{ color: '#FFFFFF', flexShrink: 0, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}>
                         <ChevronLeftIcon />
                     </IconButton>
                 </DrawerHeader>
-
-                <List sx={{ 
-                    padding: '8px 0',
-                    // Adiciona padding bottom para não cortar último item
-                    paddingBottom: '16px',
-                }}>
+                <List sx={{ padding: '8px 0', paddingBottom: '16px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto 8px' }} />
-                    {navItems.map((item) => (
-                        <NavItem
-                            key={item.to}
-                            to={item.to}
-                            primary={item.primary}
-                            Icon={item.Icon}
-                            open={true}
-                            requiredRole={item.requiredRole}
-                            onToggleDrawer={handleDrawerToggle}
-                            navigate={navigate}
-                        />
-                    ))}
+                    {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={true} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
                 </List>
             </SwipeableDrawer>
 
-            {/* Desktop drawer (permanent) */}
             <StyledDrawer
                 variant="permanent"
                 open={open}
-                sx={{
-                    display: { xs: 'none', md: 'block' },
-                }}
-                PaperProps={{
-                    sx: {
-                        backgroundColor: "#C5E4F2",
-                        boxShadow: 'none',
-                        border: 'none',
-                        width: open ? drawerWidth : closedDrawerWidth,
-                        transition: theme => theme.transitions.create('width', {
-                            easing: theme.transitions.easing.sharp,
-                            duration: open
-                                ? theme.transitions.duration.enteringScreen
-                                : theme.transitions.duration.leavingScreen,
-                        }),
-                        overflowX: 'hidden',
-                    }
-                }}
+                sx={{ display: { xs: 'none', md: 'block' } }}
+                PaperProps={{ sx: { backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', width: open ? drawerWidth : closedDrawerWidth, transition: theme => theme.transitions.create('width', { easing: theme.transitions.easing.sharp, duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen }), overflowX: 'hidden' } }}
             >
-                <DrawerHeader sx={{
-                    display: 'flex',
-                    justifyContent: open ? 'space-between' : 'center',
-                    alignItems: 'center',
-                    padding: theme.spacing(0, open ? 2 : 1),
-                    minHeight: '64px',
-                }}>
-                    
-                    <Box 
-                        component="img" 
-                        src="logo2.png" 
-                        alt="Icone Casa do Amor" 
-                        onClick={() => navigate('/patients')}
-                        
-                        sx={{ 
-                            width: open ? "120px" : "80px",
-                            height: "auto",
-                            objectFit: 'contain',
-                            flexShrink: 0,
-                            display: { xs: 'none', sm: 'block' },
-                            fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
-                            cursor: 'pointer',
-                            userSelect: 'none', // Previne seleção de texto ao clicar
-                            WebkitTapHighlightColor: 'transparent', // Remove highlight azul no mobile
-                            padding: '8px 12px',
-                            borderRadius: '4px',
-                            transition: 'all 150ms ease-in-out',
-                            '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            '&:active': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                transform: 'scale(0.98)',
-                            },
-                        }}
-                    />
-                    
-                    {open && (
-                        <IconButton
-                            color="inherit"
-                            aria-label="fechar drawer"
-                            onClick={handleDrawerToggle}
-                            sx={{
-                                color: '#000000DA',
-                                flexShrink: 0,
-                            }}
-                        >
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    )}
+                <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
+                    <Box component="img" src="logo2.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
+                    {open && (<IconButton color="inherit" aria-label="fechar drawer" onClick={handleDrawerToggle} sx={{ color: '#000000DA', flexShrink: 0 }}><ChevronLeftIcon /></IconButton>)}
                 </DrawerHeader>
-
                 <List sx={{ padding: '0px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
-
-                    {navItems.map((item) => (
-                        <NavItem
-                            key={item.to}
-                            to={item.to}
-                            primary={item.primary}
-                            Icon={item.Icon}
-                            open={open}
-                            requiredRole={item.requiredRole}
-                            onToggleDrawer={handleDrawerToggle}
-                            navigate={navigate}
-                        />
-                    ))}
+                    {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={open} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
                 </List>
             </StyledDrawer>
 
-            <Main>
-                <Outlet />
+            
+            <Main open={open} sx={{ height: '100vh', overflow: 'hidden', p: 0, m: 0 }}>
+               
+                <DrawerHeader />
+
+              
+                <Box sx={{ 
+                    flexGrow: 1, 
+                    overflowY: 'auto', 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                }}>
+                    
+                    
+                    <Box component="div" sx={{ 
+                        flexGrow: 1, 
+                        p: 3, 
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}> 
+                        <Outlet />
+                    </Box>
+
+                    
+                    <Box component="footer" sx={{ width: '100%', mt: 'auto', flexShrink: 0 }}>
+                        <Footer />
+                    </Box>
+                    
+                </Box>
             </Main>
 
-            {/* Componente que verifica se precisa exibir consentimento LGPD */}
             <ConsentimentoLGPDCheck />
-
-            <KeyboardShortcutsHelp
-                open={shortcutsHelpOpen}
-                onClose={() => setShortcutsHelpOpen(false)}
-                shortcuts={shortcuts}
-            />
+            <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} />
         </Box>
     );
 }
