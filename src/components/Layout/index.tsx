@@ -601,6 +601,7 @@ export default function Layout() {
                         component="img" 
                         src="logo2.png" 
                         alt="Icone Casa do Amor" 
+                        onClick={() => navigate('/patients')}
                         sx={{
                             width: open ? "80px" : "50px",
                             height: "auto",
