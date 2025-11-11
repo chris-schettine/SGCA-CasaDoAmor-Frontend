@@ -5,7 +5,7 @@ import { toast, type ToastOptions, Bounce } from 'react-toastify';
  */
 export const defaultToastOptions: ToastOptions = {
   position: 'top-center',
-  autoClose: 5000, // 5 segundos — tempo suficiente para ler a mensagem
+  autoClose: 3000, // 5 segundos — tempo suficiente para ler a mensagem
   hideProgressBar: false,
   closeOnClick: true,
   pauseOnHover: true,
@@ -19,7 +19,7 @@ export const defaultToastOptions: ToastOptions = {
 /** Opções para toasts de operações críticas (cadastro, exclusão, etc.) */
 export const criticalToastOptions: ToastOptions = {
   ...defaultToastOptions,
-  autoClose: 8000, // 8 segundos para operações importantes
+  autoClose: 5000, // 8 segundos para operações importantes
 };
 
 const toastSuccess = (message: string, options: ToastOptions = {}) => {
