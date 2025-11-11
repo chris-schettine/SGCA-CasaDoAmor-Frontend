@@ -323,7 +323,6 @@ export default function Layout() {
     const { user } = useAuth();
 
     const navItems = [
-        { to: "/profile", primary: "Meu Perfil", Icon: AccountCircleIcon },
         { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 
         { to: "/companions", primary: "Acompanhantes", Icon: AccessibilityNewIcon }, 
         { to: "/users", primary: "Usuários", Icon: ManageAccountsIcon, requiredRole: 'ADMINISTRADOR' }, 
