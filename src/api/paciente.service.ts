@@ -5,6 +5,8 @@ import type {
   RegistrarPacienteDTO,
   EditarPacienteDTO,
   PacienteDTO,
+  DadoClinicoInputDTO,
+  DadoClinicoDTO,
 } from './paciente.dto';
 
 class PacienteService {
@@ -28,6 +30,15 @@ class PacienteService {
 
   async editarPaciente(id: string, data: EditarPacienteDTO): Promise<PacienteDTO> {
     const response = await api.patch(`/pacientes/${id}`, data);
+    return response.data;
+  }
+
+  async atualizarDadosClinicos(
+    dadoClinicoId: string,
+    pacienteId: string,
+    data: DadoClinicoInputDTO
+  ): Promise<DadoClinicoDTO> {
+    const response = await api.post(`/dados-clinicos/${dadoClinicoId}/pacientes/${pacienteId}`, data);
     return response.data;
   }
 }

@@ -32,7 +32,8 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ✅ Executa apenas uma vez no mount
 
   return <>{children}</>;
 }

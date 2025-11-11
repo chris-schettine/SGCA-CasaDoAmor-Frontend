@@ -24,17 +24,16 @@ class ApiGateway {
             const parsed = JSON.parse(authStorage);
             token = parsed.state?.token;
           } catch (e) {
-            console.warn('[API Gateway] Erro ao parsear auth-storage:', e);
+            if (import.meta.env.DEV) console.warn('[API Gateway] Erro ao parsear auth-storage:', e);
           }
         }
         
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('[API Gateway] Token enviado:', token.substring(0, 20) + '...');
-        } else {
-          console.log('[API Gateway] Nenhum token encontrado no localStorage');
+          if (import.meta.env.DEV) console.log('[API Gateway] Token enviado:', token.substring(0, 20) + '...');
         }
-        console.log('[API Gateway] Requisição:', config.method?.toUpperCase(), config.url);
+        
+        if (import.meta.env.DEV) console.log('[API Gateway] Requisição:', config.method?.toUpperCase(), config.url);
         return config;
       },
       (error) => {
@@ -45,23 +44,25 @@ class ApiGateway {
    
     this.gateway.interceptors.response.use(
       (response) => {
-        console.log('[API Gateway] Resposta sucesso:', response.status, response.config.url);
+        if (import.meta.env.DEV) console.log('[API Gateway] Resposta sucesso:', response.status, response.config.url);
         return response;
       },
       (error) => {
-        console.error('[API Gateway] Erro na resposta:', {
-          status: error.response?.status,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message
-        });
+        if (import.meta.env.DEV) {
+          console.error('[API Gateway] Erro na resposta:', {
+            status: error.response?.status,
+            url: error.config?.url,
+            data: error.response?.data,
+            message: error.message
+          });
+        }
         
         if (error.response?.status === 401) {
           // Don't force logout for auth endpoints that may legitimately return 401
           // during login/2FA flows (the frontend handles those cases explicitly).
           const url: string | undefined = error.config?.url;
           if (url && (url.includes('/auth/login') || url.includes('/auth/2fa') || url.includes('/auth/forgot-password') || url.includes('/auth/reset-password'))) {
-            console.warn('[API Gateway] 401 recebido em endpoint de autenticação; não forçando logout (fluxo de login/2FA).', url);
+            if (import.meta.env.DEV) console.warn('[API Gateway] 401 em endpoint de autenticação - fluxo normal');
           } else {
             console.warn('[API Gateway] Token inválido/expirado (401) - forçando logout');
             try {
@@ -80,7 +81,7 @@ class ApiGateway {
           const isProtectedEndpoint = protectedEndpoints.some(endpoint => url?.includes(endpoint));
           
           if (isProtectedEndpoint) {
-            console.warn('[API Gateway] 403 em endpoint protegido - forçando logout:', url);
+            console.warn('[API Gateway] Acesso negado (403) - forçando logout');
             try {
               forceLogout();
             } catch (e) {
@@ -90,7 +91,7 @@ class ApiGateway {
               if (window.location.pathname !== '/login') window.location.href = '/login';
             }
           } else {
-            console.warn('[API Gateway] Acesso negado (403) - sem permissão', url);
+            console.warn('[API Gateway] Acesso negado (403) - sem permissão');
           }
         }
         return Promise.reject(error);

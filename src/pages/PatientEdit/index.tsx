@@ -35,6 +35,7 @@ const PatientEditPage = () => {
   const [loading, setLoading] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
+  const [dadoClinicoId, setDadoClinicoId] = useState<string | null>(null);
 
   const {
     register,
@@ -65,14 +66,20 @@ const PatientEditPage = () => {
       estado: "",
       numero: "",
       complemento: "",
+      email: "",
       tratamento: undefined,
       estadoCivil: undefined,
       diagnostico: "",
+      condicaoChegada: "nenhum",
+      usoCurativo: "nao",
+      usoOxigenoterapia: "nao",
+      usoSonda: "nao",
       tipoSondaNasal: undefined,
       tipoSondaCirurgica: undefined,
       tipoSondaVesical: undefined,
-      tipoSanguineo: undefined,
+      tipoSanguineo: "A_POSITIVO",
       seForOutra: "",
+      tratamentoOutroDescricao: "",
     }
   });
 
@@ -126,6 +133,9 @@ const PatientEditPage = () => {
         return;
       }
 
+      setLoading(true);
+
+      // 1. Atualizar dados pessoais, endereço, e outras informações (exceto dados clínicos)
       const paciente: EditarPacienteDTO = {
         dadoPessoal: {
           nome: data.nomeCompletoPaciente,
@@ -162,10 +172,37 @@ const PatientEditPage = () => {
         } : undefined,
       };
 
-      setLoading(true);
       await pacienteService.editarPaciente(id, paciente);
-      setLoading(false);
 
+      // 2. Atualizar dados clínicos separadamente (se existir ID do dado clínico)
+      if (dadoClinicoId) {
+        // Mapear condicaoChegada do schema para o DTO
+        const condicaoChegadaMap: Record<string, 'AMBULANCIA' | 'MACA' | 'CADEIRA_RODAS' | 'NENHUMA'> = {
+          'de_ambulancia': 'AMBULANCIA',
+          'maca': 'MACA',
+          'cadeira_rodas': 'CADEIRA_RODAS',
+          'nenhum': 'NENHUMA',
+        };
+
+        const dadoClinico = {
+          diagnostico: data.diagnostico || undefined,
+          tratamento: data.tratamento || undefined,
+          tratamentoOutroDescricao: data.tratamento === 'OUTRO' ? (data.tratamentoOutroDescricao || null) : null,
+          condicaoChegada: condicaoChegadaMap[data.condicaoChegada] || undefined,
+          usaSonda: data.usoSonda === 'sim',
+          tipoSondaNasal: data.usoSonda === 'sim' ? (data.tipoSondaNasal || null) : null,
+          tipoSondaCirurgica: data.usoSonda === 'sim' ? (data.tipoSondaCirurgica || null) : null,
+          tipoSondaVesical: data.usoSonda === 'sim' ? (data.tipoSondaVesical || null) : null,
+          sondaOutraDescricao: (data.usoSonda === 'sim' && data.tipoSondaVesical === 'OUTRA') ? (data.seForOutra || null) : null,
+          usaCurativo: data.usoCurativo === 'sim',
+          usaOxigenoterapia: data.usoOxigenoterapia === 'sim',
+          tipoSanguineo: data.tipoSanguineo,
+        };
+
+        await pacienteService.atualizarDadosClinicos(dadoClinicoId, id, dadoClinico);
+      }
+
+      setLoading(false);
       setOpenSaveDialog(false);
       toastSuccess("Paciente atualizado com sucesso!");
       setTimeout(() => {
@@ -265,6 +302,7 @@ const PatientEditPage = () => {
     if (!id) return;
 
     const fillWithPatient = (p: PacienteDTO) => {
+      // Dados pessoais
       setValue('nomeCompletoPaciente', p.dadoPessoal?.nome ?? '');
       setValue('cpfPaciente', p.dadoPessoal?.cpf ?? '');
       setValue('dataNascimento', p.dadoPessoal?.dataNascimento ? formatISOToDDMMYYYY(p.dadoPessoal.dataNascimento) : '');
@@ -273,6 +311,8 @@ const PatientEditPage = () => {
       setValue('profissao', p.dadoPessoal?.profissao ?? '');
       setValue('rg', p.dadoPessoal?.rg ?? '');
       setValue('telefone', p.dadoPessoal?.telefone ?? '');
+      
+      // Endereço
       setValue('endereco', p.endereco?.logradouro ?? '');
       setValue('numero', p.endereco?.numero?.toString() ?? '');
       setValue('complemento', p.endereco?.complemento ?? '');
@@ -280,6 +320,67 @@ const PatientEditPage = () => {
       setValue('cidade', p.endereco?.cidade ?? '');
       setValue('estado', p.endereco?.estado ?? '');
       setValue('cep', p.endereco?.cep ?? '');
+      
+      // Email e estado civil
+      setValue('email', p.email ?? '');
+      setValue('estadoCivil', p.dadoPessoal?.estadoCivil ?? undefined);
+      
+      // Dados clínicos - pegar o primeiro (mais recente)
+      if (p.dadosClinicos && p.dadosClinicos.length > 0) {
+        const dadoClinico = p.dadosClinicos[0];
+        setDadoClinicoId(dadoClinico.id ?? null);
+        
+        setValue('diagnostico', dadoClinico.diagnostico ?? '');
+        setValue('tratamento', dadoClinico.tratamento ?? undefined);
+        setValue('tratamentoOutroDescricao', dadoClinico.tratamentoOutroDescricao ?? '');
+        
+        // Mapear condicaoChegada do DTO para o schema
+        const condicaoChegadaMap: Record<string, 'de_ambulancia' | 'maca' | 'cadeira_rodas' | 'nenhum'> = {
+          'AMBULANCIA': 'de_ambulancia',
+          'MACA': 'maca',
+          'CADEIRA_RODAS': 'cadeira_rodas',
+          'NENHUMA': 'nenhum',
+        };
+        setValue('condicaoChegada', dadoClinico.condicaoChegada ? condicaoChegadaMap[dadoClinico.condicaoChegada] : 'nenhum');
+        
+        setValue('usoCurativo', dadoClinico.usaCurativo ? 'sim' : 'nao');
+        setValue('usoOxigenoterapia', dadoClinico.usaOxigenoterapia ? 'sim' : 'nao');
+        setValue('usoSonda', dadoClinico.usaSonda ? 'sim' : 'nao');
+        
+        if (dadoClinico.usaSonda) {
+          setValue('tipoSondaNasal', dadoClinico.tipoSondaNasal ?? undefined);
+          setValue('tipoSondaCirurgica', dadoClinico.tipoSondaCirurgica ?? undefined);
+          setValue('tipoSondaVesical', dadoClinico.tipoSondaVesical ?? undefined);
+          setValue('seForOutra', dadoClinico.sondaOutraDescricao ?? '');
+        }
+        
+        setValue('tipoSanguineo', dadoClinico.tipoSanguineo);
+      }
+      
+      // Informação hospitalar
+      if (p.informacaoHospitalar) {
+        setValue('informacaoHospitalar', {
+          nomeHospitalReferencia: p.informacaoHospitalar.nomeHospitalReferencia ?? '',
+          medicoResponsavel: p.informacaoHospitalar.medicoResponsavel ?? '',
+          setorAla: p.informacaoHospitalar.setorAla ?? '',
+          dataInternacao: p.informacaoHospitalar.dataInternacao ? formatISOToDDMMYYYY(p.informacaoHospitalar.dataInternacao) : '',
+        } as any);
+      }
+      
+      // Dado social
+      if (p.dadoSocial) {
+        setValue('dadoSocial', {
+          rendaFamiliar: p.dadoSocial.rendaFamiliar ?? undefined,
+          composicaoFamiliar: p.dadoSocial.composicaoFamiliar ?? '',
+          situacaoMoradia: p.dadoSocial.situacaoMoradia ?? '',
+          necessidadesEspeciais: p.dadoSocial.necessidadesEspeciais ?? '',
+        } as any);
+      }
+      
+      // Contatos de emergência
+      if (p.contatosDeEmergencia) {
+        setValue('contatosDeEmergencia', p.contatosDeEmergencia as any);
+      }
     };
 
     if (passedPatient) {

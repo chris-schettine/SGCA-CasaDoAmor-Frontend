@@ -66,6 +66,8 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
         field: 'acoes' as const,
         headerName: 'Ações',
         width: isMobile ? 100 : 120,
+        align: 'center' as const,
+        headerAlign: 'center' as const,
         renderCell: (row: any) => (
           <Box sx={{ 
             display: 'flex', 

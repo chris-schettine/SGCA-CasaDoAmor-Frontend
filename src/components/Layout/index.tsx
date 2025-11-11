@@ -607,7 +607,6 @@ export default function Layout() {
                             width: open ? "120px" : "80px",
                             height: "auto",
                             objectFit: 'contain',
-                            transition: theme.transitions.create('width'),
                             flexShrink: 0,
                             display: { xs: 'none', sm: 'block' },
                             fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
@@ -616,6 +615,7 @@ export default function Layout() {
                             WebkitTapHighlightColor: 'transparent', // Remove highlight azul no mobile
                             padding: '8px 12px',
                             borderRadius: '4px',
+                            transition: 'all 150ms ease-in-out',
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                             },
@@ -623,7 +623,6 @@ export default function Layout() {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
                                 transform: 'scale(0.98)',
                             },
-                            transition: 'all 150ms ease-in-out',
                         }}
                     />
                     

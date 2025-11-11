@@ -88,20 +88,40 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuthStatus: async () => {
-        const { token, user } = get();
+        if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] INICIADO');
+        const state = get();
+        const { token, user, isLoading } = state;
+        if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Token:', !!token, 'User:', !!user, 'isLoading:', isLoading);
+        
+        // ⚠️ Previne múltiplas chamadas simultâneas
+        if (isLoading) {
+          if (import.meta.env.DEV) console.warn('[useAuthStore.checkAuthStatus] JÁ ESTÁ VERIFICANDO - ignorando chamada duplicada');
+          return;
+        }
         
         // Se não tem token/user no localStorage, não precisa verificar
         if (!token || !user) {
+          if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Sem token/user - finalizando');
           set({ isLoading: false, isAuthenticated: false });
           return;
         }
 
         // ⏳ Inicia verificação
+        if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Iniciando verificação com backend');
         set({ isLoading: true });
 
         try {
-          // Valida sessão com backend
-          const rawUser: any = await authService.getActiveSession();
+          if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Chamando authService.getActiveSession()');
+          
+          // ⏱️ Adiciona timeout de 5 segundos
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), 5000);
+          });
+          
+          const sessionPromise = authService.getActiveSession();
+          
+          const rawUser: any = await Promise.race([sessionPromise, timeoutPromise]);
+          if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Resposta recebida:', !!rawUser);
           
           if (rawUser) {
             // Normaliza dados do backend
@@ -115,21 +135,27 @@ export const useAuthStore = create<AuthState>()(
               tipoUsuario: rawUser.tipo || rawUser.tipoUsuario || rawUser.user?.tipoUsuario,
             };
 
+            if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Atualizando usuário normalizado');
             set({ user: normalizedUser, isAuthenticated: true });
           }
         } catch (error: any) {
           const status = error?.response?.status;
-          console.warn('[useAuthStore] Falha ao validar sessão:', status || error);
           
           if (status === 401) {
             // Token inválido/expirado - limpa sessão
+            console.warn('[useAuthStore] Token inválido (401) - limpando sessão');
             set({ token: null, user: null, isAuthenticated: false });
+          } else if (error.message?.includes('Timeout')) {
+            // Timeout - mantém sessão local mas loga aviso
+            console.warn('[useAuthStore] Falha ao verificar sessão (timeout) - mantendo sessão local');
+            set({ isAuthenticated: true });
           } else {
             // Outros erros: mantém sessão local
-            console.warn('[useAuthStore] Mantendo sessão local apesar do erro');
+            console.warn('[useAuthStore] Falha ao validar sessão - mantendo sessão local:', error.message || error);
             set({ isAuthenticated: true });
           }
         } finally {
+          if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] FINALIZANDO - setando isLoading = false');
           set({ isLoading: false });
         }
       },

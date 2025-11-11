@@ -30,7 +30,6 @@ class AuthService {
 
   async getActiveSession(): Promise<UserType> {
     const response = await api.get('/auth/me'); 
-    
     return response.data;
   }
  

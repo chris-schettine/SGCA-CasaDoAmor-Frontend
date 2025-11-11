@@ -1,4 +1,4 @@
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useRef } from 'react';
 import {
   Table,
@@ -25,7 +25,7 @@ interface VirtualizedTableProps<T> {
   data: T[];
   columns: Column<T>[];
   rowHeight?: number;
-  height?: number;
+  height?: number | string;
   getRowId?: (row: T) => string | number;
   onRowClick?: (row: T) => void;
 }
@@ -55,7 +55,9 @@ export function VirtualizedTable<T extends Record<string, any>>({
   return (
     <TableContainer 
       sx={{ 
-        maxHeight: height,
+        height: typeof height === 'number' ? height : 'auto',
+        minHeight: 400,
+        maxHeight: 'calc(100vh - 280px)',
         overflowX: 'auto',
         overflowY: 'auto',
         // Better mobile scroll behavior
@@ -88,8 +90,8 @@ export function VirtualizedTable<T extends Record<string, any>>({
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* Espaçador para altura total */}
-          <TableRow>
+          {/* Spacer for full height */}
+          <TableRow sx={{ backgroundColor: 'transparent !important' }}>
             <TableCell
               colSpan={columns.length}
               sx={{
@@ -97,9 +99,15 @@ export function VirtualizedTable<T extends Record<string, any>>({
                 padding: 0,
                 border: 0,
                 position: 'relative',
+                backgroundColor: 'transparent !important',
+                '&::before': {
+                  display: 'none',
+                },
+                '&::after': {
+                  display: 'none',
+                },
               }}
             >
-              {/* Linhas virtualizadas */}
               <Box
                 sx={{
                   position: 'absolute',
@@ -109,9 +117,10 @@ export function VirtualizedTable<T extends Record<string, any>>({
                   transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
                 }}
               >
-                {virtualItems.map((virtualRow) => {
+                {virtualItems.map((virtualRow: VirtualItem) => {
                   const row = data[virtualRow.index];
                   const rowId = getRowId ? getRowId(row) : virtualRow.index;
+                  const isOdd = virtualRow.index % 2 === 1;
 
                   return (
                     <Box
@@ -129,8 +138,10 @@ export function VirtualizedTable<T extends Record<string, any>>({
                         sx={{
                           display: 'table-row',
                           cursor: onRowClick ? 'pointer' : 'default',
+                          backgroundColor: isOdd ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                          transition: 'background-color 0.15s ease',
                           '&:hover': {
-                            backgroundColor: 'action.hover',
+                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
                           },
                         }}
                       >
@@ -146,6 +157,8 @@ export function VirtualizedTable<T extends Record<string, any>>({
                               borderColor: 'divider',
                               verticalAlign: 'middle',
                               textAlign: column.align || 'left',
+                              backgroundColor: 'inherit',
+
                             }}
                           >
                             {column.renderCell
@@ -182,7 +195,7 @@ export function VirtualizedPatientTable<T extends Record<string, any>>({
 }: VirtualizedPatientTableProps<T>) {
   if (isLoading) {
     return (
-      <TableContainer component={Paper} sx={{ height: 600 }}>
+      <TableContainer component={Paper} sx={{ height: '100%', minHeight: 400 }}>
         <Box sx={{ p: 3, textAlign: 'center' }}>Carregando...</Box>
       </TableContainer>
     );
@@ -190,7 +203,7 @@ export function VirtualizedPatientTable<T extends Record<string, any>>({
 
   if (data.length === 0) {
     return (
-      <TableContainer component={Paper} sx={{ height: 600 }}>
+      <TableContainer component={Paper} sx={{ height: '100%', minHeight: 400 }}>
         <Box sx={{ p: 3, textAlign: 'center' }}>Nenhum registro encontrado</Box>
       </TableContainer>
     );
@@ -201,7 +214,7 @@ export function VirtualizedPatientTable<T extends Record<string, any>>({
       data={data}
       columns={columns}
       rowHeight={53}
-      height={600}
+      height="auto"
       onRowClick={onRowClick}
       getRowId={(row) => String(row.id ?? row.cpf)}
     />

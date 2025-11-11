@@ -1,1 +1,0 @@
-import{e as s,j as r}from"./patient-pages-PqkHv4F6.js";import{N as e}from"./react-vendor-DjnJ9H4W.js";import{L as u}from"./index-DwahfWwU.js";import"./mui-core-cahXazYV.js";const c=({children:o})=>{const{isLoading:i,isAuthenticated:a,user:t}=s();return i?r(u,{}):a?!t||t.tipoUsuario!=="ADMINISTRADOR"?r(e,{to:"/",replace:!0}):o:r(e,{to:"/login",replace:!0})};export{c as default};

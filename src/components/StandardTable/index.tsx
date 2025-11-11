@@ -88,9 +88,20 @@ function StandardTable<T>({
   );
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <TableContainer sx={{ maxHeight: 600 }}>
-        <Table stickyHeader={stickyHeader} aria-label="tabela de dados">
+    <Paper sx={{ 
+      width: '100%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      height: '100%',
+      minHeight: 500,
+    }}>
+      <TableContainer 
+        sx={{ 
+          flexGrow: 1,
+          overflow: 'auto',
+        }}
+      >
+        <Table stickyHeader={stickyHeader} aria-label="tabela de dados" sx={{ tableLayout: 'auto' }}>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
@@ -98,12 +109,27 @@ function StandardTable<T>({
                   key={String(column.id)}
                   align={column.align || 'left'}
                   style={{ minWidth: column.minWidth }}
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    zIndex: 2,
+                    position: 'sticky',
+                    top: 0,
+                  }}
                 >
                   {column.label}
                 </TableCell>
               ))}
               {actions && actions.length > 0 && (
-                <TableCell align="center" style={{ minWidth: 120 }}>
+                <TableCell 
+                  align="center" 
+                  style={{ minWidth: 120 }}
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    zIndex: 2,
+                    position: 'sticky',
+                    top: 0,
+                  }}
+                >
                   Ações
                 </TableCell>
               )}
@@ -120,7 +146,10 @@ function StandardTable<T>({
                   sx={{
                     cursor: onRowClick ? 'pointer' : 'default',
                     '&:nth-of-type(odd)': {
-                      backgroundColor: 'action.hover',
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.08) !important',
                     },
                   }}
                 >
