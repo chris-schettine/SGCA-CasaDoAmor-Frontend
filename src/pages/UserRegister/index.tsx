@@ -1,6 +1,7 @@
-import { Button, Grid, Box } from "@mui/material";
+import { Button, Grid, Box, Dialog, DialogTitle, DialogContent, Typography, Alert } from "@mui/material";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import PageHeader from "../../components/PageHeader";
+import ConsentimentoForm from "../../components/ConsentimentoForm";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
@@ -20,6 +21,8 @@ const UserRegisterPage = () => {
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
+  const [openConsentimentoDialog, setOpenConsentimentoDialog] = useState(false);
+  const [newUserUuid, setNewUserUuid] = useState<string>('');
 
   const handleOpenSaveDialog = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
@@ -176,8 +179,10 @@ const UserRegisterPage = () => {
       
 
       setOpenSaveDialog(false);
-      toastSuccess('Profissional cadastrado com sucesso!');
-      setTimeout(() => navigate('/users'), 1200);
+      
+      // Armazenar o UUID do usuário recém-criado e abrir modal de consentimento
+      setNewUserUuid(newUserResponse.uuid);
+      setOpenConsentimentoDialog(true);
 
     } catch (error: any) {
       console.error('Erro ao cadastrar profissional:', error);
@@ -191,6 +196,12 @@ const UserRegisterPage = () => {
     console.log('Erros de validação do usuário:', errors);
     toastError('Por favor, corrija os erros no formulário do usuário.');
     setOpenSaveDialog(false);
+  };
+
+  const handleConsentimentoSuccess = () => {
+    setOpenConsentimentoDialog(false);
+    toastSuccess('Profissional cadastrado com sucesso!');
+    setTimeout(() => navigate('/users'), 1200);
   };
 
   const handleConfirmSave = handleSubmit(handleSaveUser, onError);
@@ -275,6 +286,41 @@ const UserRegisterPage = () => {
         confirmButtonText="Sim, Salvar"
         cancelButtonText="Não, Voltar"
       />
+
+      {/* Dialog de Consentimento LGPD - Exibido após cadastro */}
+      <Dialog
+        open={openConsentimentoDialog}
+        onClose={undefined} // Impede fechar clicando fora
+        maxWidth="md"
+        fullWidth
+        disableEscapeKeyDown // Impede fechar com ESC
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                📋 Consentimento LGPD Obrigatório
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Para concluir o cadastro, é necessário registrar o consentimento
+              </Typography>
+            </div>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              O cadastro do profissional foi realizado com sucesso! 
+              Agora é obrigatório registrar o consentimento LGPD para prosseguir.
+            </Typography>
+          </Alert>
+          <ConsentimentoForm
+            profissionalUuid={newUserUuid}
+            onSuccess={handleConsentimentoSuccess}
+            obrigatorio={true}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

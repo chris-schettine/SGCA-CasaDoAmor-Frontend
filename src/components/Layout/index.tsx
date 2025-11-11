@@ -27,6 +27,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
+import ConsentimentoLGPDCheck from '../ConsentimentoLGPDCheck';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 
@@ -662,6 +663,9 @@ export default function Layout() {
             <Main>
                 <Outlet />
             </Main>
+
+            {/* Componente que verifica se precisa exibir consentimento LGPD */}
+            <ConsentimentoLGPDCheck />
 
             <KeyboardShortcutsHelp
                 open={shortcutsHelpOpen}

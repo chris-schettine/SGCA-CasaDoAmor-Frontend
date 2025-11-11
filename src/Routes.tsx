@@ -35,6 +35,7 @@ const SessionsPage = lazy(() => import('./pages/Sessions'));
 const UserRegisterPage = lazy(() => import('./pages/UserRegister'));
 const UserEditPage = lazy(() => import('./pages/UserEdit'));
 const MyProfilePage = lazy(() => import('./pages/MyProfile'));
+const ConsentimentoLGPDPage = lazy(() => import('./pages/ConsentimentoLGPD'));
 
 // Preload de rotas críticas
 const preloadRoutes = () => {
@@ -104,6 +105,7 @@ const AppRoutes = () => {
       } />
 
       <Route path="profile" element={<MyProfilePage />} />
+      <Route path="consentimentos-lgpd" element={<ConsentimentoLGPDPage />} />
 
       {/* Cadastros */}
       <Route path="patient/register" element={<PatientRegisterPage />} />
