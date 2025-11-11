@@ -70,18 +70,29 @@ export const acompanhanteService = {
   },
 
   /**
-   * Busca acompanhantes de um paciente específico
+   * Busca acompanhantes de um paciente específico com paginação
    * @param pacienteId - ID do paciente
-   * @returns Lista de acompanhantes do paciente
+   * @param limit - Limite de registros por página (padrão: 10)
+   * @param offset - Deslocamento para paginação (padrão: 0)
+   * @returns Lista paginada de acompanhantes do paciente
    */
   buscarAcompanhantesPorPaciente: async (
-    pacienteId: string
-  ): Promise<AcompanhanteDTO[]> => {
+    pacienteId: string,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<ListaAcompanhantesDTO> => {
     console.log('[acompanhanteService] Buscando acompanhantes para pacienteId:', pacienteId);
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+
     const response = await api.get<ListaAcompanhantesDTO>(
-      `/acompanhantes/?pacienteId=${pacienteId}&limit=100`
+      `/acompanhantes/paciente/${pacienteId}?${params.toString()}`
     );
     console.log('[acompanhanteService] Acompanhantes encontrados:', response.data.nodes.length);
-    return response.data.nodes;
+    console.log('[acompanhanteService] Total count:', response.data.totalCount);
+    console.log('[acompanhanteService] Has next page:', response.data.hasNextPage);
+    return response.data;
   },
 };

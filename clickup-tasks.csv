@@ -1,0 +1,136 @@
+Name,Description,Status,Priority,Due Date,Tags,Assignee
+"Implementar responsividade mobile completa","- Adicionar breakpoints responsivos em todo o tema
+- Implementar layout dual drawer (temporary mobile, permanent desktop)
+- Criar componente MobileCard para exibição em cards verticais
+- Converter todas as tabelas para cards no mobile (Pacientes, Usuários, Acompanhantes, Sessões, Auditoria)
+- Adicionar SwipeableDrawer no mobile com suporte a gestos nativos
+- Implementar touch targets de 48-56px (Material Design + Apple HIG)
+- Adicionar feedback tátil aprimorado com transform scale e transições 150ms
+- Remover logo do menu mobile para economizar espaço vertical
+- Melhorar header com título clicável para navegação home
+- Auto-close do menu após navegação no mobile
+- Aumentar ícones e texto para melhor legibilidade mobile
+- Ajustar AppBar para sincronizar com expansão/contração do drawer desktop
+- Implementar SearchBar responsivo com layout otimizado
+- Remover tap highlight azul no iOS/Android
+- Otimizar PageHeader para diferentes resoluções
+- Seguir best practices de NN/g, Smashing Magazine, Material Design e Apple HIG",Done,High,2025-11-10,frontend;mobile;ux,
+"Corrigir configurações de toast","- Ajustar autoClose duration para toast padrão e crítico
+- Comentar opção theme nas configurações de toast
+- Remover state errorMessage não utilizado em VerifyEmailPage
+- Exibir erro toast diretamente",Done,Medium,2025-11-10,frontend;bugfix,
+"Melhorar anotações de tipo em PatientInformation","- Remover imports não utilizados
+- Melhorar anotações de tipo TypeScript no componente PatientInformation",Done,Low,2025-11-10,frontend;typescript,
+"Implementar tela de auditoria","- Criar página de auditoria completa
+- Integrar com endpoints de auditoria do backend
+- Exibir logs de sessões, logins e perfis",Done,High,2025-11-10,frontend;feature,
+"Implementar sistema de toast em todas as páginas","- Integrar biblioteca toast em toda aplicação
+- Adicionar notificações de sucesso/erro em formulários
+- Melhorar feedback visual para usuário",Done,Medium,2025-11-09,frontend;ux,
+"Corrigir problemas de build","- Resolver problemas de compilação
+- Atualizar dependências conflitantes
+- Garantir build bem-sucedido",Done,High,2025-11-08,frontend;bugfix,
+"Adicionar gerenciamento completo de acompanhantes","- Criar DTOs e camada de serviço para acompanhantes
+- Implementar páginas de listagem, cadastro e edição
+- Adicionar tabela virtualizada de acompanhantes
+- Integrar navegação e roteamento
+- Adicionar validação de formulários
+- Melhorar tratamento de erros",Done,High,2025-11-08,frontend;feature;crud,
+"Refatorar e atualizar componentes de pacientes","- Atualizar DTO de paciente
+- Refatorar formulários de paciente
+- Ajustar esquema de validação
+- Melhorar segurança de tipos TypeScript
+- Atualizar tabelas relacionadas",Done,Medium,2025-11-08,frontend;refactor,
+"Configurar Storybook com stories completas","- Configurar global providers (QueryClient, ThemeProvider, MemoryRouter, AuthStore)
+- Adicionar suporte para inicialização de queries
+- Criar stories para componentes principais (Formulários, Tabelas, Navegação, UI)
+- Criar stories para páginas (Autenticação, Gerenciamento)
+- Remover nested routers
+- Adicionar mocks de serviços
+- Instalar @storybook/addon-actions",Done,Medium,2025-11-08,frontend;storybook;documentation,
+"Melhorar fluxo de login/logout","- Login redireciona para menu se já autenticado
+- logout() trata erros 401 e 404 corretamente
+- Adicionar logs específicos para cada tipo de erro
+- Melhorar UX evitando tela de login quando autenticado",Done,High,2025-11-08,frontend;auth;ux,
+"Adicionar limpeza de cache no logout","- logout() limpa cache do QueryClient
+- Implementar setQueryClient() para passar instância
+- Adicionar logs de confirmação
+- Resolver dados em cache após logout",Done,Medium,2025-11-08,frontend;auth;bugfix,
+"Corrigir logout assíncrono","- handleLogout aguarda logout() antes de redirecionar
+- logout() limpa localStorage manualmente
+- Adicionar logs de debug em PrivateRoute
+- Resolver acesso ao menu após logout",Done,High,2025-11-08,frontend;auth;bugfix,
+"Corrigir proteção de rotas privadas","- PrivateRoute bloqueia acesso não autenticado
+- Corrigir inicialização de useAuthStore
+- Ajustar checkAuthStatus e isLoading
+- Adicionar barras nas rotas públicas
+- Resolver acesso indevido à rota raiz",Done,High,2025-11-08,frontend;auth;security,
+"Corrigir fluxo de autenticação com Zustand persist","- api.gateway.ts lê token de 'auth-storage'
+- Login salva token antes de /auth/me
+- Aguardar sincronização do persist
+- Atualizar fallback de erro 401/403
+- Resolver erro 403 em /auth/me e /auth/logout",Done,Critical,2025-11-08,frontend;auth;bugfix,
+"Corrigir configuração de chunks Vite para Material-UI","- Remover chunk 'mui-utils' separado
+- Integrar @emotion/react no chunk 'mui-core'
+- Evitar dependências circulares
+- Resolver erro 'Z is not a function'
+- Otimizar build para 15 chunks",Done,High,2025-11-08,frontend;build;performance,
+"Adicionar componentes UI reutilizáveis","- Integrar Storybook com Chromatic
+- Criar componentes: AnimatedButton, AnimatedList, AnimatedPage, EmptyState, ErrorBoundary, FormSection, LoadingState, PageHeader, SearchBar, StandardTable, SuspenseWrapper, VirtualizedTable
+- Adicionar stories para cada componente
+- Refatorar páginas removendo estilos inline
+- Criar hooks useAdmin e usePatients
+- Nova store de autenticação",Done,Medium,2025-11-08,frontend;component;ui,
+"Implementar toggle de status de usuários com confirmação","- Substituir Switch por botões com ícones
+- Adicionar diálogo de confirmação
+- Exibir mensagem contextual
+- Implementar estado de carregamento por linha
+- Adicionar exportação CSV de logs de auditoria",Done,Medium,2025-11-08,frontend;feature;ux,
+"Adicionar alternância ativar/desativar usuários","- Adicionar método toggleUserStatus no adminService
+- Inserir Switch na tabela de usuários
+- Estado de carregamento por linha
+- Atualização otimista do estado local",Done,Medium,2025-11-08,frontend;feature,
+"Integrar auditoria e organizar campos médicos","- Adicionar DTOs de auditoria
+- Método getAuditPerfis no adminService
+- Integrar AuditLogPage com dados reais
+- Mapear tentativas de login
+- Mover campos tratamento e diagnóstico
+- Remover imports não usados",Done,Medium,2025-11-08,frontend;feature;refactor,
+"Integrar API de log de auditoria","- Adicionar DTOs em admin.dto.ts
+- Criar método de serviço em admin.service.ts
+- Atualizar AuditLogPage com dados reais da API
+- Mapear respostas para estrutura de tabela",Done,Medium,2025-11-08,frontend;api;integration,
+"Melhorias de acessibilidade sidebar","- Adicionar tooltips na navegação
+- Melhorar feedback visual
+- Adicionar seta para direita para abrir sidebar",Done,Medium,2025-11-06,frontend;accessibility;ux,
+"Atualizar sidebar e criar tela de auditoria","- Sidebar com seta para direita para abrir
+- Criar tela de auditoria inicial",Done,Medium,2025-11-05,frontend;feature;ui,
+"Adicionar atalhos de teclado e melhorias de acessibilidade","- Atalhos de teclado globais e modal de ajuda
+- Indicador de força de senha
+- Componentes de estado vazio
+- Estilos de foco mais claros
+- Validação de CPF em tempo real
+- Feedback de carregamento aprimorado
+- Navegação por breadcrumbs
+- Tooltips para campos e ações
+- Aviso de alterações não salvas
+- Suporte Ctrl+S para salvar
+- Refatorar estados vazios das tabelas",Done,High,2025-11-05,frontend;accessibility;ux;feature,
+"Alterar página de sessões","- Modificar endpoint de sessões
+- Incluir nome e CPF nos dados exibidos",Done,Low,2025-11-04,frontend;feature,
+"Adicionar configuração inicial do Vercel","- Configurar vercel.json
+- Adicionar rewrites para SPA",Done,Low,2025-11-04,devops;deployment,
+"Corrigir bug dataNascimento em UserEdit","- Resolver problema de data de nascimento
+- Corrigir formatação e validação",Done,Medium,2025-11-04,frontend;bugfix,
+"Atualizar estilos de toast e refatorar utilidade","- Substituir CSS/JS antigos por nova implementação
+- Atualizar lógica em src/utils/toast.ts
+- Modificar App.tsx para novo toast
+- Ajustar testes e referências",Done,Medium,2025-11-04,frontend;refactor;ui,
+"Implementar biblioteca toast na aplicação","- Integrar biblioteca toast
+- Alterar notificações de login
+- Melhorar feedback visual",Done,Medium,2025-11-03,frontend;feature;ux,
+"Mudanças de acessibilidade 01","- Melhorias iniciais de acessibilidade
+- Conformidade com WCAG",Done,Low,2025-11-03,frontend;accessibility,
+"Atualizar página PatientEdit","- Modificar src/pages/PatientEdit/index.tsx
+- Atualizar assets de build
+- Atualizar referências em dist/index.html",Done,Low,2025-11-01,frontend;feature,

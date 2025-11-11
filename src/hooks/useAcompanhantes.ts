@@ -56,12 +56,16 @@ export const useEditarAcompanhante = () => {
 };
 
 /**
- * Hook para buscar acompanhantes de um paciente específico
+ * Hook para buscar acompanhantes de um paciente específico com paginação
  */
-export const useAcompanhantesPorPaciente = (pacienteId?: string) => {
+export const useAcompanhantesPorPaciente = (
+  pacienteId?: string,
+  limit: number = 10,
+  offset: number = 0
+) => {
   return useQuery({
-    queryKey: ['acompanhantes', 'paciente', pacienteId],
-    queryFn: () => acompanhanteService.buscarAcompanhantesPorPaciente(pacienteId!),
+    queryKey: ['acompanhantes', 'paciente', pacienteId, limit, offset],
+    queryFn: () => acompanhanteService.buscarAcompanhantesPorPaciente(pacienteId!, limit, offset),
     enabled: !!pacienteId, // Só executa se tiver pacienteId
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
