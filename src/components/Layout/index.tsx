@@ -14,13 +14,13 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // Para Pacientes
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew'; // Para Acompanhantes (você terá que adicionar essa rota)
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'; // Para Usuários
 import HistoryIcon from '@mui/icons-material/History';
-import GroupsIcon from '@mui/icons-material/Groups';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -323,9 +323,11 @@ export default function Layout() {
     const { user } = useAuth();
 
     const navItems = [
-        { to: "/patients", primary: "Pacientes", Icon: GroupsIcon },
-        { to: "/companions", primary: "Acompanhantes", Icon: SupervisorAccountIcon },
-        { to: "/users", primary: "Usuários", Icon: PeopleAltIcon, requiredRole: 'ADMINISTRADOR' },
+        { to: "/profile", primary: "Meu Perfil", Icon: AccountCircleIcon },
+        { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 
+        { to: "/companions", primary: "Acompanhantes", Icon: AccessibilityNewIcon }, 
+        { to: "/users", primary: "Usuários", Icon: ManageAccountsIcon, requiredRole: 'ADMINISTRADOR' }, 
+        
         { to: "/sessions", primary: "Sessões Ativas", Icon: HistoryIcon, requiredRole: 'ADMINISTRADOR' },
         { to: "/auditoria", primary: "Auditoria", Icon: GavelIcon, requiredRole: 'ADMINISTRADOR' },
     ];
