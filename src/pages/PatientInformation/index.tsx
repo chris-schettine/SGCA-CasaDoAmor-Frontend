@@ -1,6 +1,6 @@
-import { Button, CircularProgress, type AlertColor, type SnackbarCloseReason, Box, Typography, Card, CardContent, Chip } from "@mui/material";
+import { Button, CircularProgress, Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
 import type { PacienteDTO } from "../../api/paciente.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
@@ -37,14 +37,14 @@ const PatientInformation = () => {
       return acompanhantes;
     }
 
-    const byId = acompanhantes.filter((acompanhante) => (acompanhante as any)?.pacienteId === patient.id);
+    const byId = acompanhantes.filter((acompanhante: any) => acompanhante?.pacienteId === patient.id);
     if (byId.length > 0) {
       return byId;
     }
 
     const patientName = patient.dadoPessoal?.nome?.trim().toLowerCase();
     if (patientName) {
-      const byName = acompanhantes.filter((acompanhante) =>
+      const byName = acompanhantes.filter((acompanhante: any) =>
         acompanhante.pacienteNome?.trim().toLowerCase() === patientName
       );
       if (byName.length > 0) {
@@ -272,7 +272,7 @@ const PatientInformation = () => {
               </Box>
             ) : filteredAcompanhantes.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {filteredAcompanhantes.map((acompanhante) => (
+                {filteredAcompanhantes.map((acompanhante: any) => (
                   <Card key={acompanhante.id} sx={{ boxShadow: 1 }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
