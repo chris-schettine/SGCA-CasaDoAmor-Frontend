@@ -10,6 +10,10 @@ import type {
   PerfilDTO,
   PermissaoDTO,
   Pageable,
+  AuditPerfisResponseDTO,
+  AuditSessionsResponseDTO,
+  AuditLoginsQueryParams,
+  RelatorioLoginsDTO,
 } from './admin.dto';
 
 class AdminService {
@@ -89,17 +93,17 @@ class AdminService {
     return response.data;
   }
 
-  async getAuditSessions(): Promise<any> {
+  async getAuditSessions(): Promise<AuditSessionsResponseDTO> {
     const response = await api.get('/admin/audit/sessions');
     return response.data;
   }
 
-  async getAuditLogins(params: any): Promise<any> {
+  async getAuditLogins(params: AuditLoginsQueryParams): Promise<RelatorioLoginsDTO> {
     const response = await api.get('/admin/audit/logins', { params });
     return response.data;
   }
 
-  async getAuditPerfis(): Promise<any> {
+  async getAuditPerfis(): Promise<AuditPerfisResponseDTO> {
     const response = await api.get('/admin/audit/perfis');
     return response.data;
   }
@@ -108,12 +112,12 @@ class AdminService {
     await api.patch(`/admin/users/${id}/toggle-status`);
   }
 
-  async getPhotoUrl(id: number): Promise<any> {
+  async getPhotoUrl(id: number): Promise<unknown> {
     const response = await api.get(`/admin/${id}/foto`);
-    return response.data;
+    return response.data as unknown;
   }
 
-  async uploadPhoto(id: number, file: File): Promise<any> {
+  async uploadPhoto(id: number, file: File): Promise<unknown> {
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.post(`/admin/${id}/foto`, formData, {
@@ -121,7 +125,7 @@ class AdminService {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response.data as unknown;
   }
 
   async deletePhoto(id: number): Promise<void> {

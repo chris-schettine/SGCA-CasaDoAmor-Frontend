@@ -4,6 +4,12 @@ import type { UserType } from '../contexts/AuthContext';
 export interface LoginResponse {
   token: string;
   user: UserType;
+  nome?: string;
+  email?: string;
+  cpf?: string;
+  roles?: string[];
+  tipoUsuario?: string;
+  tipo?: string;
 }
 
 export interface ForgotPasswordDTO {
@@ -93,4 +99,16 @@ export interface SessaoAuditDTO extends SessaoDTO {
 export interface MessageResponseDTO {
   message: string;
   success: boolean;
+}
+
+export interface AuthSessionResponse {
+  nome?: string;
+  email?: string;
+  cpf?: string;
+  uuid?: string;
+  roles?: string[];
+  perfis?: Array<{ nome?: string | null } | null>;
+  tipo?: string;
+  tipoUsuario?: string;
+  user?: AuthSessionResponse;
 }

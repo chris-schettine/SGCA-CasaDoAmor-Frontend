@@ -15,6 +15,7 @@ import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
 import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
+import { isAxiosError } from "axios";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -47,12 +48,12 @@ const UserRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
+    getValues,
     
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
     defaultValues: {
-      tipo: undefined as any,
       cpfUsuario: "",
       email: "",
       telefone: "",
@@ -77,10 +78,11 @@ const UserRegisterPage = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
+      const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillUserFormWithFakeData,
-        setValue
+        typedSetValue
       );
       return cleanup;
     }
@@ -91,12 +93,11 @@ const UserRegisterPage = () => {
   useEffect(() => {
     const handleCepSearch = async (cep: string) => {
       clearErrors('cep');
-
-      const hasEndereco = !!watch('endereco');
-      const hasBairro = !!watch('bairro');
-      const hasCidade = !!watch('cidade');
-      const hasEstado = !!watch('estado');
-      const hasComplemento = !!watch('complemento');
+      const hasEndereco = !!getValues('endereco');
+      const hasBairro = !!getValues('bairro');
+      const hasCidade = !!getValues('cidade');
+      const hasEstado = !!getValues('estado');
+      const hasComplemento = !!getValues('complemento');
 
       const cleanedCep = cep.replace(/\D/g, '');
       if (cleanedCep.length === 8) {
@@ -123,7 +124,7 @@ const UserRegisterPage = () => {
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
       handleCepSearch(cepValue);
     }
-  }, [cepValue, setValue, setError, clearErrors, toastError, toastWarn, watch]);
+  }, [cepValue, setValue, setError, clearErrors, getValues]);
 
   // Atalho Ctrl+S para salvar
   useSaveShortcut(() => {
@@ -136,43 +137,58 @@ const UserRegisterPage = () => {
       const createDTO: CreateUserDTO = {
         nome: data.nomeUsuario,
         email: data.email,
-        cpf: data.cpfUsuario ? removeNonNumeric(data.cpfUsuario) : '',
+        cpf: removeNonNumeric(data.cpfUsuario),
         telefone: data.telefone || undefined,
         tipo: data.tipo || '',
         perfisIds: data.perfisIds,
       };
 
-     
       const newUserResponse = await adminService.createUser(createDTO);
       const newUserId = newUserResponse.id; 
 
-      
-      const updateDTO: UpdateUserDTO = {
-        dadosPessoais: {
-          dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
-          sexo: data.sexo || undefined,
-          naturalidade: data.naturalidade || undefined,
-          estadoCivil: data.estadoCivil || undefined,
-
-          // O DTO é inconsistente, mas o schema e o form
-          // possuem estes campos. Enviamos eles aqui.
-          // @ts-ignore
-          conselho: data.conselho,
-          // @ts-ignore
-          registro: data.registro,
-          // @ts-ignore
-          rqe: data.rqe,
-        },
-        endereco: {
-          cep: data.cep ? removeNonNumeric(data.cep) : undefined,
-          logradouro: data.endereco || undefined,
-          numero: data.numero || undefined,
-          bairro: data.bairro || undefined,
-          cidade: data.cidade || undefined,
-          uf: data.estado || undefined, 
-          complemento: data.complemento || undefined,
-        },
+      const normalize = (value?: string | null) => {
+        if (!value) return undefined;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
       };
+      const pruneObject = <T extends object>(obj: T): T | undefined => {
+        const entries = Object.entries(obj as Record<string, unknown>).filter(([, value]) => value !== undefined && value !== null);
+        if (entries.length === 0) {
+          return undefined;
+        }
+        return Object.fromEntries(entries) as T;
+      };
+
+      const dadosPessoais = pruneObject<NonNullable<UpdateUserDTO['dadosPessoais']>>({
+        dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
+        sexo: normalize(data.sexo),
+        naturalidade: normalize(data.naturalidade),
+        estadoCivil: normalize(data.estadoCivil),
+        nomeMae: normalize(data.nomeMae),
+        nomePai: normalize(data.nomePai),
+        profissao: normalize(data.profissao),
+      });
+
+      const endereco = pruneObject<NonNullable<UpdateUserDTO['endereco']>>({
+        cep: data.cep ? removeNonNumeric(data.cep) : undefined,
+        logradouro: normalize(data.endereco),
+        numero: normalize(data.numero),
+        bairro: normalize(data.bairro),
+        cidade: normalize(data.cidade),
+        uf: normalize(data.estado),
+        complemento: normalize(data.complemento),
+      });
+
+      const registroProfissional = pruneObject<NonNullable<UpdateUserDTO['registroProfissional']>>({
+        tipoProfissional: normalize(data.tipo),
+        numeroRegistro: normalize(data.registro),
+        rqe: normalize(data.rqe),
+      });
+
+      const updateDTO: UpdateUserDTO = {};
+      if (dadosPessoais) updateDTO.dadosPessoais = dadosPessoais;
+      if (endereco) updateDTO.endereco = endereco;
+      if (registroProfissional) updateDTO.registroProfissional = registroProfissional;
 
       
       await adminService.updateUser(newUserId, updateDTO);
@@ -184,9 +200,11 @@ const UserRegisterPage = () => {
       setNewUserUuid(newUserResponse.uuid);
       setOpenConsentimentoDialog(true);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao cadastrar profissional:', error);
-      const message = error.response?.data?.message || 'Erro ao processar usuário. Tente novamente.';
+      const message = isAxiosError(error)
+        ? error.response?.data?.message || 'Erro ao processar usuário. Tente novamente.'
+        : 'Erro ao processar usuário. Tente novamente.';
       toastError(message);
       setOpenSaveDialog(false);
     }

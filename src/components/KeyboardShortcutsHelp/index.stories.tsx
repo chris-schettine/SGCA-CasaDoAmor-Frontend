@@ -81,7 +81,6 @@ export const Interactive: Story = {
       </>
     );
   },
-  name: 'Interactive Dialog',
 };
 
 export const EmptyState: Story = {
@@ -89,5 +88,4 @@ export const EmptyState: Story = {
       open: true,
       shortcuts: [],
     },
-    name: 'Empty State',
   };

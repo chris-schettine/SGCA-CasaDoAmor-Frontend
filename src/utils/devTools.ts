@@ -4,7 +4,18 @@
  * Gera dados fake realistas para testes de formulários
  */
 
-import { faker } from '@faker-js/faker/locale/pt_BR';
+import { fakerPT_BR } from '@faker-js/faker';
+
+const faker = fakerPT_BR;
+
+type SetValueOptions = {
+  shouldValidate?: boolean;
+  shouldDirty?: boolean;
+  shouldTouch?: boolean;
+};
+
+type GenericSetValue = (fieldName: string, value: unknown, options?: SetValueOptions) => void;
+type GenericClearErrors = (fields?: string | readonly string[]) => void;
 
 /**
  * Gera um CPF fake (formato válido mas não real)
@@ -72,14 +83,14 @@ export const generateFakeCEP = (): string => {
  */
 const fillSelect = (
   fieldName: string,
-  value: any,
-  setValue: any,
+  value: unknown,
+  setValue: GenericSetValue,
   elementId?: string,
   options?: {
     shouldValidate?: boolean;
     shouldDirty?: boolean;
     shouldTouch?: boolean;
-    clearFallback?: any;
+    clearFallback?: unknown;
   }
 ) => {
   const {
@@ -91,7 +102,7 @@ const fillSelect = (
 
   const isClearing = value === undefined || value === null || value === '';
   const formValue = isClearing ? clearFallback : value;
-  const domValue = isClearing ? String(clearFallback ?? '') : (value ?? '');
+  const domValue = isClearing ? String(clearFallback ?? '') : String(value ?? '');
 
   // 1. Atualiza via react-hook-form
   setValue(fieldName, formValue, { shouldValidate, shouldDirty, shouldTouch });
@@ -144,7 +155,7 @@ const fillSelect = (
 /**
  * Preenche formulário de paciente com dados fake
  */
-export const fillPatientFormWithFakeData = (setValue: any, clearErrors?: any) => {
+export const fillPatientFormWithFakeData = (setValue: GenericSetValue, clearErrors?: GenericClearErrors) => {
   // Pequeno delay para garantir que o DOM está pronto
   setTimeout(() => {
     // Dados Pessoais (campos flat no PatientRegister)
@@ -296,7 +307,7 @@ export const fillPatientFormWithFakeData = (setValue: any, clearErrors?: any) =>
 /**
  * Preenche formulário de acompanhante com dados fake
  */
-export const fillCompanionFormWithFakeData = (setValue: any, _clearErrors?: any) => {
+export const fillCompanionFormWithFakeData = (setValue: GenericSetValue) => {
   // Pequeno delay para garantir que o DOM está pronto
   setTimeout(() => {
     // Dados Pessoais
@@ -359,7 +370,7 @@ export const fillCompanionFormWithFakeData = (setValue: any, _clearErrors?: any)
 /**
  * Preenche formulário de usuário/profissional com dados fake
  */
-const fillUserFormWithFakeData = (setValue: any) => {
+const fillUserFormWithFakeData = (setValue: GenericSetValue) => {
   // Pequeno delay para garantir que o DOM está pronto
   setTimeout(() => {
     const tipos = ["ADMINISTRADOR", "DENTISTA", "ENFERMEIRO", "FISIOTERAPEUTA", "MEDICO", "NUTRICIONISTA", "RECEPCIONISTA", "AUDITOR"];
@@ -421,9 +432,9 @@ const fillUserFormWithFakeData = (setValue: any) => {
  */
 export const addFakeDataButton = (
   formRef: HTMLFormElement | null,
-  fillFunction: (setValue: any, clearErrors?: any) => void,
-  setValue: any,
-  clearErrors?: any
+  fillFunction: (setValue: GenericSetValue, clearErrors?: GenericClearErrors) => void,
+  setValue: GenericSetValue,
+  clearErrors?: GenericClearErrors
 ) => {
   if (process.env.NODE_ENV !== 'development') return;
   

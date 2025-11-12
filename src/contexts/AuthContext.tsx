@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { isAxiosError } from 'axios';
 
 import { authService } from '../api/auth.service'; 
 
@@ -9,6 +10,7 @@ export interface UserType {
   roles: string[];
   // tipoUsuario é o campo vindo do backend: e.g. 'ADMINISTRADOR' ou outro tipo
   tipoUsuario?: string;
+  uuid?: string;
 }
 
 interface AuthContextType {
@@ -54,38 +56,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // mantemos o token/usuário restaurados do localStorage para evitar que o usuário
             // perca a sessão ao atualizar a página.
             try {
-              const rawUser: any = await authService.getActiveSession();
+              const rawUser = await authService.getActiveSession();
               if (rawUser) {
                 // Normalize backend user shape to our frontend UserType
                 const normalizedUser: UserType = {
-                  nome: rawUser.nome || rawUser.user?.nome || '',
-                  email: rawUser.email || rawUser.user?.email || '',
-                  cpf: rawUser.cpf || rawUser.user?.cpf || '',
-                  roles: (rawUser.perfis && Array.isArray(rawUser.perfis))
-                    ? rawUser.perfis.map((p: any) => p.nome)
-                    : (rawUser.roles || rawUser.user?.roles || []),
-                  tipoUsuario: rawUser.tipo || rawUser.tipoUsuario || rawUser.user?.tipoUsuario,
+                  nome: rawUser.nome ?? rawUser.user?.nome ?? '',
+                  email: rawUser.email ?? rawUser.user?.email ?? '',
+                  cpf: rawUser.cpf ?? rawUser.user?.cpf ?? '',
+                  roles: Array.isArray(rawUser.perfis)
+                    ? rawUser.perfis
+                        .map((perfil) => perfil?.nome)
+                        .filter((roleName): roleName is string => Boolean(roleName))
+                    : rawUser.roles ?? rawUser.user?.roles ?? [],
+                  tipoUsuario: rawUser.tipo ?? rawUser.tipoUsuario ?? rawUser.user?.tipoUsuario,
+                  uuid: rawUser.uuid ?? rawUser.user?.uuid,
                 };
 
                 setUser(normalizedUser);
                 localStorage.setItem('authUser', JSON.stringify(normalizedUser));
               }
-            } catch (error: any) {
-              const status = error?.response?.status;
-              console.warn('[AuthContext] Falha ao validar sessão:', status || error);
-              if (status === 401) {
+            } catch (error: unknown) {
+              if (isAxiosError(error)) {
+                const status = error.response?.status;
+                console.warn('[AuthContext] Falha ao validar sessão:', status ?? error);
+                if (status === 401) {
+                  // Token inválido ou expirado - limpa sessão
+                  localStorage.removeItem('authToken');
+                  localStorage.removeItem('authUser');
+                  setToken(null);
+                  setUser(null);
+                  setIsAuthenticated(false);
+                } else {
+                  // Para 403 (acesso negado) ou outros erros, mantemos o usuário localmente
+                  // (evita que admins percam permissões ao recarregar a página quando /auth/me
+                  // não estiver disponível para retornar o perfil por políticas do backend).
+                  console.warn('[AuthContext] Mantendo sessão local apesar do erro de validação');
+                  setIsAuthenticated(true);
+                }
+              } else {
                 // Token inválido ou expirado - limpa sessão
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('authUser');
                 setToken(null);
                 setUser(null);
                 setIsAuthenticated(false);
-              } else {
-                // Para 403 (acesso negado) ou outros erros, mantemos o usuário localmente
-                // (evita que admins percam permissões ao recarregar a página quando /auth/me
-                // não estiver disponível para retornar o perfil por políticas do backend).
-                console.warn('[AuthContext] Mantendo sessão local apesar do erro de validação');
-                setIsAuthenticated(true);
+                console.warn('[AuthContext] Falha ao validar sessão (erro inesperado):', error);
               }
             }
           } catch (parseError) {
@@ -134,8 +149,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       // 👇 CORREÇÃO: Usa o método limpo do authService
       await authService.logout(); 
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        console.error("Erro ao fazer logout:", error.response?.status ?? error.message);
+      } else if (error instanceof Error) {
+        console.error("Erro ao fazer logout:", error.message);
+      } else {
+        console.error("Erro ao fazer logout:", error);
+      }
     } finally {
       // Limpa localStorage
       localStorage.removeItem('authToken');
@@ -165,19 +186,3 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export { AuthContext };
-
-// Utility to force logout from non-react modules (e.g. API gateway interceptor).
-// This performs the minimal cleanup: clears localStorage and redirects to /login.
-// Avoids using React hooks since it may be called outside React lifecycle.
-export const forceLogout = () => {
-  try {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-  } catch (e) {
-    console.warn('[forceLogout] erro ao limpar storage', e);
-  }
-  // Redirect to login page
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login';
-  }
-};

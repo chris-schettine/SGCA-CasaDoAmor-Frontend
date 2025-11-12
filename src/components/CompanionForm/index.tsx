@@ -27,6 +27,48 @@ interface CompanionFormProps {
   isEditMode?: boolean;
 }
 
+const BRAZILIAN_STATES = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+] as const;
+
+type BrazilianState = (typeof BRAZILIAN_STATES)[number];
+
+const normalizeState = (value?: string | null): BrazilianState | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const upper = value.toUpperCase();
+  return BRAZILIAN_STATES.includes(upper as BrazilianState)
+    ? (upper as BrazilianState)
+    : undefined;
+};
+
 const CompanionForm = ({
   register,
   errors,
@@ -60,7 +102,10 @@ const CompanionForm = ({
           if (!logradouroValue) setValue('endereco.logradouro', addressData.logradouro || '');
           if (!bairroValue) setValue('endereco.bairro', addressData.bairro || '');
           if (!cidadeValue) setValue('endereco.cidade', addressData.localidade || '');
-          setValue('endereco.estado', addressData.uf as any || undefined);
+          const stateValue = normalizeState(addressData.uf);
+          if (stateValue) {
+            setValue('endereco.estado', stateValue);
+          }
           if (!complementoValue) setValue('endereco.complemento', addressData.complemento || '');
         } else {
           setError('endereco.cep', { type: 'manual', message: 'CEP não encontrado ou inválido.' });
@@ -71,7 +116,6 @@ const CompanionForm = ({
       }
     }
   };
-
   return (
     <>
       {/* Seção: Dados Pessoais */}
@@ -523,7 +567,7 @@ const CompanionForm = ({
                 <FormLabel component="legend">Status</FormLabel>
                 <Controller
                   name="ativo"
-                  control={control}
+                  control={control as unknown as Control<EditCompanionFormInputs>}
                   render={({ field: { value, onChange, ...field } }) => (
                     <FormControlLabel
                       control={

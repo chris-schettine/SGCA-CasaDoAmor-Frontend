@@ -10,13 +10,29 @@ vi.mock('../components/LoadingBackdrop', () => ({
 
 vi.mock('../hooks/useAuth')
 
+const mockUseAuth = vi.mocked(useAuthModule.useAuth)
+
+type UseAuthReturn = ReturnType<typeof useAuthModule.useAuth>
+
+const createAuthState = (overrides: Partial<UseAuthReturn> = {}): UseAuthReturn => ({
+  isAuthenticated: false,
+  isLoading: false,
+  user: null,
+  token: null,
+  login: () => {},
+  logout: async () => {},
+  checkAuthStatus: async () => {},
+  setLoading: () => {},
+  ...overrides,
+})
+
 describe('PrivateRoute', () => {
   afterEach(() => {
     vi.resetAllMocks()
   })
 
   it('exibe loading quando isLoading é true', () => {
-    (useAuthModule as any).useAuth = () => ({ isAuthenticated: false, isLoading: true })
+    mockUseAuth.mockReturnValue(createAuthState({ isLoading: true }))
 
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -30,7 +46,7 @@ describe('PrivateRoute', () => {
   })
 
   it('redireciona para /login quando não autenticado', () => {
-    (useAuthModule as any).useAuth = () => ({ isAuthenticated: false, isLoading: false })
+    mockUseAuth.mockReturnValue(createAuthState({ isAuthenticated: false }))
 
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -45,7 +61,7 @@ describe('PrivateRoute', () => {
   })
 
   it('renderiza os filhos quando autenticado', () => {
-    (useAuthModule as any).useAuth = () => ({ isAuthenticated: true, isLoading: false })
+    mockUseAuth.mockReturnValue(createAuthState({ isAuthenticated: true }))
 
     render(
       <MemoryRouter initialEntries={["/"]}>

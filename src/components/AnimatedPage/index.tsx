@@ -29,7 +29,7 @@ export const AnimatedPage = ({ children }: AnimatedPageProps) => {
 /**
  * Variantes para transições de página mais elaboradas
  */
-export const pageVariants = {
+const pageVariants = {
   initial: {
     opacity: 0,
     x: -20,
@@ -44,7 +44,7 @@ export const pageVariants = {
   },
 };
 
-export const pageTransition = {
+const pageTransition = {
   type: 'tween' as const,
   ease: 'anticipate' as const,
   duration: 0.4,

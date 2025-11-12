@@ -1,9 +1,11 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, Link as MuiLink } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { useAuth } from "../../hooks/useAuth";
 import { toastError, toastSuccess } from "../../utils/toast";
+import type { UserType } from "../../stores/useAuthStore";
 
 // --- Estilos Básicos ---
 const BoxStyles = {
@@ -47,9 +49,9 @@ const LoginVerify2FAPage = () => {
       toastError("Erro: CPF não encontrado para verificação 2FA. Retornando ao login.");
       setTimeout(() => navigate('/login'), 2000); 
     }
-  }, [navigate, toastError]);
+  }, [navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!cpf) return;
     setIsLoading(true);
@@ -71,26 +73,32 @@ const LoginVerify2FAPage = () => {
       // Try to fetch the full user profile (with roles) from /auth/me to ensure we have
       // correct permissions immediately after 2FA. If this fails, fall back to using
       // the user object returned in the verify2FA response.
-      let finalUser = {
-        nome: resp.user?.nome || '',
-        email: resp.user?.email || '',
-        cpf: cpf || '',
-        roles: resp.user?.roles || [],
-        tipoUsuario: resp.user?.tipoUsuario || undefined,
+      let finalUser: UserType = {
+        nome: resp.user?.nome ?? '',
+        email: resp.user?.email ?? '',
+        cpf: cpf ?? resp.user?.cpf ?? '',
+        roles: resp.user?.roles ?? [],
+        tipoUsuario: resp.user?.tipoUsuario,
+        uuid: resp.user?.uuid,
       };
 
       try {
-        const raw: any = await authService.getActiveSession();
+        const raw = await authService.getActiveSession();
         // Normalize shape similar to AuthContext normalization
-        const normalizedUser = {
-          nome: raw.nome || raw.user?.nome || finalUser.nome,
-          email: raw.email || raw.user?.email || finalUser.email,
-          cpf: raw.cpf || raw.user?.cpf || finalUser.cpf,
-          roles: (raw.perfis && Array.isArray(raw.perfis))
-            ? raw.perfis.map((p: any) => p.nome)
-            : (raw.roles || raw.user?.roles || finalUser.roles),
-          tipoUsuario: raw.tipo || raw.tipoUsuario || raw.user?.tipoUsuario || finalUser.tipoUsuario,
-        } as any;
+        const rolesFromPerfis = Array.isArray(raw.perfis)
+          ? raw.perfis
+              .map((perfil) => perfil?.nome)
+              .filter((roleName): roleName is string => Boolean(roleName))
+          : undefined;
+
+        const normalizedUser: UserType = {
+          nome: raw.nome ?? raw.user?.nome ?? finalUser.nome,
+          email: raw.email ?? raw.user?.email ?? finalUser.email,
+          cpf: raw.cpf ?? raw.user?.cpf ?? finalUser.cpf,
+          roles: rolesFromPerfis ?? raw.roles ?? raw.user?.roles ?? finalUser.roles,
+          tipoUsuario: raw.tipo ?? raw.tipoUsuario ?? raw.user?.tipoUsuario ?? finalUser.tipoUsuario,
+          uuid: raw.uuid ?? raw.user?.uuid ?? finalUser.uuid,
+        };
 
         finalUser = normalizedUser;
       } catch (err) {
@@ -100,14 +108,16 @@ const LoginVerify2FAPage = () => {
       sessionStorage.removeItem('cpfFor2FA');
 
       // Call login with the token and the (preferably) full user object
-      login(token, finalUser as any);
+      login(token, finalUser);
 
       toastSuccess('Código verificado com sucesso!');
       setTimeout(() => navigate('/'), 1500);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao verificar 2FA:", error);
-      const message = error.response?.data?.message || "Código inválido ou expirado.";
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? "Código inválido ou expirado."
+        : "Código inválido ou expirado.";
       toastError(message);
       setIsLoading(false);
     }
@@ -117,14 +127,16 @@ const LoginVerify2FAPage = () => {
     if (!cpf) return; 
     setResendLoading(true);
     try {
-        await authService.resend2FA(); //
-        toastSuccess("Novo código enviado para seu e-mail.");
-    } catch (error: any) {
-        console.error("Erro ao reenviar código:", error);
-        const message = error.response?.data?.message || "Erro ao reenviar código.";
-        toastError(message);
+      await authService.resend2FA(); //
+      toastSuccess("Novo código enviado para seu e-mail.");
+    } catch (error: unknown) {
+      console.error("Erro ao reenviar código:", error);
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? "Erro ao reenviar código."
+        : "Erro ao reenviar código.";
+      toastError(message);
     } finally {
-        setResendLoading(false);
+      setResendLoading(false);
     }
 };
 

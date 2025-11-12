@@ -3,6 +3,7 @@ import { Dialog, DialogTitle, DialogContent, Box, Typography, Alert } from '@mui
 import ConsentimentoForm from '../ConsentimentoForm';
 import { useAuth } from '../../hooks/useAuth';
 import { useConsentimentos } from '../../hooks/useConsentimento';
+import type { UserType } from '../../stores/useAuthStore';
 
 /**
  * Componente que verifica se o usuário logado precisa registrar consentimento LGPD
@@ -14,7 +15,8 @@ const ConsentimentoLGPDCheck = () => {
   const [hasChecked, setHasChecked] = useState(false);
 
   // Obter UUID do usuário do contexto
-  const userUuid = (user as any)?.uuid || '';
+  type UserWithUuid = UserType & { uuid?: string };
+  const userUuid = (user as UserWithUuid)?.uuid ?? '';
   const tipoUsuario = user?.tipoUsuario || '';
 
   // Buscar consentimentos existentes

@@ -56,8 +56,9 @@ const closedMixin = (theme: Theme): CSSObject => ({
     width: closedDrawerWidth,
 });
 
-const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }: any) => ({
+const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })<{
+    open?: boolean;
+}>(({ theme, open }) => ({
         width: drawerWidth,
         flexShrink: 0,
         boxSizing: 'border-box',
@@ -69,8 +70,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'ope
             ...closedMixin(theme),
             '& .MuiDrawer-paper': closedMixin(theme),
         }),
-    }),
-);
+    }));
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{

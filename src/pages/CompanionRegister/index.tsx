@@ -2,10 +2,10 @@ import { Button, Box } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import type { FieldErrors } from "react-hook-form";
+import type { Control, FieldErrors, UseFormClearErrors, UseFormRegister, UseFormSetError, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { companionSchema, type CompanionFormInputs } from "../../schemas/companionSchema";
+import { companionSchema, type CompanionFormInputs, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useRegistrarAcompanhante } from "../../hooks/useAcompanhantes";
@@ -33,7 +33,33 @@ const CompanionRegisterPage = () => {
         navigate('/patients');
       }, 2000);
     }
-  }, [patientId, navigate, toastWarn]);
+  }, [patientId, navigate]);
+
+  const defaultValues: Partial<CompanionFormInputs> = {
+    dadoPessoal: {
+      nome: "",
+      nomeMae: "",
+      dataNascimento: "",
+      cpf: "",
+      rg: "",
+      naturalidade: "",
+      profissao: "",
+      telefone: "",
+      estadoCivil: undefined,
+    },
+    endereco: {
+      logradouro: "",
+      numero: undefined,
+      complemento: "",
+      bairro: "",
+      cidade: "",
+      estado: undefined,
+      cep: "",
+    },
+    parentesco: undefined,
+    pacienteId: patientId || "",
+    podeAjudarNaCozinha: false,
+  };
 
   const {
     register,
@@ -47,42 +73,20 @@ const CompanionRegisterPage = () => {
   } = useForm<CompanionFormInputs>({
     resolver: zodResolver(companionSchema),
     mode: "onBlur",
-    defaultValues: {
-      dadoPessoal: {
-        nome: "",
-        nomeMae: "",
-        dataNascimento: "",
-        cpf: "",
-        rg: "",
-        naturalidade: "",
-        profissao: "",
-        telefone: "",
-        estadoCivil: undefined,
-      },
-      endereco: {
-        logradouro: "",
-        numero: undefined,
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        estado: undefined,
-        cep: "",
-      },
-      parentesco: undefined as any,
-      pacienteId: patientId || "",
-      podeAjudarNaCozinha: false,
-    },
+    defaultValues,
   });
 
   // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
+      const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
+      const typedClearErrors = clearErrors as unknown as Parameters<typeof DevTools.addFakeDataButton>[3];
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillCompanionFormWithFakeData,
-        setValue,
-        clearErrors
+        typedSetValue,
+        typedClearErrors
       );
       return cleanup;
     }
@@ -185,13 +189,13 @@ const CompanionRegisterPage = () => {
         noValidate
       >
         <CompanionForm
-          register={register as any}
-          errors={errors as any}
-          watch={watch as any}
-          control={control as any}
-          setValue={setValue as any}
-          setError={setError as any}
-          clearErrors={clearErrors as any}
+          register={register as unknown as UseFormRegister<CompanionFormInputs | EditCompanionFormInputs>}
+          errors={errors as FieldErrors<CompanionFormInputs | EditCompanionFormInputs>}
+          watch={watch as UseFormWatch<CompanionFormInputs | EditCompanionFormInputs>}
+          control={control as unknown as Control<CompanionFormInputs | EditCompanionFormInputs>}
+          setValue={setValue as unknown as UseFormSetValue<CompanionFormInputs | EditCompanionFormInputs>}
+          setError={setError as unknown as UseFormSetError<CompanionFormInputs | EditCompanionFormInputs>}
+          clearErrors={clearErrors as UseFormClearErrors<CompanionFormInputs | EditCompanionFormInputs>}
           isEditMode={false}
         />
 

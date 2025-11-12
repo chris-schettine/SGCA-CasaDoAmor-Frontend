@@ -36,7 +36,7 @@ const ConsentimentoLGPDPage = () => {
 
   // Assumindo que o UUID do profissional está disponível no contexto de autenticação
   // Ajuste conforme a estrutura real do seu user object
-  const profissionalUuid = (user as any)?.uuid || '';
+  const profissionalUuid = user?.uuid ?? '';
 
   const {
     data: consentimentosData,

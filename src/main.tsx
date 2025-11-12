@@ -1,4 +1,5 @@
 import { StrictMode, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
@@ -27,13 +28,12 @@ const queryClient = new QueryClient({
 setQueryClient(queryClient);
 
 // Componente para inicializar auth
-function AuthInitializer({ children }: { children: React.ReactNode }) {
+export const AuthInitializer = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
 
   useEffect(() => {
     checkAuthStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ✅ Executa apenas uma vez no mount
+  }, [checkAuthStatus]);
 
   return <>{children}</>;
 }

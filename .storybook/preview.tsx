@@ -14,6 +14,16 @@ const withProviders: Decorator = (Story, context) => {
   const authParam = context.parameters?.auth ?? {};
   const reactQueryParam = context.parameters?.reactQuery ?? {};
 
+  type StorybookAuthParam = {
+    isAuthenticated?: boolean;
+    user?: UserType;
+    token?: string;
+  };
+
+  type StorybookReactQueryParam = {
+    initialQueries?: Array<{ queryKey: QueryKey; data: unknown }>;
+  };
+
   const Providers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [queryClient] = React.useState(
       () =>
@@ -34,22 +44,34 @@ const withProviders: Decorator = (Story, context) => {
       };
     }, [queryClient]);
 
-    React.useEffect(() => {
-      const defaultUser: UserType = {
+    const authOptions = authParam as StorybookAuthParam;
+
+    const defaultUser = React.useMemo<UserType>(
+      () => ({
         nome: 'Administrador Storybook',
         email: 'storybook@example.com',
         cpf: '00000000000',
         roles: ['ADMIN'],
         tipoUsuario: 'ADMINISTRADOR',
-      };
+      }),
+      []
+    );
 
-      useAuthStore.setState({
+    const resolvedAuthState = React.useMemo(
+      () => ({
         isAuthenticated:
-          typeof authParam.isAuthenticated === 'boolean'
-            ? authParam.isAuthenticated
+          typeof authOptions.isAuthenticated === 'boolean'
+            ? authOptions.isAuthenticated
             : true,
-        user: (authParam.user as UserType) ?? defaultUser,
-        token: (authParam.token as string) ?? 'storybook-token',
+        user: authOptions.user ?? defaultUser,
+        token: authOptions.token ?? 'storybook-token',
+      }),
+      [authOptions.isAuthenticated, authOptions.token, authOptions.user, defaultUser]
+    );
+
+    React.useEffect(() => {
+      useAuthStore.setState({
+        ...resolvedAuthState,
         isLoading: false,
       });
 
@@ -61,11 +83,13 @@ const withProviders: Decorator = (Story, context) => {
           isLoading: false,
         });
       };
-    }, [authParam]);
+    }, [resolvedAuthState]);
+
+    const reactQueryOptions = reactQueryParam as StorybookReactQueryParam;
 
     const initialQueries = React.useMemo(
-      () => (reactQueryParam.initialQueries ?? []) as Array<{ queryKey: QueryKey; data: unknown }> ,
-      [reactQueryParam]
+      () => reactQueryOptions.initialQueries ?? [],
+      [reactQueryOptions.initialQueries]
     );
 
     React.useEffect(() => {

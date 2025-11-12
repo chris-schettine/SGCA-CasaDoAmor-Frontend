@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 import { toastError, toastSuccess } from "../../utils/toast";
+import { isAxiosError } from "axios";
 
 
 const BoxStyles = {
@@ -87,9 +88,11 @@ const ActivateAccountPage = () => {
         navigate('/login'); // Redireciona para o login
       }, 3000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao ativar conta:", error);
-      const message = error.response?.data?.message || "Erro ao processar a ativação. O token pode estar expirado ou os dados incorretos.";
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? "Erro ao processar a ativação. O token pode estar expirado ou os dados incorretos."
+        : "Erro ao processar a ativação. O token pode estar expirado ou os dados incorretos.";
       toastError(message);
       setIsLoading(false);
     }

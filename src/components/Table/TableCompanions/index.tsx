@@ -7,12 +7,25 @@ import { useNavigate } from "react-router-dom";
 import { formatRG } from '../../../utils/formatters';
 import EmptyState from "../../EmptyState";
 import { useAcompanhantes } from "../../../hooks/useAcompanhantes";
-import { VirtualizedTable } from "../../VirtualizedTable";
+import { VirtualizedTable, type Column } from "../../VirtualizedTable";
 import MobileCard from '../MobileCard';
+import type { AcompanhanteDTO } from "../../../api/acompanhante.dto";
 
 interface TableCompanionsProps {
   searchText?: string;
 }
+
+type CompanionRow = {
+  id: string;
+  nome: string;
+  cpf: string;
+  rg: string;
+  pacienteNome: string;
+  parentesco: string;
+  _companionData: AcompanhanteDTO;
+};
+
+type CompanionColumn = Column<CompanionRow> & { hidden?: boolean };
 
 const TableCompanions = ({ searchText }: TableCompanionsProps) => {
   const navigate = useNavigate();
@@ -24,15 +37,18 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
 
   // TanStack Query - busca acompanhantes
   const { data, isLoading, error } = useAcompanhantes(rowsPerPage, page * rowsPerPage, searchText);
-  
-  const companions = data?.nodes ?? [];
+
+  const companions: AcompanhanteDTO[] = useMemo(
+    () => data?.nodes ?? [],
+    [data?.nodes]
+  );
   const totalCount = data?.totalCount ?? 0;
 
   const delay = 1000;
 
   // Configuração de colunas para tabela virtualizada
-  const virtualColumns = useMemo(() => {
-    const allColumns = [
+  const virtualColumns = useMemo<CompanionColumn[]>(() => {
+    const allColumns: CompanionColumn[] = [
       {
         field: 'nome' as const,
         headerName: 'Nome',
@@ -48,7 +64,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
         field: 'rg' as const,
         headerName: 'RG',
         width: 150,
-        renderCell: (row: any) => formatRG(row.rg) || '—',
+        renderCell: (row) => formatRG(row.rg) || '—',
         hidden: isTablet,
       },
       {
@@ -68,7 +84,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
         width: isMobile ? 100 : 120,
         align: 'center' as const,
         headerAlign: 'center' as const,
-        renderCell: (row: any) => (
+        renderCell: (row) => (
           <Box sx={{ 
             display: 'flex', 
             gap: isMobile ? 0.25 : 0.5, 
@@ -111,14 +127,14 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
   }, [isMobile, isTablet]);
 
   // Mapear acompanhantes para linhas planas
-  const rows = useMemo(() => companions.map((c: any) => ({
-    id: c.id,
-    nome: c.dadoPessoal?.nome ?? '—',
-    cpf: c.dadoPessoal?.cpf ?? '—',
-    rg: c.dadoPessoal?.rg ?? '—',
-    pacienteNome: c.pacienteNome ?? '—',
-    parentesco: c.parentesco ?? '—',
-    _companionData: c, // Armazenar o objeto completo do acompanhante
+  const rows = useMemo<CompanionRow[]>(() => companions.map((companion) => ({
+    id: companion.id,
+    nome: companion.dadoPessoal?.nome ?? '—',
+    cpf: companion.dadoPessoal?.cpf ?? '—',
+    rg: companion.dadoPessoal?.rg ?? '—',
+    pacienteNome: companion.pacienteNome ?? '—',
+    parentesco: companion.parentesco ?? '—',
+    _companionData: companion,
   })), [companions]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -130,7 +146,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
     setPage(0);
   };
 
-  const handleView = (_id: string, companionData: any) => {
+  const handleView = (_id: string, companionData: AcompanhanteDTO) => {
     setTimeout(() => {
       navigate("/companion/information", {
         state: { acompanhante: companionData }
@@ -138,7 +154,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
     }, delay);
   };
 
-  const handleEdit = (id: string, companionData: any) => {
+  const handleEdit = (id: string, companionData: AcompanhanteDTO) => {
     navigate(`/companion/edit/${id}`, { state: { acompanhante: companionData } });
   };
 

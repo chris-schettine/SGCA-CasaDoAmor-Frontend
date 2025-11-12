@@ -7,7 +7,7 @@ import MaskedTextField from '../MaskedTextField';
 interface PatientHealthDetailsFormProps {
   register: UseFormRegister<PatientFormInputs>;
   errors: FieldErrors<PatientFormInputs>;
-  control: Control<PatientFormInputs, any, PatientFormInputs>;
+  control: Control<PatientFormInputs>;
   watch: UseFormWatch<PatientFormInputs>;
 }
 

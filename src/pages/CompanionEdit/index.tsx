@@ -2,10 +2,10 @@ import { Button, Box } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import type { FieldErrors } from "react-hook-form";
+import type { Control, FieldErrors, UseFormClearErrors, UseFormRegister, UseFormSetError, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { editCompanionSchema, type EditCompanionFormInputs } from "../../schemas/companionSchema";
+import { editCompanionSchema, type CompanionFormInputs, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useEditarAcompanhante } from "../../hooks/useAcompanhantes";
@@ -36,7 +36,7 @@ const CompanionEditPage = () => {
         navigate(-1);
       }, 2000);
     }
-  }, [acompanhante, id, navigate, toastWarn]);
+  }, [acompanhante, id, navigate]);
 
   const {
     register,
@@ -81,10 +81,11 @@ const CompanionEditPage = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
+      const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillCompanionFormWithFakeData,
-        setValue
+        typedSetValue
       );
       return cleanup;
     }
@@ -191,13 +192,13 @@ const CompanionEditPage = () => {
         noValidate
       >
         <CompanionForm
-          register={register as any}
-          errors={errors as any}
-          watch={watch as any}
-          control={control as any}
-          setValue={setValue as any}
-          setError={setError as any}
-          clearErrors={clearErrors as any}
+          register={register as unknown as UseFormRegister<CompanionFormInputs | EditCompanionFormInputs>}
+          errors={errors as FieldErrors<CompanionFormInputs | EditCompanionFormInputs>}
+          watch={watch as UseFormWatch<CompanionFormInputs | EditCompanionFormInputs>}
+          control={control as unknown as Control<CompanionFormInputs | EditCompanionFormInputs>}
+          setValue={setValue as unknown as UseFormSetValue<CompanionFormInputs | EditCompanionFormInputs>}
+          setError={setError as unknown as UseFormSetError<CompanionFormInputs | EditCompanionFormInputs>}
+          clearErrors={clearErrors as UseFormClearErrors<CompanionFormInputs | EditCompanionFormInputs>}
           isEditMode={true}
         />
 

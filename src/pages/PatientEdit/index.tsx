@@ -3,9 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { patientSchema, type PatientFormInputs } from '../../schemas/patientSchema';
-import { useForm } from "react-hook-form";
-import type { FieldErrors } from "react-hook-form";
-import { useCallback, useEffect, useState } from "react";
+import { useForm, type SubmitErrorHandler, type SubmitHandler, type Resolver } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import { fetchAddressByCep } from "../../utils/cepService";
 import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
@@ -13,7 +12,12 @@ import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm"
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
-import type { PacienteDTO, EditarPacienteDTO } from "../../api/paciente.dto";
+import type {
+  PacienteDTO,
+  EditarPacienteDTO,
+  DadoClinicoInputDTO,
+  DadoClinicoDTO,
+} from "../../api/paciente.dto";
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation } from 'react-router-dom';
 import { formatDateToISO, removeNonNumeric, formatISOToDDMMYYYY } from "../../utils/formatters";
@@ -23,11 +27,26 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import { DevTools } from "../../utils/devTools";
 import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
 
+interface PatientEditLocationState {
+  patient?: PacienteDTO;
+}
+
+const patientFormResolver = zodResolver(patientSchema) as Resolver<PatientFormInputs>;
+
+const normalizeOptionalString = (value?: string | null) => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+};
+
 const PatientEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const passedPatient = (location.state as any)?.patient as PacienteDTO | undefined;
+  const locationState = useMemo<PatientEditLocationState | null>(
+    () => (location.state as PatientEditLocationState | null) ?? null,
+    [location.state]
+  );
+  const passedPatient = locationState?.patient;
   const { isAuthenticated } = useAuth();
 
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -46,8 +65,8 @@ const PatientEditPage = () => {
     setValue,
     setError,
     clearErrors,
-  } = useForm<PatientFormInputs, any, PatientFormInputs>({
-    resolver: zodResolver(patientSchema) as any,
+  } = useForm<PatientFormInputs>({
+    resolver: patientFormResolver,
     mode: "onBlur",
     defaultValues: {
       nomeCompletoPaciente: "",
@@ -95,11 +114,13 @@ const PatientEditPage = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
+      const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
+      const typedClearErrors = clearErrors as unknown as Parameters<typeof DevTools.addFakeDataButton>[3];
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillPatientFormWithFakeData,
-        setValue,
-        clearErrors
+        typedSetValue,
+        typedClearErrors
       );
       return cleanup;
     }
@@ -118,7 +139,7 @@ const PatientEditPage = () => {
     }
   }, [usoSondaValue, setValue, clearErrors]);
 
-  const handleSavePatient = async (data: PatientFormInputs) => {
+  const handleSavePatient = useCallback<SubmitHandler<PatientFormInputs>>(async (data) => {
     try {
       if (!isAuthenticated) {
         toastError("Usuário não autenticado. Faça login novamente.");
@@ -136,6 +157,8 @@ const PatientEditPage = () => {
       setLoading(true);
 
       // 1. Atualizar dados pessoais, endereço, e outras informações (exceto dados clínicos)
+      const enderecoNumero = Number.parseInt(data.numero, 10);
+
       const paciente: EditarPacienteDTO = {
         dadoPessoal: {
           nome: data.nomeCompletoPaciente,
@@ -146,30 +169,36 @@ const PatientEditPage = () => {
           naturalidade: data.naturalidade,
           nomeMae: data.nomeMae,
           profissao: data.profissao,
-          estadoCivil: (data as any).estadoCivil || undefined,
+          estadoCivil: data.estadoCivil ?? undefined,
         },
         endereco: {
           logradouro: data.endereco,
-          numero: parseInt(data.numero, 10),
+          numero: Number.isNaN(enderecoNumero) ? undefined : enderecoNumero,
           bairro: data.bairro,
           cep: removeNonNumeric(data.cep),
           cidade: data.cidade,
           estado: data.estado,
-          complemento: data.complemento,
+          complemento: data.complemento?.trim() ? data.complemento.trim() : undefined,
         },
-        email: data.email || undefined,
-        informacaoHospitalar: (data as any).informacaoHospitalar ? {
-          nomeHospitalReferencia: (data as any).informacaoHospitalar.nomeHospitalReferencia || null,
-          medicoResponsavel: (data as any).informacaoHospitalar.medicoResponsavel || null,
-          setorAla: (data as any).informacaoHospitalar.setorAla || null,
-          dataInternacao: (data as any).informacaoHospitalar.dataInternacao ? formatDateToISO((data as any).informacaoHospitalar.dataInternacao) : null,
-        } : undefined,
-        dadoSocial: (data as any).dadoSocial ? {
-          rendaFamiliar: (data as any).dadoSocial.rendaFamiliar ?? null,
-          composicaoFamiliar: (data as any).dadoSocial.composicaoFamiliar || null,
-          situacaoMoradia: (data as any).dadoSocial.situacaoMoradia || null,
-          necessidadesEspeciais: (data as any).dadoSocial.necessidadesEspeciais || null,
-        } : undefined,
+        email: data.email,
+        informacaoHospitalar: data.informacaoHospitalar
+          ? {
+              nomeHospitalReferencia: normalizeOptionalString(data.informacaoHospitalar.nomeHospitalReferencia),
+              medicoResponsavel: normalizeOptionalString(data.informacaoHospitalar.medicoResponsavel),
+              setorAla: normalizeOptionalString(data.informacaoHospitalar.setorAla),
+              dataInternacao: data.informacaoHospitalar.dataInternacao
+                ? formatDateToISO(data.informacaoHospitalar.dataInternacao)
+                : null,
+            }
+          : undefined,
+        dadoSocial: data.dadoSocial
+          ? {
+              rendaFamiliar: data.dadoSocial.rendaFamiliar ?? null,
+              composicaoFamiliar: normalizeOptionalString(data.dadoSocial.composicaoFamiliar),
+              situacaoMoradia: normalizeOptionalString(data.dadoSocial.situacaoMoradia),
+              necessidadesEspeciais: normalizeOptionalString(data.dadoSocial.necessidadesEspeciais),
+            }
+          : undefined,
       };
 
       await pacienteService.editarPaciente(id, paciente);
@@ -177,23 +206,34 @@ const PatientEditPage = () => {
       // 2. Atualizar dados clínicos separadamente (se existir ID do dado clínico)
       if (dadoClinicoId) {
         // Mapear condicaoChegada do schema para o DTO
-        const condicaoChegadaMap: Record<string, 'AMBULANCIA' | 'MACA' | 'CADEIRA_RODAS' | 'NENHUMA'> = {
-          'de_ambulancia': 'AMBULANCIA',
-          'maca': 'MACA',
-          'cadeira_rodas': 'CADEIRA_RODAS',
-          'nenhum': 'NENHUMA',
+        const condicaoChegadaMap: Record<
+          PatientFormInputs['condicaoChegada'],
+          DadoClinicoInputDTO['condicaoChegada']
+        > = {
+          de_ambulancia: 'AMBULANCIA',
+          maca: 'MACA',
+          cadeira_rodas: 'CADEIRA_RODAS',
+          nenhum: 'NENHUMA',
         };
 
-        const dadoClinico = {
+        const usaSonda = data.usoSonda === 'sim';
+
+        const dadoClinico: DadoClinicoInputDTO = {
           diagnostico: data.diagnostico || undefined,
-          tratamento: data.tratamento || undefined,
-          tratamentoOutroDescricao: data.tratamento === 'OUTRO' ? (data.tratamentoOutroDescricao || null) : null,
-          condicaoChegada: condicaoChegadaMap[data.condicaoChegada] || undefined,
-          usaSonda: data.usoSonda === 'sim',
-          tipoSondaNasal: data.usoSonda === 'sim' ? (data.tipoSondaNasal || null) : null,
-          tipoSondaCirurgica: data.usoSonda === 'sim' ? (data.tipoSondaCirurgica || null) : null,
-          tipoSondaVesical: data.usoSonda === 'sim' ? (data.tipoSondaVesical || null) : null,
-          sondaOutraDescricao: (data.usoSonda === 'sim' && data.tipoSondaVesical === 'OUTRA') ? (data.seForOutra || null) : null,
+          tratamento: data.tratamento ?? undefined,
+          tratamentoOutroDescricao:
+            data.tratamento === 'OUTRO'
+              ? normalizeOptionalString(data.tratamentoOutroDescricao)
+              : null,
+          condicaoChegada: condicaoChegadaMap[data.condicaoChegada],
+          usaSonda,
+          tipoSondaNasal: usaSonda ? data.tipoSondaNasal ?? null : null,
+          tipoSondaCirurgica: usaSonda ? data.tipoSondaCirurgica ?? null : null,
+          tipoSondaVesical: usaSonda ? data.tipoSondaVesical ?? null : null,
+          sondaOutraDescricao:
+            usaSonda && data.tipoSondaVesical === 'OUTRA'
+              ? normalizeOptionalString(data.seForOutra)
+              : null,
           usaCurativo: data.usoCurativo === 'sim',
           usaOxigenoterapia: data.usoOxigenoterapia === 'sim',
           tipoSanguineo: data.tipoSanguineo,
@@ -223,9 +263,9 @@ const PatientEditPage = () => {
 
       toastError("Erro ao editar paciente. Tente novamente.");
     }
-  };
+  }, [dadoClinicoId, id, isAuthenticated, navigate]);
 
-  const onError = (errors: FieldErrors<PatientFormInputs>) => {
+  const onError: SubmitErrorHandler<PatientFormInputs> = (errors) => {
     console.log("Erros de validação:", errors);
     toastError("Por favor, corrija os erros no formulário.");
     setOpenSaveDialog(false);
@@ -246,27 +286,27 @@ const PatientEditPage = () => {
 
   const cepValue = watch("cep");
 
-  const handleCepSearch = useCallback(async (cep: string, targetFieldPrefix: "" | "acompanhante") => {
-    clearErrors(`${targetFieldPrefix}cep` as keyof PatientFormInputs);
-    setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
+  const handleCepSearch = useCallback(async (cep: string) => {
+    clearErrors(['cep', 'endereco', 'bairro', 'cidade', 'estado', 'complemento']);
+    setValue('endereco', "");
+    setValue('bairro', "");
+    setValue('cidade', "");
+    setValue('estado', "");
+    setValue('complemento', "");
 
-    const cleanedCep = cep.replace(/\D/g, '');
+    const cleanedCep = removeNonNumeric(cep);
     if (cleanedCep.length === 8) {
       setIsCepLoading(true);
       try {
         const addressData = await fetchAddressByCep(cleanedCep);
         if (addressData) {
-          setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, addressData.logradouro);
-          setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, addressData.bairro);
-          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, (addressData as any).localidade);
-          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, (addressData as any).uf);
-          setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, addressData.complemento || "");
+          setValue('endereco', addressData.logradouro ?? "");
+          setValue('bairro', addressData.bairro ?? "");
+          setValue('cidade', addressData.localidade ?? "");
+          setValue('estado', addressData.uf ?? "");
+          setValue('complemento', addressData.complemento ?? "");
         } else {
-          setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
+          setError('cep', {
             type: "manual",
             message: "CEP não encontrado ou inválido."
           });
@@ -274,7 +314,7 @@ const PatientEditPage = () => {
         }
       } catch (err) {
         console.error("Erro ao buscar CEP:", err);
-        setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
+        setError('cep', {
           type: "manual",
           message: "Erro ao buscar CEP. Tente novamente."
         });
@@ -283,17 +323,22 @@ const PatientEditPage = () => {
         setIsCepLoading(false);
       }
     } else if (cleanedCep.length > 0 && cleanedCep.length < 8) {
-      setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
+      setValue('endereco', "");
+      setValue('bairro', "");
+      setValue('cidade', "");
+      setValue('estado', "");
+      setValue('complemento', "");
     }
-  }, [setValue, setError, clearErrors, toastWarn, toastError]);
+  }, [clearErrors, setError, setIsCepLoading, setValue]);
 
   useEffect(() => {
-    if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
-      handleCepSearch(cepValue, "");
+    if (!cepValue) {
+      return;
+    }
+
+    const sanitizedCep = removeNonNumeric(cepValue);
+    if (sanitizedCep.length === 8) {
+      handleCepSearch(cepValue);
     }
   }, [cepValue, handleCepSearch]);
 
@@ -335,13 +380,19 @@ const PatientEditPage = () => {
         setValue('tratamentoOutroDescricao', dadoClinico.tratamentoOutroDescricao ?? '');
         
         // Mapear condicaoChegada do DTO para o schema
-        const condicaoChegadaMap: Record<string, 'de_ambulancia' | 'maca' | 'cadeira_rodas' | 'nenhum'> = {
-          'AMBULANCIA': 'de_ambulancia',
-          'MACA': 'maca',
-          'CADEIRA_RODAS': 'cadeira_rodas',
-          'NENHUMA': 'nenhum',
+        const condicaoChegadaMap: Record<
+          NonNullable<DadoClinicoDTO['condicaoChegada']>,
+          PatientFormInputs['condicaoChegada']
+        > = {
+          AMBULANCIA: 'de_ambulancia',
+          MACA: 'maca',
+          CADEIRA_RODAS: 'cadeira_rodas',
+          NENHUMA: 'nenhum',
         };
-        setValue('condicaoChegada', dadoClinico.condicaoChegada ? condicaoChegadaMap[dadoClinico.condicaoChegada] : 'nenhum');
+        const condicaoChegada = dadoClinico.condicaoChegada
+          ? condicaoChegadaMap[dadoClinico.condicaoChegada]
+          : 'nenhum';
+        setValue('condicaoChegada', condicaoChegada);
         
         setValue('usoCurativo', dadoClinico.usaCurativo ? 'sim' : 'nao');
         setValue('usoOxigenoterapia', dadoClinico.usaOxigenoterapia ? 'sim' : 'nao');
@@ -360,26 +411,41 @@ const PatientEditPage = () => {
       // Informação hospitalar
       if (p.informacaoHospitalar) {
         setValue('informacaoHospitalar', {
-          nomeHospitalReferencia: p.informacaoHospitalar.nomeHospitalReferencia ?? '',
-          medicoResponsavel: p.informacaoHospitalar.medicoResponsavel ?? '',
-          setorAla: p.informacaoHospitalar.setorAla ?? '',
-          dataInternacao: p.informacaoHospitalar.dataInternacao ? formatISOToDDMMYYYY(p.informacaoHospitalar.dataInternacao) : '',
-        } as any);
+          nomeHospitalReferencia: p.informacaoHospitalar.nomeHospitalReferencia ?? undefined,
+          medicoResponsavel: p.informacaoHospitalar.medicoResponsavel ?? undefined,
+          setorAla: p.informacaoHospitalar.setorAla ?? undefined,
+          dataInternacao: p.informacaoHospitalar.dataInternacao
+            ? formatISOToDDMMYYYY(p.informacaoHospitalar.dataInternacao)
+            : undefined,
+        });
+      } else {
+        setValue('informacaoHospitalar', undefined);
       }
-      
+
       // Dado social
       if (p.dadoSocial) {
         setValue('dadoSocial', {
           rendaFamiliar: p.dadoSocial.rendaFamiliar ?? undefined,
-          composicaoFamiliar: p.dadoSocial.composicaoFamiliar ?? '',
-          situacaoMoradia: p.dadoSocial.situacaoMoradia ?? '',
-          necessidadesEspeciais: p.dadoSocial.necessidadesEspeciais ?? '',
-        } as any);
+          composicaoFamiliar: p.dadoSocial.composicaoFamiliar ?? undefined,
+          situacaoMoradia: p.dadoSocial.situacaoMoradia ?? undefined,
+          necessidadesEspeciais: p.dadoSocial.necessidadesEspeciais ?? undefined,
+        });
+      } else {
+        setValue('dadoSocial', undefined);
       }
-      
+
       // Contatos de emergência
       if (p.contatosDeEmergencia) {
-        setValue('contatosDeEmergencia', p.contatosDeEmergencia as any);
+        setValue(
+          'contatosDeEmergencia',
+          p.contatosDeEmergencia.map((contato) => ({
+            nome: contato.nome ?? '',
+            email: contato.email ?? '',
+            telefone: contato.telefone ?? '',
+          }))
+        );
+      } else {
+        setValue('contatosDeEmergencia', undefined);
       }
     };
 
@@ -410,7 +476,7 @@ const PatientEditPage = () => {
     };
 
     fetchPatientFallback();
-  }, [id, navigate, setValue, toastError, toastWarn, passedPatient]);
+  }, [id, navigate, setValue, passedPatient]);
 
   if (loading) return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>

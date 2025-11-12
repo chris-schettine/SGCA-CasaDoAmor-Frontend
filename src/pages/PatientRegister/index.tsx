@@ -1,10 +1,10 @@
 import { Button, Stepper, Step, StepLabel, Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { patientSchema, type PatientFormInputs } from '../../schemas/patientSchema';
 import { useForm } from "react-hook-form";
-import type { FieldErrors } from "react-hook-form";
+import type { FieldErrors, SubmitHandler, Resolver } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 import { fetchAddressByCep } from "../../utils/cepService";
@@ -25,6 +25,8 @@ const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { patientId } = location.state || {};
   const { isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -43,8 +45,8 @@ const PatientRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
-  } = useForm<PatientFormInputs, any, PatientFormInputs>({
-    resolver: zodResolver(patientSchema) as any,
+  } = useForm<PatientFormInputs, unknown, PatientFormInputs>({
+    resolver: zodResolver(patientSchema) as Resolver<PatientFormInputs>,
     mode: "onBlur",
     defaultValues: {
       nomeCompletoPaciente: "",
@@ -69,6 +71,14 @@ const PatientRegisterPage = () => {
     }
   });
 
+  useEffect(() => {
+    if (!patientId) {
+      toastWarn("Nenhum paciente selecionado. Redirecionando...");
+      setTimeout(() => {
+        navigate('/patients');
+      }, 2000);
+    }
+  }, [patientId, navigate]);
   // Alerta de mudanças não salvas
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
 
@@ -83,11 +93,13 @@ const PatientRegisterPage = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
+      const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
+      const typedClearErrors = clearErrors as unknown as Parameters<typeof DevTools.addFakeDataButton>[3];
       const cleanup = DevTools.addFakeDataButton(
         form,
         DevTools.fillPatientFormWithFakeData,
-        setValue,
-        clearErrors
+        typedSetValue,
+        typedClearErrors
       );
       return cleanup;
     }
@@ -105,8 +117,7 @@ const PatientRegisterPage = () => {
       clearErrors(['tipoSondaNasal', 'tipoSondaCirurgica', 'tipoSondaVesical', 'seForOutra']);
     }
   }, [usoSondaValue, setValue, clearErrors]);
-
-  const handleSavePatient = async (data: PatientFormInputs) => {
+  const handleSavePatient: SubmitHandler<PatientFormInputs> = async (data) => {
     console.log("Formulário Válido, Dados:", data);
     try {
       if (!isAuthenticated) {
@@ -132,7 +143,7 @@ const PatientRegisterPage = () => {
         },
         dadoClinico: {
           diagnostico: data.diagnostico || undefined,
-          tratamento: (data.tratamento as any) || undefined,
+          tratamento: data.tratamento ?? undefined,
           tratamentoOutroDescricao: data.tratamentoOutroDescricao || null,
           condicaoChegada: (() => {
             switch (data.condicaoChegada) {
@@ -253,34 +264,31 @@ const PatientRegisterPage = () => {
   };
 
   const handleCloseSaveDialog = () => setOpenSaveDialog(false);
-  const handleConfirmSave = handleSubmit(handleSavePatient as any, onError);
+  const handleConfirmSave = handleSubmit(handleSavePatient, onError);
 
   const cepValue = watch("cep");
 
-  const handleCepSearch = useCallback(async (cep: string, targetFieldPrefix: "" | "acompanhante") => {
-    clearErrors(`${targetFieldPrefix}cep` as keyof PatientFormInputs);
-    clearErrors(`${targetFieldPrefix}endereco` as keyof PatientFormInputs);
-    clearErrors(`${targetFieldPrefix}bairro` as keyof PatientFormInputs);
-    clearErrors(`${targetFieldPrefix}cidade` as keyof PatientFormInputs);
-    clearErrors(`${targetFieldPrefix}estado` as keyof PatientFormInputs);
-    setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
-    setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
+  const handleCepSearch = useCallback(async (cep: string) => {
+    clearErrors(['cep', 'endereco', 'bairro', 'cidade', 'estado', 'complemento']);
+    setValue('endereco', "", { shouldDirty: false });
+    setValue('bairro', "", { shouldDirty: false });
+    setValue('cidade', "", { shouldDirty: false });
+    setValue('estado', "", { shouldDirty: false });
+    setValue('complemento', "", { shouldDirty: false });
 
-    const cleanedCep = cep.replace(/\D/g, '');
+    const cleanedCep = removeNonNumeric(cep);
     if (cleanedCep.length === 8) {
+      setIsCepLoading(true);
       try {
         const addressData = await fetchAddressByCep(cleanedCep);
         if (addressData && !addressData.erro) {
-          setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, addressData.logradouro || "", { shouldDirty: true });
-          setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, addressData.bairro || "", { shouldDirty: true });
-          setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, addressData.localidade || "", { shouldDirty: true });
-          setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, addressData.uf || "", { shouldDirty: true });
-          setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, addressData.complemento || "", { shouldDirty: true });
+          setValue('endereco', addressData.logradouro ?? "", { shouldDirty: true });
+          setValue('bairro', addressData.bairro ?? "", { shouldDirty: true });
+          setValue('cidade', addressData.localidade ?? "", { shouldDirty: true });
+          setValue('estado', addressData.uf ?? "", { shouldDirty: true });
+          setValue('complemento', addressData.complemento ?? "", { shouldDirty: true });
         } else {
-          setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
+          setError('cep', {
             type: "manual",
             message: "CEP não encontrado ou inválido."
           });
@@ -288,7 +296,7 @@ const PatientRegisterPage = () => {
         }
       } catch (err) {
         console.error("Erro ao buscar CEP:", err);
-        setError(`${targetFieldPrefix}cep` as keyof PatientFormInputs, {
+        setError('cep', {
           type: "manual",
           message: "Erro ao buscar CEP. Tente novamente."
         });
@@ -297,17 +305,22 @@ const PatientRegisterPage = () => {
         setIsCepLoading(false);
       }
     } else if (cleanedCep.length > 0 && cleanedCep.length < 8) {
-      setValue(`${targetFieldPrefix}endereco` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}bairro` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}cidade` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}estado` as keyof PatientFormInputs, "");
-      setValue(`${targetFieldPrefix}complemento` as keyof PatientFormInputs, "");
+      setValue('endereco', "", { shouldDirty: false });
+      setValue('bairro', "", { shouldDirty: false });
+      setValue('cidade', "", { shouldDirty: false });
+      setValue('estado', "", { shouldDirty: false });
+      setValue('complemento', "", { shouldDirty: false });
     }
-  }, [setValue, setError, clearErrors, toastError, toastWarn]);
+  }, [clearErrors, setError, setIsCepLoading, setValue]);
 
   useEffect(() => {
-    if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
-      handleCepSearch(cepValue, "");
+    if (!cepValue) {
+      return;
+    }
+
+    const sanitizedCep = removeNonNumeric(cepValue);
+    if (sanitizedCep.length === 8) {
+      handleCepSearch(cepValue);
     }
   }, [cepValue, handleCepSearch]);
 
@@ -348,7 +361,7 @@ const PatientRegisterPage = () => {
         </Stepper>
       </Box>
 
-      <form onSubmit={handleSubmit(handleSavePatient as any, onError)} noValidate>
+    <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
 
         {/* Dados Pessoais - Step 0 */}
         {activeStep === 0 && (

@@ -1,11 +1,12 @@
 import { Button, Grid, CircularProgress, Box } from "@mui/material";
+import { isAxiosError } from "axios";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import UserForm from "../../components/UserForm";
 import { userSchemaConditional as userSchema, type UserFormInputs } from "../../schemas/userSchema";
-import { useForm, type FieldErrors } from "react-hook-form";
+import { useForm, type FieldErrors, type DeepPartial } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminService } from '../../api/admin.service';
 import Breadcrumbs from "../../components/Breadcrumbs";
@@ -13,6 +14,43 @@ import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
 import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
+import type { DadosPessoaisDTO, EnderecoDTO, RegistroProfissionalDTO, UpdateUserDTO, UserResponseDTO } from "../../api/admin.dto";
+
+type PersonalFallbackFields = {
+  dataNascimento?: string | null;
+  sexo?: string | null;
+  naturalidade?: string | null;
+  estadoCivil?: string | null;
+  nomeMae?: string | null;
+  nomePai?: string | null;
+  genero?: string | null;
+  profissao?: string | null;
+};
+
+type ExtendedUserResponse = UserResponseDTO &
+  PersonalFallbackFields & {
+    dadosPessoais?: DadosPessoaisDTO | null;
+    endereco?: EnderecoDTO | string | null;
+    registroProfissional?: RegistroProfissionalDTO | null;
+  };
+
+const PROFESSIONAL_USER_TYPES = ["DENTISTA", "MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA", "NUTRICIONISTA"] as const;
+
+const formatCepDisplay = (value?: string | null): string => {
+  if (!value) return "";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 8) return value;
+  return digits.replace(/(\d{5})(\d{3})/, "$1-$2");
+};
+
+const hasMeaningfulValue = (payload: unknown): boolean => {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+  return Object.values(payload as Record<string, unknown>).some(
+    (value) => value !== undefined && value !== null && value !== ""
+  );
+};
 
 
 const UserEditPage = () => {
@@ -21,6 +59,8 @@ const UserEditPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>("");
+  const [personalDataId, setPersonalDataId] = useState<number | null>(null);
+  const [addressId, setAddressId] = useState<number | null>(null);
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -55,11 +95,12 @@ const UserEditPage = () => {
     handleSubmit,
     formState: { errors, isDirty },
     control,
-  reset,
-  watch,
-  setValue,
-  setError,
-  clearErrors,
+    reset,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    getValues,
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
@@ -75,94 +116,123 @@ const UserEditPage = () => {
 
   // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      const form = document.querySelector('form');
-      const cleanup = DevTools.addFakeDataButton(
-        form,
-        DevTools.fillUserFormWithFakeData,
-        setValue
-      );
-      return cleanup;
+    if (process.env.NODE_ENV !== 'development') {
+      return;
     }
-  }, [setValue]);
+
+    const form = document.querySelector<HTMLFormElement>('form');
+    const typedSetValue = setValue as unknown as Parameters<typeof DevTools.addFakeDataButton>[2];
+    const cleanup = DevTools.addFakeDataButton(
+      form,
+      DevTools.fillUserFormWithFakeData,
+      typedSetValue,
+      clearErrors as unknown as Parameters<typeof DevTools.addFakeDataButton>[3]
+    );
+    return cleanup;
+  }, [setValue, clearErrors]);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchUser = async () => {
       if (!id) return;
       setLoading(true);
+      setPersonalDataId(null);
+      setAddressId(null);
       try {
-        const res = await adminService.getUserById(Number(id));
-        setUserName(res.nome || 'Usuário');
-        // map response to form shape
+        const response = await adminService.getUserById(Number(id));
+        setUserName(response.nome ?? 'Usuário');
+
         const { formatCPF, formatPhone, formatISOToDDMMYYYY } = await import('../../utils/formatters');
-        // backend may return nested objects (dadosPessoais, endereco) or flattened fields; support both
-        const personal = (res as any).dadosPessoais || {
-          dataNascimento: (res as any).dataNascimento,
-          sexo: (res as any).sexo,
-          naturalidade: (res as any).naturalidade,
-          estadoCivil: (res as any).estadoCivil,
-          nomeMae: (res as any).nomeMae,
-          nomePai: (res as any).nomePai,
-          profissao: (res as any).profissao,
+
+        const extended = response as ExtendedUserResponse;
+        const personalFromResponse = extended.dadosPessoais ?? null;
+
+        const personal: DadosPessoaisDTO | null =
+          personalFromResponse ?? {
+            dataNascimento: extended.dataNascimento ?? null,
+            sexo: extended.sexo ?? null,
+            naturalidade: extended.naturalidade ?? null,
+            estadoCivil: extended.estadoCivil ?? null,
+            nomeMae: extended.nomeMae ?? null,
+            nomePai: extended.nomePai ?? null,
+            genero: extended.genero ?? null,
+            profissao: extended.profissao ?? null,
+            registro: extended.registro ?? null,
+            rqe: extended.rqe ?? null,
+          };
+
+        const structuredAddress =
+          typeof extended.endereco === 'object' && extended.endereco !== null
+            ? (extended.endereco as EnderecoDTO)
+            : null;
+
+        setPersonalDataId(personalFromResponse?.id ?? null);
+        setAddressId(structuredAddress?.id ?? null);
+
+        const normalizedAddress: EnderecoDTO = {
+          cep: structuredAddress?.cep ?? extended.cep ?? null,
+          logradouro:
+            structuredAddress?.logradouro ??
+            (typeof extended.endereco === 'string' ? extended.endereco : null),
+          bairro: structuredAddress?.bairro ?? extended.bairro ?? null,
+          cidade: structuredAddress?.cidade ?? extended.cidade ?? null,
+          uf: structuredAddress?.uf ?? extended.uf ?? null,
+          numero: structuredAddress?.numero ?? extended.numero ?? null,
+          complemento: structuredAddress?.complemento ?? extended.complemento ?? null,
         };
 
-        const address = (res as any).endereco || {
-          cep: (res as any).cep,
-          endereco: (res as any).endereco,
-          bairro: (res as any).bairro,
-          cidade: (res as any).cidade,
-          uf: (res as any).uf,
-          numero: (res as any).numero,
-          complemento: (res as any).complemento,
+        const registroValue =
+          extended.registroProfissional?.numeroRegistro ?? extended.registro ?? null;
+        const rqeValue = extended.registroProfissional?.rqe ?? extended.rqe ?? null;
+
+        const defaultValues: DeepPartial<UserFormInputs> = {
+          tipo: response.tipo as UserFormInputs['tipo'],
+          cpfUsuario: formatCPF(response.cpf) ?? '',
+          email: response.email ?? '',
+          telefone: formatPhone(response.telefone ?? '') ?? '',
+          nomeUsuario: response.nome ?? '',
+          sexo: personal?.sexo ?? '',
+          registro: registroValue ?? '',
+          estado: normalizedAddress.uf ?? '',
+          rqe: rqeValue ?? '',
+          cep: formatCepDisplay(normalizedAddress.cep ?? undefined),
+          endereco: normalizedAddress.logradouro ?? '',
+          bairro: normalizedAddress.bairro ?? '',
+          cidade: normalizedAddress.cidade ?? '',
+          numero: normalizedAddress.numero ?? '',
+          complemento: normalizedAddress.complemento ?? '',
+          dataNascimento: personal?.dataNascimento
+            ? formatISOToDDMMYYYY(personal.dataNascimento)
+            : '',
+          naturalidade: personal?.naturalidade ?? '',
+          estadoCivil: personal?.estadoCivil ?? '',
+          nomeMae: personal?.nomeMae ?? '',
+          nomePai: personal?.nomePai ?? '',
+          profissao: personal?.profissao ?? '',
+          perfisIds: response.perfis?.map((perfil) => perfil.id) ?? [],
         };
 
-        const defaultValues: any = {
-          tipo: res.tipo || undefined,
-          cpfUsuario: formatCPF((res as any).cpf || (res as any).cpfUsuario) || '',
-          email: res.email || '',
-          telefone: formatPhone(res.telefone || (res as any).telefone) || '',
-          nomeUsuario: res.nome || '',
-          // prefer nested personal.sexo, fallback to top-level
-          sexo: personal?.sexo || (res as any).sexo || '',
-          // prefer registro from nested dadosPessoais, then top-level registro, then registroProfissional
-          registro: personal?.registro || (res as any).registro || (res as any).registroProfissional?.numeroRegistro || '',
-          estado: address?.uf || (res as any).uf || '',
-          // rqe may live under dadosPessoais, top-level rqe, or registroProfissional.rqe
-          rqe: personal?.rqe || (res as any).rqe || (res as any).registroProfissional?.rqe || '',
-          cep: address?.cep ? (address.cep.includes('-') ? address.cep : (address.cep.length === 8 ? address.cep.replace(/(\d{5})(\d{3})/, "$1-$2") : address.cep)) : '',
-          endereco: address?.logradouro || address?.endereco || '',
-          bairro: address?.bairro || '',
-          cidade: address?.cidade || '',
-          numero: address?.numero || '',
-          complemento: address?.complemento || '',
-          // personal data
-          dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
-          genero: personal?.genero || '',
-          naturalidade: personal?.naturalidade || '',
-          estadoCivil: personal?.estadoCivil || '',
-          perfisIds: (res.perfis || []).map((p: any) => p.id),
-        };
-        // determine which fields should be locked for admin edits
-        const existingRegistro = !!(personal?.registro || (res as any).registro || (res as any).registroProfissional?.numeroRegistro);
-        const existingRqe = !!(personal?.rqe || (res as any).rqe || (res as any).registroProfissional?.rqe);
         setLockedFields({
-          nomeUsuario: true, // admin cannot edit name
-          cpfUsuario: true, // admin cannot edit cpf
-          sexo: true, // admin cannot edit sexo
-          registro: existingRegistro,
-          rqe: existingRqe,
+          nomeUsuario: true,
+          cpfUsuario: true,
+          sexo: true,
+          registro: Boolean(registroValue),
+          rqe: Boolean(rqeValue),
         });
 
         reset(defaultValues);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Erro ao buscar usuário', error);
-        toastError('Erro ao carregar usuário');
+        const message = isAxiosError(error)
+          ? error.response?.data?.message ?? 'Erro ao carregar usuário'
+          : 'Erro ao carregar usuário';
+        toastError(message);
       } finally {
         setLoading(false);
       }
     };
-    fetch();
-  }, [id, reset, toastError]);
+
+    fetchUser();
+  }, [id, reset]);
 
   // CEP auto-fill logic (same as patients)
   const cepValue = watch('cep');
@@ -171,11 +241,11 @@ const UserEditPage = () => {
       clearErrors('cep');
 
       // don't overwrite existing address values coming from backend; only populate empties
-  const hasEndereco = !!watch('endereco');
-  const hasBairro = !!watch('bairro');
-  const hasCidade = !!watch('cidade');
-  const hasEstado = !!watch('estado');
-  const hasComplemento = !!watch('complemento');
+      const hasEndereco = !!getValues('endereco');
+      const hasBairro = !!getValues('bairro');
+      const hasCidade = !!getValues('cidade');
+      const hasEstado = !!getValues('estado');
+      const hasComplemento = !!getValues('complemento');
 
       const cleanedCep = cep.replace(/\D/g, '');
       if (cleanedCep.length === 8) {
@@ -201,60 +271,78 @@ const UserEditPage = () => {
     if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
       handleCepSearch(cepValue);
     }
-  }, [cepValue, setValue, setError, clearErrors, toastError, toastWarn]);
+  }, [cepValue, setValue, setError, clearErrors, getValues]);
 
   const handleSaveUser = async (data: UserFormInputs) => {
     if (!id) return;
     try {
       const { removeNonNumeric, formatDateToISO } = await import('../../utils/formatters');
 
-      const userDTO: any = {
+      const personalPayload: UpdateUserDTO['dadosPessoais'] = {
+        id: personalDataId ?? undefined,
+        dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
+        sexo: data.sexo || undefined,
+        naturalidade: data.naturalidade || undefined,
+        estadoCivil: data.estadoCivil || undefined,
+        nomeMae: data.nomeMae || undefined,
+        nomePai: data.nomePai || undefined,
+        profissao: data.profissao || undefined,
+        registro: data.registro || undefined,
+        rqe: data.rqe || undefined,
+      };
+
+      const enderecoPayload: UpdateUserDTO['endereco'] = {
+        id: addressId ?? undefined,
+        logradouro: data.endereco || undefined,
+        numero: data.numero || undefined,
+        complemento: data.complemento || undefined,
+        bairro: data.bairro || undefined,
+        cidade: data.cidade || undefined,
+        uf: data.estado || undefined,
+        cep: data.cep ? removeNonNumeric(data.cep) : undefined,
+      };
+
+      const isProfessionalType = PROFESSIONAL_USER_TYPES.some((tipo) => tipo === data.tipo);
+      const registroProfissionalPayload: UpdateUserDTO['registroProfissional'] = isProfessionalType
+        ? {
+            tipoProfissional: data.tipo,
+            numeroRegistro: data.registro || undefined,
+            rqe: data.tipo === 'MEDICO' ? data.rqe || undefined : undefined,
+          }
+        : null;
+
+      const userDTO: UpdateUserDTO = {
         nome: data.nomeUsuario,
         email: data.email,
-        telefone: data.telefone,
+        telefone: data.telefone ? removeNonNumeric(data.telefone) : undefined,
         tipo: data.tipo,
         ativo: true,
-        // send cpf as digits-only (backend seems to accept digits)
         cpf: data.cpfUsuario ? removeNonNumeric(data.cpfUsuario) : undefined,
-        dadosPessoais: {
-          dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : undefined,
-          sexo: data.sexo || undefined,
-          naturalidade: data.naturalidade || undefined,
-          estadoCivil: data.estadoCivil || undefined,
-          // keep registro/rqe in dadosPessoais for backward compatibility
-          registro: data.registro || undefined,
-          rqe: data.rqe || undefined,
-        },
-        endereco: {
-          logradouro: data.endereco || undefined,
-          numero: data.numero || undefined,
-          complemento: data.complemento || undefined,
-          bairro: data.bairro || undefined,
-          cidade: data.cidade || undefined,
-          uf: data.estado || undefined,
-          cep: data.cep ? removeNonNumeric(data.cep) : undefined,
-        },
-        // include registroProfissional object as well so backend receives structured professional data
-        registroProfissional: {
-          tipoProfissional: data.tipo || undefined,
-          numeroRegistro: data.registro || undefined,
-          rqe: data.rqe || undefined,
-        },
+  dadosPessoais: hasMeaningfulValue(personalPayload) ? personalPayload : null,
+  endereco: hasMeaningfulValue(enderecoPayload) ? enderecoPayload : null,
+        registroProfissional: registroProfissionalPayload,
       };
 
       await adminService.updateUser(Number(id), userDTO);
 
-      // assign roles if provided
-      if (Array.isArray(data.perfisIds)) {
-        await adminService.assignRoles(Number(id), { perfisIds: data.perfisIds });
+      if (Array.isArray(data.perfisIds) && data.perfisIds.length > 0) {
+        const perfisIds = data.perfisIds
+          .map((perfilId) => Number(perfilId))
+          .filter((perfilId) => !Number.isNaN(perfilId));
+
+        if (perfisIds.length > 0) {
+          await adminService.assignRoles(Number(id), { perfisIds });
+        }
       }
 
       setOpenSaveDialog(false);
       toastSuccess('Usuário atualizado com sucesso');
       setTimeout(() => navigate('/users'), 1200);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao atualizar usuário', error);
-      const message = error.response?.data?.message || 'Erro ao atualizar usuário';
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? 'Erro ao atualizar usuário'
+        : 'Erro ao atualizar usuário';
       toastError(message);
       setOpenSaveDialog(false);
     }

@@ -27,7 +27,7 @@ const MedicalRecordPage = () => {
 
       return () => clearTimeout(timeout);
     }
-  }, [patientId, navigate, toastWarn]);
+  }, [patientId, navigate]);
 
   if (loading) {
     return <LoadingState message="Carregando prontuário médico..." />;

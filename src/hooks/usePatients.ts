@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pacienteService } from '../api/paciente.service';
-import type { RegistrarPacienteDTO, EditarPacienteDTO } from '../api/paciente.dto';
+import type {
+  RegistrarPacienteDTO,
+  EditarPacienteDTO,
+  PaginatedResponseDTOPacienteDTO,
+} from '../api/paciente.dto';
 
 // Query Keys para cache
 export const patientKeys = {
@@ -17,7 +21,7 @@ export const patientKeys = {
  * ✅ Loading e error states inclusos
  */
 export function usePatients(limit: number = 10, offset: number = 0, searchText?: string) {
-  return useQuery({
+  return useQuery<PaginatedResponseDTOPacienteDTO>({
     queryKey: patientKeys.list(limit, offset, searchText),
     queryFn: () => pacienteService.listarPacientes(limit, offset, searchText),
     // Dados mais antigos que 5min disparam refetch automático

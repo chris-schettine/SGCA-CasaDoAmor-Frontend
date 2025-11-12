@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isAxiosError } from 'axios';
 import {
   Box,
   Button,
@@ -104,10 +105,13 @@ const ConsentimentoForm = ({ profissionalUuid, onSuccess, onCancel, obrigatorio 
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao registrar consentimento:', error);
-      const message =
-        error.response?.data?.message || 'Erro ao registrar consentimento. Tente novamente.';
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? 'Erro ao registrar consentimento. Tente novamente.'
+        : error instanceof Error
+          ? error.message
+          : 'Erro ao registrar consentimento. Tente novamente.';
       toastError(message);
     }
   };

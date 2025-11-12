@@ -1,4 +1,5 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -43,9 +44,11 @@ const ForgotPassword = () => {
         navigate('/login'); 
       }, 3000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao solicitar recuperação:", error);
-      const message = error.response?.data?.message || "Erro ao processar a solicitação.";
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? "Erro ao processar a solicitação."
+        : "Erro ao processar a solicitação.";
       toastErrorCritical(message);
       setIsLoading(false);
     }

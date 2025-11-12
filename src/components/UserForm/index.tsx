@@ -1,4 +1,5 @@
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText, Tooltip } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material";
 import InfoIcon from '@mui/icons-material/Info';
 import MaskedTextField from "../MaskedTextField";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch, type UseFormSetValue, type UseFormSetError, type UseFormClearErrors } from "react-hook-form";
@@ -143,12 +144,14 @@ const UserForm = (
           <Controller
             name="tipo"
             control={control}
-            defaultValue={undefined as any}
             render={({ field }) => {
               const tipoValue = field.value as string;
               // decide which additional fields to show
               const showRegistro = ["DENTISTA", "MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA", "NUTRICIONISTA"].includes(tipoValue);
               const showRqe = ["MEDICO"].includes(tipoValue);
+              const handleTipoChange = (event: SelectChangeEvent<UserFormInputs['tipo']>) => {
+                field.onChange(event.target.value as UserFormInputs['tipo']);
+              };
 
               return (
                 <>
@@ -159,7 +162,7 @@ const UserForm = (
                       id="tipo"
                       label="Tipo de Profissional"
                       value={field.value ?? ''}
-                      onChange={(e) => field.onChange((e.target as HTMLInputElement).value as any)}
+                      onChange={handleTipoChange}
                       onBlur={field.onBlur}
                       name={field.name}
                     >
@@ -520,7 +523,6 @@ const UserForm = (
           <Controller
             name="sexo"
             control={control}
-            defaultValue={undefined as any}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.sexo}>
                 <InputLabel id="sexo-label">Sexo</InputLabel>
@@ -529,7 +531,7 @@ const UserForm = (
                   id="sexo"
                   label="Sexo"
                   value={field.value ?? ''}
-                  onChange={(e) => field.onChange((e.target as HTMLInputElement).value as any)}
+                  onChange={(event: SelectChangeEvent<UserFormInputs['sexo']>) => field.onChange(event.target.value as UserFormInputs['sexo'])}
                   onBlur={field.onBlur}
                   name={field.name}
                   disabled={!!disabledFields?.sexo}

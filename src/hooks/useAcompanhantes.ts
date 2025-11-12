@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { acompanhanteService } from '../api/acompanhante.service';
-import type { RegistrarAcompanhanteDTO, EditarAcompanhanteDTO } from '../api/acompanhante.dto';
+import type {
+  RegistrarAcompanhanteDTO,
+  EditarAcompanhanteDTO,
+  ListaAcompanhantesDTO,
+} from '../api/acompanhante.dto';
 
 /**
  * Hook para listar acompanhantes com paginação
@@ -10,7 +14,7 @@ export const useAcompanhantes = (
   offset: number = 0,
   searchText?: string
 ) => {
-  return useQuery({
+  return useQuery<ListaAcompanhantesDTO>({
     queryKey: ['acompanhantes', limit, offset, searchText],
     queryFn: () => acompanhanteService.listarAcompanhantes(limit, offset, searchText),
     staleTime: 1000 * 60 * 5, // 5 minutos
@@ -63,7 +67,7 @@ export const useAcompanhantesPorPaciente = (
   limit: number = 10,
   offset: number = 0
 ) => {
-  return useQuery({
+  return useQuery<ListaAcompanhantesDTO>({
     queryKey: ['acompanhantes', 'paciente', pacienteId, limit, offset],
     queryFn: () => acompanhanteService.buscarAcompanhantesPorPaciente(pacienteId!, limit, offset),
     enabled: !!pacienteId, // Só executa se tiver pacienteId

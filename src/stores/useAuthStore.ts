@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { isAxiosError } from 'axios';
+import type { QueryClient } from '@tanstack/react-query';
 import { authService } from '../api/auth.service';
+import type { AuthSessionResponse } from '../api/auth.dto';
 
 // Importa queryClient para limpar cache no logout
-let queryClientInstance: any = null;
+let queryClientInstance: QueryClient | null = null;
 
-export const setQueryClient = (client: any) => {
+export const setQueryClient = (client: QueryClient) => {
   queryClientInstance = client;
 };
 
@@ -15,6 +18,7 @@ export interface UserType {
   cpf: string;
   roles: string[];
   tipoUsuario?: string;
+  uuid?: string;
 }
 
 interface AuthState {
@@ -54,13 +58,17 @@ export const useAuthStore = create<AuthState>()(
           // 🔐 Chama API de logout (POST /auth/logout)
           await authService.logout();
           console.log('[useAuthStore] Logout na API realizado com sucesso');
-        } catch (error: any) {
-          const status = error?.response?.status;
-          
-          if (status === 401) {
-            console.warn('[useAuthStore] Logout: sessão já expirada (401)');
-          } else if (status === 404) {
-            console.warn('[useAuthStore] Logout: sessão não encontrada (404)');
+        } catch (error: unknown) {
+          if (isAxiosError(error)) {
+            const status = error.response?.status;
+
+            if (status === 401) {
+              console.warn('[useAuthStore] Logout: sessão já expirada (401)');
+            } else if (status === 404) {
+              console.warn('[useAuthStore] Logout: sessão não encontrada (404)');
+            } else {
+              console.error('[useAuthStore] Erro ao fazer logout na API:', error);
+            }
           } else {
             console.error('[useAuthStore] Erro ao fazer logout na API:', error);
           }
@@ -110,48 +118,57 @@ export const useAuthStore = create<AuthState>()(
         if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Iniciando verificação com backend');
         set({ isLoading: true });
 
+        const timeoutPromise: Promise<AuthSessionResponse> = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 5000);
+        });
+
         try {
           if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Chamando authService.getActiveSession()');
           
-          // ⏱️ Adiciona timeout de 5 segundos
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout')), 5000);
-          });
-          
-          const sessionPromise = authService.getActiveSession();
-          
-          const rawUser: any = await Promise.race([sessionPromise, timeoutPromise]);
+          const sessionPromise: Promise<AuthSessionResponse> = authService.getActiveSession();
+          const rawUser: AuthSessionResponse = await Promise.race([
+            sessionPromise,
+            timeoutPromise,
+          ]);
           if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Resposta recebida:', !!rawUser);
           
           if (rawUser) {
             // Normaliza dados do backend
             const normalizedUser: UserType = {
-              nome: rawUser.nome || rawUser.user?.nome || '',
-              email: rawUser.email || rawUser.user?.email || '',
-              cpf: rawUser.cpf || rawUser.user?.cpf || '',
-              roles: (rawUser.perfis && Array.isArray(rawUser.perfis))
-                ? rawUser.perfis.map((p: any) => p.nome)
-                : (rawUser.roles || rawUser.user?.roles || []),
-              tipoUsuario: rawUser.tipo || rawUser.tipoUsuario || rawUser.user?.tipoUsuario,
+              nome: rawUser.nome ?? rawUser.user?.nome ?? '',
+              email: rawUser.email ?? rawUser.user?.email ?? '',
+              cpf: rawUser.cpf ?? rawUser.user?.cpf ?? '',
+              roles: Array.isArray(rawUser.perfis)
+                ? rawUser.perfis
+                    .map((perfil) => perfil?.nome)
+                    .filter((roleName): roleName is string => Boolean(roleName))
+                : rawUser.roles ?? rawUser.user?.roles ?? [],
+              tipoUsuario: rawUser.tipo ?? rawUser.tipoUsuario ?? rawUser.user?.tipoUsuario,
+              uuid: rawUser.uuid ?? rawUser.user?.uuid,
             };
 
             if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Atualizando usuário normalizado');
             set({ user: normalizedUser, isAuthenticated: true });
           }
-        } catch (error: any) {
-          const status = error?.response?.status;
-          
-          if (status === 401) {
-            // Token inválido/expirado - limpa sessão
-            console.warn('[useAuthStore] Token inválido (401) - limpando sessão');
-            set({ token: null, user: null, isAuthenticated: false });
-          } else if (error.message?.includes('Timeout')) {
+        } catch (error: unknown) {
+          if (isAxiosError(error)) {
+            const status = error.response?.status;
+
+            if (status === 401) {
+              // Token inválido/expirado - limpa sessão
+              console.warn('[useAuthStore] Token inválido (401) - limpando sessão');
+              set({ token: null, user: null, isAuthenticated: false });
+            } else {
+              // Outros códigos: mantém sessão local
+              console.warn('[useAuthStore] Falha ao validar sessão - mantendo sessão local:', status);
+              set({ isAuthenticated: true });
+            }
+          } else if (error instanceof Error && error.message.includes('Timeout')) {
             // Timeout - mantém sessão local mas loga aviso
             console.warn('[useAuthStore] Falha ao verificar sessão (timeout) - mantendo sessão local');
             set({ isAuthenticated: true });
           } else {
-            // Outros erros: mantém sessão local
-            console.warn('[useAuthStore] Falha ao validar sessão - mantendo sessão local:', error.message || error);
+            console.warn('[useAuthStore] Falha ao validar sessão - mantendo sessão local:', error);
             set({ isAuthenticated: true });
           }
         } finally {

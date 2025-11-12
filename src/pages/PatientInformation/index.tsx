@@ -105,7 +105,7 @@ const PatientInformation = () => {
 
       fetchPatient();
     }
-  }, [patientId, passedPatient, patient, navigate, toastError, toastWarn]);
+  }, [patientId, passedPatient, patient, navigate]);
 
   const handleNavigate = (record: string) => {
     navigate(`/patient/information/${record}`, {

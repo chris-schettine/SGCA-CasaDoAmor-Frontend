@@ -12,8 +12,8 @@ interface PatientPersonalDataFormProps {
   errors: FieldErrors<PatientFormInputs>;
   watch: UseFormWatch<PatientFormInputs>;
   setValue: UseFormSetValue<PatientFormInputs>;
-  control: Control<PatientFormInputs, any, PatientFormInputs>;
-  handleCepSearch: (cep: string, targetFieldPrefix: "" | "acompanhante") => Promise<void>;
+  control: Control<PatientFormInputs>;
+  handleCepSearch: (cep: string) => Promise<void>;
   isCepLoading: boolean;
   disabledFields?: (keyof PatientFormInputs)[];
 }
@@ -43,9 +43,9 @@ const PatientPersonalDataForm = (
   const complementoValue = watch("complemento");
 
   // Field array para contatos de emergência
-  const { fields: contatosFields, append, remove } = useFieldArray({
+  const { fields: contatosFields, append, remove } = useFieldArray<PatientFormInputs, "contatosDeEmergencia">({
     control,
-    name: 'contatosDeEmergencia' as any,
+    name: 'contatosDeEmergencia',
   });
 
   // Efeito para calcular e preencher a idade automaticamente
@@ -345,7 +345,7 @@ const PatientPersonalDataForm = (
                 lazy={true}
                 onBlur={(e) => {
                   field.onBlur();
-                  handleCepSearch(e.target.value, "");
+                  handleCepSearch(e.target.value);
                 }}
                 required
                 InputLabelProps={{

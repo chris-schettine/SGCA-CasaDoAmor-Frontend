@@ -1,5 +1,5 @@
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import {
   Table,
   TableBody,
@@ -12,16 +12,20 @@ import {
   type TableCellProps,
 } from '@mui/material';
 
-interface Column<T> {
-  field: keyof T | string; // Permite campos customizados como 'acoes'
+export type TableRowData = Record<string, unknown>;
+
+type ColumnField<T extends TableRowData> = keyof T | (string & {});
+
+export interface Column<T extends TableRowData> {
+  field: ColumnField<T>; // Permite campos customizados como 'acoes'
   headerName: string;
   width?: number;
-  renderCell?: (row: T) => React.ReactNode;
+  renderCell?: (row: T) => ReactNode;
   align?: TableCellProps['align'];
   headerAlign?: TableCellProps['align'];
 }
 
-interface VirtualizedTableProps<T> {
+interface VirtualizedTableProps<T extends TableRowData> {
   data: T[];
   columns: Column<T>[];
   rowHeight?: number;
@@ -30,7 +34,7 @@ interface VirtualizedTableProps<T> {
   onRowClick?: (row: T) => void;
 }
 
-export function VirtualizedTable<T extends Record<string, any>>({
+export function VirtualizedTable<T extends TableRowData>({
   data,
   columns,
   rowHeight = 53,
@@ -145,27 +149,39 @@ export function VirtualizedTable<T extends Record<string, any>>({
                           },
                         }}
                       >
-                        {columns.map((column) => (
-                          <Box
-                            key={String(column.field)}
-                            component="div"
-                            sx={{
-                              display: 'table-cell',
-                              width: column.width,
-                              padding: '16px',
-                              borderBottom: '1px solid',
-                              borderColor: 'divider',
-                              verticalAlign: 'middle',
-                              textAlign: column.align || 'left',
-                              backgroundColor: 'inherit',
+                        {columns.map((column) => {
+                          const defaultValue = (() => {
+                            if (column.renderCell) {
+                              return column.renderCell(row);
+                            }
 
-                            }}
-                          >
-                            {column.renderCell
-                              ? column.renderCell(row)
-                              : String(row[column.field] ?? '')}
-                          </Box>
-                        ))}
+                            if (typeof column.field === 'string' && column.field in row) {
+                              return String(row[column.field as keyof T] ?? '');
+                            }
+
+                            return '';
+                          })();
+
+                          return (
+                            <Box
+                              key={String(column.field)}
+                              component="div"
+                              sx={{
+                                display: 'table-cell',
+                                width: column.width,
+                                padding: '16px',
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                                verticalAlign: 'middle',
+                                textAlign: column.align || 'left',
+                                backgroundColor: 'inherit',
+
+                              }}
+                            >
+                              {defaultValue}
+                            </Box>
+                          );
+                        })}
                       </Box>
                     </Box>
                   );
@@ -180,14 +196,20 @@ export function VirtualizedTable<T extends Record<string, any>>({
 }
 
 // Exemplo de uso otimizado para tabela de pacientes
-interface VirtualizedPatientTableProps<T> {
+interface VirtualizedPatientTableProps<T extends TableRowData & {
+  id?: string | number;
+  cpf?: string | number;
+}> {
   data: T[];
   columns: Column<T>[];
   isLoading?: boolean;
   onRowClick?: (row: T) => void;
 }
 
-export function VirtualizedPatientTable<T extends Record<string, any>>({
+export function VirtualizedPatientTable<T extends TableRowData & {
+  id?: string | number;
+  cpf?: string | number;
+}>({
   data,
   columns,
   isLoading,

@@ -15,15 +15,17 @@ import {
 import LoadingState from '../LoadingState';
 import EmptyState from '../EmptyState';
 
-export interface Column<T> {
-  id: keyof T | string;
+type TableRowData = Record<string, unknown>;
+
+export interface Column<T extends TableRowData> {
+  id: keyof T;
   label: string;
   minWidth?: number;
   align?: 'left' | 'right' | 'center';
-  format?: (value: any, row: T) => React.ReactNode;
+  format?: (value: T[keyof T] | undefined, row: T) => React.ReactNode;
 }
 
-export interface Action<T> {
+export interface Action<T extends TableRowData> {
   icon: React.ReactNode;
   tooltip: string;
   onClick: (row: T) => void;
@@ -31,7 +33,7 @@ export interface Action<T> {
   color?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
 }
 
-interface StandardTableProps<T> {
+export interface StandardTableProps<T extends TableRowData> {
   columns: Column<T>[];
   data: T[];
   loading?: boolean;
@@ -45,7 +47,7 @@ interface StandardTableProps<T> {
   stickyHeader?: boolean;
 }
 
-function StandardTable<T>({
+function StandardTable<T extends TableRowData>({
   columns,
   data,
   loading = false,
@@ -154,10 +156,13 @@ function StandardTable<T>({
                   }}
                 >
                   {columns.map((column) => {
-                    const value = (row as any)[column.id];
+                    const value = row[column.id];
+                    const cellContent: React.ReactNode = column.format
+                      ? column.format(value, row)
+                      : (value as React.ReactNode);
                     return (
                       <TableCell key={String(column.id)} align={column.align || 'left'}>
-                        {column.format ? column.format(value, row) : value}
+                        {cellContent}
                       </TableCell>
                     );
                   })}

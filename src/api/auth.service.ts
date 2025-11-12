@@ -1,5 +1,4 @@
 import { api } from './api.gateway'; 
-import type { UserType } from '../contexts/AuthContext'; 
 import type {
   LoginResponse,
   ForgotPasswordDTO,
@@ -15,11 +14,12 @@ import type {
   Enable2FADTO,
   SessaoAuditDTO,
   MessageResponseDTO,
+  AuthSessionResponse,
 } from './auth.dto';
 
 class AuthService {
   
-  async login(cpf: string, senha: string): Promise<any> {
+  async login(cpf: string, senha: string): Promise<LoginResponse> {
     const response = await api.post('/auth/login', { cpf, senha });
     return response.data;
   }
@@ -28,7 +28,7 @@ class AuthService {
     await api.post('/auth/logout');
   }
 
-  async getActiveSession(): Promise<UserType> {
+  async getActiveSession(): Promise<AuthSessionResponse> {
     const response = await api.get('/auth/me'); 
     return response.data;
   }

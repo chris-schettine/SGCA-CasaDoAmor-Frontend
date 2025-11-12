@@ -133,5 +133,4 @@ export const InteractiveTransition: Story = {
       </>
     );
   },
-  name: 'Interactive Transition',
 };

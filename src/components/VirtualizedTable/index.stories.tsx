@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { VirtualizedTable, VirtualizedPatientTable } from '.';
-import { Box, Button } from '@mui/material';
 
 const meta: Meta<typeof VirtualizedTable> = {
   title: 'Components/VirtualizedTable',

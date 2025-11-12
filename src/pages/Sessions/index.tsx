@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Box, useMediaQuery, useTheme } from '@mui/material';
+import { isAxiosError } from 'axios';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import PageHeader from '../../components/PageHeader';
@@ -7,26 +8,10 @@ import LoadingState from '../../components/LoadingState';
 import { formatISOToLocalDateTime } from '../../utils/formatters';
 import MobileCard from '../../components/Table/MobileCard';
 import { toastError, toastSuccess } from '../../utils/toast';
-
-interface SessaoDTO {
-  id: number;
-  ipOrigem: string;
-  userAgent: string;
-  criadoEm: string;
-  expiraEm: string;
-  ativo: boolean;
-  atual: boolean;
-  usuario?: {
-    id: number;
-    nome: string;
-    email: string;
-    cpf: string;
-    tipo: string;
-  };
-}
+import type { SessaoAuditDTO } from '../../api/auth.dto';
 
 const SessionsPage = () => {
-  const [sessions, setSessions] = useState<SessaoDTO[]>([]);
+  const [sessions, setSessions] = useState<SessaoAuditDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -40,9 +25,12 @@ const SessionsPage = () => {
       const resp = await authService.listSessions();
       // resp tem o shape { totalSessoes, sessoes }
       setSessions(resp.sessoes || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao buscar sessões', err);
-      toastError(err?.response?.data?.message || 'Erro ao buscar sessões');
+      const message = isAxiosError(err)
+        ? err.response?.data?.message ?? 'Erro ao buscar sessões'
+        : 'Erro ao buscar sessões';
+      toastError(message);
     } finally {
       setLoading(false);
     }
@@ -64,9 +52,12 @@ const SessionsPage = () => {
       setSelectedId(null);
       // refresh
       await fetchSessions();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao revogar sessão', err);
-      toastError(err?.response?.data?.message || 'Erro ao revogar sessão');
+      const message = isAxiosError(err)
+        ? err.response?.data?.message ?? 'Erro ao revogar sessão'
+        : 'Erro ao revogar sessão';
+      toastError(message);
     }
   };
 

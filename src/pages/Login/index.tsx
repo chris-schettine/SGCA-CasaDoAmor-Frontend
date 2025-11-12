@@ -1,5 +1,6 @@
 import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
+import { isAxiosError } from 'axios';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from "../../hooks/useAuth";
@@ -9,11 +10,18 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Link as MuiLink } from '@mui/material';
 import { toastError, toastSuccess } from "../../utils/toast";
 import { AnimatedPageScale } from "../../components/AnimatedPage";
+import type { AuthSessionResponse } from "../../api/auth.dto";
+import type { LoginResponse } from "../../api/auth.dto";
+import type { UserType } from "../../contexts/AuthContext";
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  interface LocationState {
+    from?: { pathname: string };
+  }
   const location = useLocation();
+  const locationState = location.state as LocationState | null;
 
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
@@ -23,10 +31,10 @@ const Login = () => {
   // ✅ Redireciona para menu inicial se já autenticado
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
+      const from = locationState?.from?.pathname ?? '/';
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, navigate, locationState]);
 
   
   // Mostrar e não mostrar senha
@@ -52,53 +60,59 @@ const Login = () => {
 
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-   
-
-  // { token, tipo, email, nome, tipoUsuario, expiresIn }
-  const resp = await authService.login(cpf, password);
-  const token = resp.token;
-    let finalUser = {
-      nome: resp.nome || resp.user?.nome || '',
-      email: resp.email || resp.user?.email || '',
-      cpf: resp.cpf || resp.user?.cpf || '',
-      roles: resp.roles || resp.user?.roles || [],
-      tipoUsuario: resp.tipoUsuario || resp.user?.tipoUsuario || resp.tipo || undefined,
-    };
-
-    // ✅ Salvar token ANTES de chamar /auth/me
-    login(token, finalUser);
-
-    // Aguardar sincronização do localStorage (persist middleware)
-    await new Promise(resolve => setTimeout(resolve, 100));
-
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     try {
-      const raw: any = await authService.getActiveSession();
-      const normalizedUser = {
-        nome: raw.nome || raw.user?.nome || finalUser.nome,
-        email: raw.email || raw.user?.email || finalUser.email,
-        cpf: raw.cpf || raw.user?.cpf || finalUser.cpf,
-        roles: (raw.perfis && Array.isArray(raw.perfis)) ? raw.perfis.map((p: any) => p.nome) : (raw.roles || raw.user?.roles || finalUser.roles),
-        tipoUsuario: raw.tipo || raw.tipoUsuario || raw.user?.tipoUsuario || finalUser.tipoUsuario,
+      const response: LoginResponse = await authService.login(cpf, password);
+      const { token } = response;
+      const baseUser: UserType | undefined = response.user;
+
+      const finalUser: UserType = {
+        nome: response.nome ?? baseUser?.nome ?? '',
+        email: response.email ?? baseUser?.email ?? '',
+        cpf: response.cpf ?? baseUser?.cpf ?? '',
+        roles: response.roles ?? baseUser?.roles ?? [],
+        tipoUsuario: response.tipoUsuario ?? baseUser?.tipoUsuario ?? response.tipo,
       };
-      // Atualizar com dados completos do /auth/me
-      login(token, normalizedUser);
-    } catch (err) {
-      console.warn('[Login] Falha ao obter /auth/me após login - usando user retornado pelo login', err);
+
+      // ✅ Salvar token ANTES de chamar /auth/me
+      login(token, finalUser);
+
+      // Aguardar sincronização do localStorage (persist middleware)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      try {
+        const raw: AuthSessionResponse = await authService.getActiveSession();
+        const normalizedUser: UserType = {
+          nome: raw.nome ?? raw.user?.nome ?? finalUser.nome,
+          email: raw.email ?? raw.user?.email ?? finalUser.email,
+          cpf: raw.cpf ?? raw.user?.cpf ?? finalUser.cpf,
+          roles: Array.isArray(raw.perfis)
+            ? raw.perfis
+                .map((perfil) => perfil?.nome)
+                .filter((roleName): roleName is string => Boolean(roleName))
+            : raw.roles ?? raw.user?.roles ?? finalUser.roles,
+          tipoUsuario: raw.tipo ?? raw.tipoUsuario ?? raw.user?.tipoUsuario ?? finalUser.tipoUsuario,
+        };
+        // Atualizar com dados completos do /auth/me
+        login(token, normalizedUser);
+      } catch (err) {
+        console.warn('[Login] Falha ao obter /auth/me após login - usando user retornado pelo login', err);
+      }
+
+      toastSuccess('Login realizado com sucesso!');
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const errorMessage = typeof error.response?.data?.message === 'string'
+          ? error.response.data.message
+          : 'Erro desconhecido';
+        toastError(errorMessage);
+      } else if (error instanceof Error) {
+        toastError(error.message);
+      } else {
+        toastError('Erro desconhecido');
+      }
     }
-
-    toastSuccess('Login realizado com sucesso!');
-   /* const from = location.state?.from?.pathname || '/';
-    setTimeout(() => {
-      navigate(from, { replace: true });
-    }, 2000);*/
-
-  } catch (error: any) {
-    const  errorMessage = error.response?.data?.message || 'Erro desconhecido';
-    toastError(errorMessage);
-  }
   };
   return (
     <AnimatedPageScale>

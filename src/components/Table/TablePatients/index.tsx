@@ -8,12 +8,28 @@ import { useNavigate } from "react-router-dom";
 import { formatRG } from '../../../utils/formatters';
 import EmptyState from "../../EmptyState";
 import { usePatients } from "../../../hooks/usePatients";
-import { VirtualizedTable } from "../../VirtualizedTable";
+import { VirtualizedTable, type Column } from "../../VirtualizedTable";
 import MobileCard from "../MobileCard";
+import type { PacienteDTO } from "../../../api/paciente.dto";
 
 interface TablePatientsProps {
   searchText?: string;
 }
+
+type PatientRow = {
+  id: string;
+  nome: string;
+  cpf: string;
+  rg: string;
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  _patientData: PacienteDTO;
+};
+
+type PatientColumn = Column<PatientRow> & { hidden?: boolean };
 
 const TablePatients = ({ searchText }: TablePatientsProps) => {
   const navigate = useNavigate();
@@ -25,15 +41,18 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
 
   // 🚀 TanStack Query - substitui useState + useEffect
   const { data, isLoading, error } = usePatients(rowsPerPage, page * rowsPerPage, searchText);
-  
-  const patients = data?.nodes ?? [];
+
+  const patients: PacienteDTO[] = useMemo(
+    () => data?.nodes ?? [],
+    [data?.nodes]
+  );
   const totalCount = data?.totalCount ?? 0;
 
   const delay = 1000;
 
   // 🚀 Configuração de colunas para tabela virtualizada (DEVE estar antes dos early returns)
-  const virtualColumns = useMemo(() => {
-    const allColumns = [
+  const virtualColumns = useMemo<PatientColumn[]>(() => {
+    const allColumns: PatientColumn[] = [
       {
         field: 'nome' as const,
         headerName: 'Nome',
@@ -53,7 +72,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
         width: 150,
         headerAlign: 'center' as const,
         align: 'center' as const,
-        renderCell: (row: any) => formatRG(row.rg) || '—',
+        renderCell: (row) => formatRG(row.rg) || '—',
         hidden: isTablet, // Oculta em tablet e mobile
       },
       {
@@ -62,7 +81,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
         width: isMobile ? 120 : 170,
         headerAlign: 'center' as const,
         align: 'center' as const,
-        renderCell: (row: any) => (
+        renderCell: (row) => (
           <Box sx={{ 
             display: 'flex', 
             gap: isMobile ? 0.25 : 0.5, 
@@ -124,17 +143,17 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
 
   // Mapear pacientes (nested DTO) para linhas planas que a VirtualizedTable espera
   // Incluímos o objeto completo do paciente para evitar race conditions ao buscar depois
-  const rows = useMemo(() => patients.map((p: any) => ({
-    id: p.id,
-    nome: p.dadoPessoal?.nome ?? '—',
-    cpf: p.dadoPessoal?.cpf ?? '—',
-    rg: p.dadoPessoal?.rg ?? '—',
-    logradouro: p.endereco?.logradouro ?? '—',
-    numero: p.endereco?.numero ?? '—',
-    bairro: p.endereco?.bairro ?? '—',
-    cidade: p.endereco?.cidade ?? '—',
-    estado: p.endereco?.estado ?? '—',
-    _patientData: p, // Armazenar o objeto completo do paciente
+  const rows = useMemo<PatientRow[]>(() => patients.map((patient) => ({
+    id: patient.id,
+    nome: patient.dadoPessoal?.nome ?? '—',
+    cpf: patient.dadoPessoal?.cpf ?? '—',
+    rg: patient.dadoPessoal?.rg ?? '—',
+    logradouro: patient.endereco?.logradouro ?? '—',
+    numero: String(patient.endereco?.numero ?? '—'),
+    bairro: patient.endereco?.bairro ?? '—',
+    cidade: patient.endereco?.cidade ?? '—',
+    estado: patient.endereco?.estado ?? '—',
+    _patientData: patient,
   })), [patients]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -146,7 +165,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     setPage(0);
   }
 
-  const handleViewMedicalRecords = (id: string, patientData: any) => {
+  const handleViewMedicalRecords = (id: string, patientData: PacienteDTO) => {
     console.log('[TablePatients handleViewMedicalRecords] id:', id);
     console.log('[TablePatients handleViewMedicalRecords] patientData:', patientData);
     
@@ -157,11 +176,11 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     }, delay);
   }
 
-  const handleEdit = (id: string, patientData: any) => {
+  const handleEdit = (id: string, patientData: PacienteDTO) => {
     navigate(`/patient/edit/${id}`, { state: { patient: patientData } });
   }
 
-  const handleReport = (id: string, patientData: any) => {
+  const handleReport = (id: string, patientData: PacienteDTO) => {
     navigate(`/patient/report/${id}`, { state: { patient: patientData } });
   }
 

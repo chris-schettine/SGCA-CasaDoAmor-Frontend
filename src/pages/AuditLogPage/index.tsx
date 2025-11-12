@@ -148,7 +148,7 @@ export const AuditLogPage = () => {
       l.ipOrigem ?? '',
     ]);
 
-    const escapeCell = (cell: any) => {
+    const escapeCell = (cell: unknown) => {
       if (cell === null || cell === undefined) return '';
       const str = String(cell);
       return `"${str.replace(/"/g, '""')}"`;

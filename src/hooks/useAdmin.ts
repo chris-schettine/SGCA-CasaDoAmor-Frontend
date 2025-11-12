@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../api/admin.service';
-import type { CreateUserDTO, UpdateUserDTO, AtribuirRolesDTO, Pageable } from '../api/admin.dto';
+import type { CreateUserDTO, UpdateUserDTO, AtribuirRolesDTO, Pageable, AuditLoginsQueryParams } from '../api/admin.dto';
 
 // Query Keys para cache
 export const userKeys = {
@@ -21,7 +21,7 @@ export const roleKeys = {
 export const auditKeys = {
   all: ['audit'] as const,
   sessions: () => [...auditKeys.all, 'sessions'] as const,
-  logins: (params: any) => [...auditKeys.all, 'logins', params] as const,
+  logins: (params: AuditLoginsQueryParams) => [...auditKeys.all, 'logins', params] as const,
 };
 
 /**
@@ -168,7 +168,7 @@ export function useAuditSessions() {
 /**
  * Hook para logins de auditoria
  */
-export function useAuditLogins(params: any) {
+export function useAuditLogins(params: AuditLoginsQueryParams) {
   return useQuery({
     queryKey: auditKeys.logins(params),
     queryFn: () => adminService.getAuditLogins(params),

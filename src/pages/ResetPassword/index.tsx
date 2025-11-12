@@ -1,4 +1,5 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
+import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -71,9 +72,11 @@ const ResetPasswordPage = () => {
         navigate('/login'); 
       }, 3000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao redefinir senha:", error);
-      const message = error.response?.data?.message || "Erro ao processar a solicitação. O token pode estar expirado.";
+      const message = isAxiosError(error)
+        ? error.response?.data?.message ?? "Erro ao processar a solicitação. O token pode estar expirado."
+        : "Erro ao processar a solicitação. O token pode estar expirado.";
       toastError(message);
       setIsLoading(false);
     }

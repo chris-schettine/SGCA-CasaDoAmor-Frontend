@@ -79,7 +79,6 @@ export const Default: Story = {
 
 export const WithError: Story = {
   render: () => <InteractiveWrapper />,
-  name: 'Interactive Error Simulation',
 };
 
 const CustomFallback = (
@@ -107,6 +106,5 @@ export const WithCustomFallback: Story = {
                 </ErrorBoundary>
             </Box>
         );
-    },
-    name: 'With Custom Fallback'
-}
+  },
+};

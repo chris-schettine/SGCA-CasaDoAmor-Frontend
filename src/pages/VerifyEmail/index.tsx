@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { authService } from "../../api/auth.service";
 import { Box, CircularProgress, Container, Typography, Alert, Button } from "@mui/material";
 import { toastErrorCritical } from "../../utils/toast";
@@ -22,15 +23,20 @@ const ContainerStyles = {
 
 type Status = 'verifying' | 'success' | 'error';
 
+const DEFAULT_ERROR_MESSAGE = 'Erro ao verificar. O token pode ser inválido ou ter expirado.';
+
 const VerifyEmailPage = () => {
   const { token } = useParams<{ token: string }>(); // Pega o :token da URL
   const [status, setStatus] = useState<Status>('verifying');
+  const [errorMessage, setErrorMessage] = useState<string>(DEFAULT_ERROR_MESSAGE);
 
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
         setStatus('error');
-        toastErrorCritical('Token de verificação não encontrado.');
+        const message = 'Token de verificação não encontrado.';
+        setErrorMessage(message);
+        toastErrorCritical(message);
         return;
       }
 
@@ -38,10 +44,13 @@ const VerifyEmailPage = () => {
         // Chama o serviço que já existe
         await authService.verifyEmail({ token });
         setStatus('success');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Erro ao verificar email:", error);
-        //setErrorMessage(error.response?.data?.message || "Erro ao verificar. O token pode ser inválido ou ter expirado.");
-        toastErrorCritical("Erro ao verificar. O token pode ser inválido ou ter expirado.");
+        const message = isAxiosError(error)
+          ? error.response?.data?.message ?? DEFAULT_ERROR_MESSAGE
+          : DEFAULT_ERROR_MESSAGE;
+        setErrorMessage(message);
+        toastErrorCritical(message);
         setStatus('error');
       }
     };
@@ -81,7 +90,7 @@ const VerifyEmailPage = () => {
         return (
           <>
             <Alert severity="error" sx={{ mb: 2 }}>
-              toastErrorCritical("Erro ao verificar. O token pode ser inválido ou ter expirado.");
+              {errorMessage}
             </Alert>
             <Button 
               component={Link} 

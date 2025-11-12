@@ -1,22 +1,108 @@
 import { useEffect, useState, useRef } from 'react';
 import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import { isAxiosError } from 'axios';
+import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import type { AuthSessionResponse } from '../../api/auth.dto';
 import { authService } from '../../api/auth.service';
 import { adminService } from '../../api/admin.service';
+import type { UpdateUserDTO } from '../../api/admin.dto';
 import MaskedTextField from '../../components/MaskedTextField';
 import PageHeader from '../../components/PageHeader';
 import LoadingState from '../../components/LoadingState';
 import { useAuth } from '../../hooks/useAuth';
-import { formatISOToDDMMYYYY } from '../../utils/formatters';
+import type { UserType } from '../../contexts/AuthContext';
+import { formatCPF, formatDateToISO, formatISOToDDMMYYYY, formatPhone, removeNonNumeric } from '../../utils/formatters';
 import { toastError, toastSuccess, toastWarn } from '../../utils/toast';
+
+type SexoOption = 'MASCULINO' | 'FEMININO';
+
+interface MyProfileFormData {
+  nome: string;
+  cpf: string;
+  sexo: SexoOption | '';
+  email: string;
+  telefone: string;
+  cep: string;
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  registro: string;
+  rqe: string;
+  numero: string;
+  complemento: string;
+  estadoCivil: string;
+  dataNascimento: string;
+  naturalidade: string;
+}
+
+interface PasswordFormInputs {
+  senhaAtual: string;
+  novaSenha: string;
+  confirmarSenha: string;
+}
+
+type PersonalData = {
+  dataNascimento?: string | null;
+  estadoCivil?: string | null;
+  naturalidade?: string | null;
+  nomeMae?: string | null;
+  nomePai?: string | null;
+  sexo?: SexoOption | string | null;
+};
+
+type AddressData = {
+  bairro?: string | null;
+  cep?: string | null;
+  cidade?: string | null;
+  complemento?: string | null;
+  endereco?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  uf?: string | null;
+};
+
+type ProfessionalData = {
+  numeroRegistro?: string | null;
+  rqe?: string | null;
+};
+
+type DetailedAuthSession = AuthSessionResponse & {
+  id?: number | string;
+  telefone?: string | null;
+  dadosPessoais?: PersonalData | null;
+  endereco?: AddressData | string | null;
+  registro?: string | null;
+  rqe?: string | null;
+  registroProfissional?: ProfessionalData | null;
+  cep?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  sexo?: SexoOption | string | null;
+};
+
+const formatCepDisplay = (value?: string | null): string => {
+  if (!value) return '';
+  const digitsOnly = removeNonNumeric(value);
+  if (digitsOnly.length !== 8) {
+    return value;
+  }
+  return digitsOnly.replace(/(\d{5})(\d{3})/, '$1-$2');
+};
+
+const PROFESSIONAL_USER_TYPES: ReadonlyArray<string> = ['DENTISTA', 'MEDICO', 'ENFERMEIRO', 'FISIOTERAPEUTA', 'NUTRICIONISTA'];
 
 
 const MyProfilePage = () => {
   const { token, user, login } = useAuth();
-  const [rawUser, setRawUser] = useState<any>(null);
+  const [rawUser, setRawUser] = useState<DetailedAuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register } = useForm({ mode: 'onBlur' });
+  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register } = useForm<MyProfileFormData>({ mode: 'onBlur' });
 
   // CEP auto-fill: mirror logic used in UserForm
   const cepValue = watch('cep');
@@ -88,48 +174,69 @@ const MyProfilePage = () => {
     };
   }, [cepValue, setValue, setError, clearErrors, watch]);
 
-  const { control: pwControl, handleSubmit: handleSubmitPw } = useForm({ mode: 'onBlur' });
+  const { control: pwControl, handleSubmit: handleSubmitPw, reset: resetPw } = useForm<PasswordFormInputs>({ mode: 'onBlur' });
 
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const me: any = await authService.getActiveSession();
+        const me = (await authService.getActiveSession()) as DetailedAuthSession;
         setRawUser(me);
-        // (2FA state removed from profile page)
-        const personal = me.dadosPessoais || { sexo: me.sexo };
-        const address = me.endereco || {
-          cep: me.cep,
-          endereco: me.endereco,
-          bairro: me.bairro,
-          cidade: me.cidade,
-          uf: me.uf,
-          numero: me.numero,
-          complemento: me.complemento,
+
+        const personal: PersonalData = me.dadosPessoais ?? {
+          sexo: me.sexo ?? null,
+          estadoCivil: null,
+          dataNascimento: null,
+          naturalidade: null,
+          nomeMae: null,
+          nomePai: null,
         };
 
-        const { formatCPF, formatPhone } = await import('../../utils/formatters').catch(() => ({} as any));
+        const addressFromSession: AddressData | null =
+          typeof me.endereco === 'object' && me.endereco !== null ? (me.endereco as AddressData) : null;
+        const addressAsString = typeof me.endereco === 'string' ? me.endereco : null;
+
+        const address: AddressData = addressFromSession ?? {
+          cep: me.cep ?? null,
+          logradouro: addressAsString,
+          endereco: addressAsString,
+          bairro: me.bairro ?? null,
+          cidade: me.cidade ?? null,
+          uf: me.uf ?? null,
+          numero: me.numero ?? null,
+          complemento: me.complemento ?? null,
+        };
+
+        const isProfessionalUser = me.tipo ? PROFESSIONAL_USER_TYPES.includes(me.tipo) : false;
+
+        const professional: ProfessionalData = isProfessionalUser
+          ? me.registroProfissional ?? {
+              numeroRegistro: me.registro ?? null,
+              rqe: me.rqe ?? null,
+            }
+          : { numeroRegistro: null, rqe: null };
+
+        const rawSexo = personal?.sexo;
+        const normalizedSexo: SexoOption | '' = rawSexo === 'MASCULINO' || rawSexo === 'FEMININO' ? rawSexo : '';
 
         reset({
-          nome: me.nome || me.user?.nome || '',
-          cpf: formatCPF ? formatCPF(me.cpf || '') : (me.cpf || ''),
-          sexo: personal?.sexo || '',
-          email: me.email || me.user?.email || '',
-          telefone: formatPhone ? formatPhone(me.telefone || '') : (me.telefone || ''),
-          cep: address?.cep ? (String(address.cep).includes('-') ? address.cep : (String(address.cep).replace(/(\d{5})(\d{3})/, "$1-$2"))) : '',
-          endereco: address?.logradouro || address?.endereco || '',
-          bairro: address?.bairro || '',
-          cidade: address?.cidade || '',
-          estado: address?.uf || '',
-          registro: personal?.registro || me.registro || '',
-          rqe: personal?.rqe || me.rqe || '',
-          numero: address?.numero || '',
-          complemento: address?.complemento || '',
-          estadoCivil: personal?.estadoCivil || '',
+          nome: me.nome ?? me.user?.nome ?? '',
+          cpf: formatCPF(me.cpf ?? me.user?.cpf ?? ''),
+          sexo: normalizedSexo,
+          email: me.email ?? me.user?.email ?? '',
+          telefone: formatPhone(me.telefone ?? ''),
+          cep: formatCepDisplay(address?.cep ?? null),
+          endereco: address?.logradouro ?? address?.endereco ?? '',
+          bairro: address?.bairro ?? '',
+          cidade: address?.cidade ?? '',
+          estado: address?.uf ?? '',
+          registro: professional?.numeroRegistro ?? '',
+          rqe: professional?.rqe ?? '',
+          numero: address?.numero ?? '',
+          complemento: address?.complemento ?? '',
+          estadoCivil: personal?.estadoCivil ?? '',
           dataNascimento: personal?.dataNascimento ? formatISOToDDMMYYYY(personal.dataNascimento) : '',
-          naturalidade: personal?.naturalidade || '',
-          nomeMae: personal?.nomeMae || '',
-          nomePai: personal?.nomePai || '',
+          naturalidade: personal?.naturalidade ?? '',
         });
       } catch (err) {
         console.error('Erro ao carregar perfil', err);
@@ -141,69 +248,105 @@ const MyProfilePage = () => {
     fetch();
   }, [reset]);
 
-  const onSaveProfile = async (data: any) => {
-    if (!rawUser) return;
+  const onSaveProfile: SubmitHandler<MyProfileFormData> = async (data) => {
+    if (!rawUser?.id) {
+      toastError('Não foi possível identificar o usuário.');
+      return;
+    }
+
+    const userId = Number(rawUser.id);
+    if (Number.isNaN(userId)) {
+      toastError('Identificador de usuário inválido.');
+      return;
+    }
+
     try {
-      const { removeNonNumeric } = await import('../../utils/formatters');
+      const sanitizedTelefone = removeNonNumeric(data.telefone);
+      const sanitizedCep = removeNonNumeric(data.cep);
 
-      const formatDDMMYYYYToISO = (d: string | undefined) => {
-        if (!d) return undefined;
-        const parts = String(d).split('/');
-        if (parts.length !== 3) return undefined;
-        const [dd, mm, yyyy] = parts;
-        
-        if (!/^\d{1,2}$/.test(dd) || !/^\d{1,2}$/.test(mm) || !/^\d{4}$/.test(yyyy)) return undefined;
-        return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+      const personalPayload: UpdateUserDTO['dadosPessoais'] = {
+        sexo: data.sexo ? data.sexo : null,
+        estadoCivil: data.estadoCivil ? data.estadoCivil : null,
+        dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : null,
+        naturalidade: data.naturalidade ? data.naturalidade : null,
       };
 
-      const payload: any = {
+      const hasPersonalData = Object.values(personalPayload ?? {}).some((value) => Boolean(value));
+
+      const addressPayload: UpdateUserDTO['endereco'] = {
+        logradouro: data.endereco ? data.endereco : null,
+        numero: data.numero ? data.numero : null,
+        complemento: data.complemento ? data.complemento : null,
+        bairro: data.bairro ? data.bairro : null,
+        cidade: data.cidade ? data.cidade : null,
+        uf: data.estado ? data.estado : null,
+        cep: sanitizedCep ? sanitizedCep : null,
+      };
+
+      const hasAddressData = Object.values(addressPayload ?? {}).some((value) => Boolean(value));
+
+      const isProfessional = rawUser.tipo ? PROFESSIONAL_USER_TYPES.includes(rawUser.tipo) : false;
+
+      const professionalPayload: UpdateUserDTO['registroProfissional'] = isProfessional
+        ? {
+            tipoProfissional: rawUser.tipo,
+            numeroRegistro: data.registro ? data.registro : null,
+            rqe: rawUser.tipo === 'MEDICO' ? (data.rqe ? data.rqe : null) : null,
+          }
+        : null;
+
+      const payload: UpdateUserDTO = {
+        nome: data.nome,
         email: data.email,
-        telefone: data.telefone,
-        // include nested personal/registration info for medical/professional users
-        dadosPessoais: {
-          registro: data.registro || undefined,
-          sexo: data.sexo || undefined,
-          estadoCivil: data.estadoCivil || undefined,
-          dataNascimento: data.dataNascimento ? formatDDMMYYYYToISO(data.dataNascimento) : undefined,
-          naturalidade: data.naturalidade || undefined,
-        },
-        
-        endereco: {
-          logradouro: data.endereco || undefined,
-          numero: data.numero || undefined,
-          complemento: data.complemento || undefined,
-          bairro: data.bairro || undefined,
-          cidade: data.cidade || undefined,
-          uf: data.estado || undefined,
-          cep: data.cep ? removeNonNumeric(data.cep) : undefined,
-        },
-        registroProfissional: {
-          tipoProfissional: rawUser?.tipo || undefined,
-          numeroRegistro: data.registro || undefined,
-          rqe: data.rqe || undefined,
-        },
+        telefone: sanitizedTelefone || undefined,
+        dadosPessoais: hasPersonalData ? personalPayload : null,
+        endereco: hasAddressData ? addressPayload : null,
+        registroProfissional: professionalPayload,
       };
 
-      await adminService.updateUser(Number(rawUser.id), payload);
+      await adminService.updateUser(userId, payload);
 
-      // update local auth user (merge)
-      const merged = {
-        ...user,
-        email: data.email || user?.email,
-        telefone: data.telefone || (user as any)?.telefone,
-      } as any;
+      const fallbackRoles = Array.isArray(rawUser.perfis)
+        ? rawUser.perfis
+            .map((perfil) => perfil?.nome)
+            .filter((roleName): roleName is string => Boolean(roleName))
+        : rawUser.roles ?? rawUser.user?.roles ?? [];
 
-      // call login with current token to update context
-      login(token || '', merged);
+      const previousUser: UserType = user ?? {
+        nome: rawUser.nome ?? rawUser.user?.nome ?? '',
+        email: rawUser.email ?? rawUser.user?.email ?? '',
+        cpf: rawUser.cpf ?? rawUser.user?.cpf ?? '',
+        roles: fallbackRoles,
+        tipoUsuario: rawUser.tipoUsuario ?? rawUser.tipo ?? rawUser.user?.tipoUsuario,
+        uuid: rawUser.uuid ?? rawUser.user?.uuid,
+      };
+
+      const mergedUser: UserType = {
+        nome: data.nome || previousUser.nome,
+        email: data.email || previousUser.email,
+        cpf: previousUser.cpf,
+        roles: previousUser.roles,
+        tipoUsuario: previousUser.tipoUsuario,
+        uuid: previousUser.uuid,
+      };
+
+      login(token ?? '', mergedUser);
 
       toastSuccess('Perfil atualizado com sucesso');
-    } catch (err: any) {
-      console.error('Erro ao salvar perfil', err);
-      toastError(err?.response?.data?.message || 'Erro ao salvar perfil');
+    } catch (error: unknown) {
+      console.error('Erro ao salvar perfil', error);
+      if (isAxiosError(error)) {
+        const message = typeof error.response?.data === 'object' && error.response?.data !== null
+          ? (error.response.data as { message?: string }).message
+          : undefined;
+        toastError(message ?? 'Erro ao salvar perfil');
+      } else {
+        toastError('Erro ao salvar perfil');
+      }
     }
   };
 
-  const onChangePassword = async (data: any) => {
+  const onChangePassword: SubmitHandler<PasswordFormInputs> = async (data) => {
     const { senhaAtual, novaSenha, confirmarSenha } = data;
     if (novaSenha !== confirmarSenha) {
       toastWarn('A nova senha e a confirmação não coincidem');
@@ -212,10 +355,17 @@ const MyProfilePage = () => {
     try {
       await authService.changePassword({ senhaAtual, novaSenha });
       toastSuccess('Senha alterada com sucesso');
-      // optionally clear pw fields - forms are uncontrolled here so not doing it
-    } catch (err: any) {
-      console.error('Erro ao alterar senha', err);
-      toastError(err?.response?.data?.message || 'Erro ao alterar senha');
+      resetPw({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
+    } catch (error: unknown) {
+      console.error('Erro ao alterar senha', error);
+      if (isAxiosError(error)) {
+        const message = typeof error.response?.data === 'object' && error.response?.data !== null
+          ? (error.response.data as { message?: string }).message
+          : undefined;
+        toastError(message ?? 'Erro ao alterar senha');
+      } else {
+        toastError('Erro ao alterar senha');
+      }
     }
   };
 
@@ -279,7 +429,7 @@ const MyProfilePage = () => {
             <Controller
               name="sexo"
               control={control}
-              defaultValue={undefined as any}
+              defaultValue=""
               render={({ field }) => (
                 <FormControl fullWidth>
                   <InputLabel id="sexo-label">Sexo</InputLabel>
@@ -288,13 +438,13 @@ const MyProfilePage = () => {
                     id="sexo"
                     label="Sexo"
                     value={field.value ?? ''}
-                    onChange={(e) => field.onChange((e.target as HTMLInputElement).value as any)}
+                    onChange={(event: SelectChangeEvent<SexoOption | ''>) => field.onChange(event.target.value as SexoOption | '')}
                     onBlur={field.onBlur}
                     name={field.name}
                  
                   >
-                    <MenuItem value={"MASCULINO"}>Masculino</MenuItem>
-                    <MenuItem value={"FEMININO"}>Feminino</MenuItem>
+                    <MenuItem value="MASCULINO">Masculino</MenuItem>
+                    <MenuItem value="FEMININO">Feminino</MenuItem>
                   </Select>
                 </FormControl>
               )}
@@ -328,7 +478,7 @@ const MyProfilePage = () => {
           </Grid>
 
           {/* Registro profissional / RQE (shown conditionally based on user tipo) */}
-          {(rawUser && ["DENTISTA", "MEDICO", "ENFERMEIRO", "FISIOTERAPEUTA", "NUTRICIONISTA"].includes(rawUser.tipo)) && (
+          {rawUser?.tipo && PROFESSIONAL_USER_TYPES.includes(rawUser.tipo) && (
             <>
               <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
                 <TextField id="registro" label="Registro" variant="outlined" fullWidth placeholder="Registro" {...register('registro')} InputLabelProps={{ shrink: !!watch('registro') }} />
@@ -386,7 +536,7 @@ const MyProfilePage = () => {
 
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6">Alterar senha</Typography>
-        <form onSubmit={pwControl ? handleSubmitPw(onChangePassword) as any : undefined}>
+  <form onSubmit={handleSubmitPw(onChangePassword)}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ xs: 12, md: 4 }}>
               <Controller
@@ -420,7 +570,7 @@ const MyProfilePage = () => {
             </Grid>
 
             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-              <Button variant="outlined" color="primary" onClick={pwControl ? (handleSubmitPw(onChangePassword) as any) : undefined}>Alterar senha</Button>
+              <Button variant="outlined" color="primary" type="submit">Alterar senha</Button>
             </Grid>
           </Grid>
         </form>

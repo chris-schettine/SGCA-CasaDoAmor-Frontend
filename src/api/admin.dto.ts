@@ -1,3 +1,4 @@
+import type { SessaoAuditDTO } from './auth.dto';
 
 export interface UpdateUserDTO {
   nome?: string;
@@ -21,6 +22,8 @@ export interface DadosPessoaisDTO {
   nomeMae?: string | null;
   nomePai?: string | null;
   profissao?: string | null;
+  registro?: string | null;
+  rqe?: string | null;
 }
 
 export interface EnderecoDTO {
@@ -148,6 +151,7 @@ export interface PermissaoDTO {
 }
 
 // --- Auditoria DTOs ---
+
 export interface PerfilAuditDTO {
   id: number;
   nome: string;
@@ -158,7 +162,7 @@ export interface PerfilAuditDTO {
   atualizadoEm?: string | null;
   permissoes?: PermissaoDTO[] | null;
   totalUsuarios?: number;
-  usuarios?: any[] | null;
+  usuarios?: UsuarioSimplesDTO[] | null;
 }
 
 export interface UsuarioSimplesDTO {
@@ -193,3 +197,17 @@ export interface AuditPerfisResponseDTO {
   perfis: PerfilAuditDTO[];
   relatorioLogins: RelatorioLoginsDTO;
 }
+
+export interface AuditSessionsResponseDTO {
+  totalSessoes: number;
+  sessoes: SessaoAuditDTO[];
+}
+
+export type AuditLoginsQueryParams = Partial<{
+  pagina: number;
+  tamanho: number;
+  cpf: string;
+  sucesso: boolean;
+  dataInicio: string;
+  dataFim: string;
+}>;
