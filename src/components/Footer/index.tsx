@@ -109,9 +109,9 @@ const Footer = () => {
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
                                 <FooterTitle>SGCA</FooterTitle>
-                                <FooterLink href="#">Documentação</FooterLink>
-                                <FooterLink href="/patients">Home</FooterLink>
-                                <FooterLink href="#">Landing Page (Em breve)</FooterLink>
+                                <FooterLink href="/about">Documentação</FooterLink>
+                                <FooterLink href="/login">Login</FooterLink>
+                                <FooterLink href="/landing">Landing Page</FooterLink>
                             </Stack>
                         </Grid>
 
@@ -121,7 +121,7 @@ const Footer = () => {
                                 <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />}>
                                     Instagram
                                 </FooterLink>
-                                <FooterLink href="202210325@uesb.edu.br" icon={<EmailIcon fontSize="small" />}>
+                                <FooterLink href="mailto:202210325@uesb.edu.br" icon={<EmailIcon fontSize="small" />}>
                                     Email
                                 </FooterLink>
                                 <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon fontSize="small" />}>
