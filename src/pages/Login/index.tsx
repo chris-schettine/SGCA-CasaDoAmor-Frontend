@@ -90,10 +90,10 @@ const Login = () => {
     }
 
     toastSuccess('Login realizado com sucesso!');
-    const from = location.state?.from?.pathname || '/';
+   /* const from = location.state?.from?.pathname || '/';
     setTimeout(() => {
       navigate(from, { replace: true });
-    }, 2000);
+    }, 2000);*/
 
   } catch (error: any) {
     const  errorMessage = error.response?.data?.message || 'Erro desconhecido';

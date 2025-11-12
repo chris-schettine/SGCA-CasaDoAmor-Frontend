@@ -2,14 +2,15 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { TableSkeleton } from './components/SuspenseWrapper';
 
-// Lazy load de componentes principais
+// Componentes de Rota
 const Layout = lazy(() => import('./components/Layout'));
 const AdminRoute = lazy(() => import('./components/AdminRoute'));
 const PrivateRoute = lazy(() => import('./components/PrivateRoute'));
+const PublicRoute = lazy(() => import('./components/PublicRoute')); 
 
-// Lazy load de páginas com preload
+// Pages Públicas
 const LandingPage = lazy(() => import('./pages/LandingPage')); 
-const AboutPage = lazy(() => import('./pages/About'));
+const AboutPage = lazy(() => import('./pages/About')); // Se tiver criado a página Sobre
 const LoginPage = lazy(() => import('./pages/Login'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
@@ -18,7 +19,7 @@ const ActivateAccountPage = lazy(() => import('./pages/ActivateAccount'));
 const LoginVerify2FAPage = lazy(() => import('./pages/LoginVerify2FA'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
-// Lazy load de páginas privadas
+// Pages Privadas
 const Patients = lazy(() => import('./pages/Patients'));
 const PatientInformation = lazy(() => import('./pages/PatientInformation'));
 const MedicalRecordPage = lazy(() => import('./pages/MedicalRecord'));
@@ -30,8 +31,6 @@ const CompanionInformation = lazy(() => import('./pages/CompanionInformation'));
 const Companions = lazy(() => import('./pages/Companions'));
 const RelatoryPage = lazy(() => import('./components/RelatoryPage'));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'));
-
-// Lazy load de páginas de usuários
 const Users = lazy(() => import('./pages/Users'));
 const SessionsPage = lazy(() => import('./pages/Sessions'));
 const UserRegisterPage = lazy(() => import('./pages/UserRegister'));
@@ -43,42 +42,57 @@ const preloadRoutes = () => {
   import('./pages/Login');
   import('./pages/Patients');
   import('./components/Layout');
-  // Opcional: Preload da Landing Page se quiser que carregue rápido
-  import('./pages/LandingPage'); 
+  import('./pages/LandingPage');
 };
 
 const AppRoutes = () => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      preloadRoutes();
-    }, 2000);
+    const timer = setTimeout(() => preloadRoutes(), 2000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
   <Suspense fallback={<TableSkeleton rows={10} />}>
     <Routes>
-      {/* Rotas Públicas */}
-      <Route path="/landing" element={<LandingPage />} />
+      
+      <Route path="/" element={
+        <PublicRoute>
+          <LandingPage />
+        </PublicRoute>
+      } />
+
+     
       <Route path="/about" element={<AboutPage />} />
-      <Route path="/login" element={<LoginPage />} />
+
+   
+      <Route path="/login" element={
+        <PublicRoute>
+          <LoginPage />
+        </PublicRoute>
+      } />
+      
+    
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
       <Route path="/activate-account" element={<ActivateAccountPage />} />
       <Route path="/login/verify-2fa" element={<LoginVerify2FAPage />} />
       
-      {/* Rotas Privadas */}
+      
+      
+      
       <Route
-        path="/"
+
         element={
           <PrivateRoute>
             <Layout />
           </PrivateRoute>
         }
       >
-        <Route index element={<Patients />} />
-        <Route path="patients" element={<Patients />} />
+     
+        <Route path="/patients" element={<Patients />} />
+        
+     
         <Route path="patient/information" element={<PatientInformation />} />
         <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
         <Route path="patient/edit/:id" element={<PatientEditPage />} />
@@ -105,14 +119,14 @@ const AppRoutes = () => {
         <Route path="profile" element={<MyProfilePage />} />
         <Route path="consentimentos-lgpd" element={<ConsentimentoLGPDPage />} />
 
-        {/* Cadastros */}
         <Route path="patient/register" element={<PatientRegisterPage />} />
         <Route path="patient/companion/register" element={<CompanionRegisterPage />} />
         <Route path="user/register" element={<UserRegisterPage />} />
         <Route path="user/edit/:id" element={<UserEditPage />} />
-
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
+
+      {/* Rota de erro */}
+      <Route path="*" element={<NotFoundPage />} />
 
     </Routes>
   </Suspense>
