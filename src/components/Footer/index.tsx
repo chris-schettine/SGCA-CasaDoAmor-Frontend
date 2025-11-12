@@ -4,7 +4,6 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-
 const FooterLink = ({ children, href, icon }: { children: React.ReactNode; href: string; icon?: React.ReactNode }) => (
     <Link
         href={href}
@@ -30,7 +29,6 @@ const FooterLink = ({ children, href, icon }: { children: React.ReactNode; href:
     </Link>
 );
 
-
 const FooterTitle = ({ children }: { children: React.ReactNode }) => (
     <Typography
         variant="subtitle1"
@@ -51,7 +49,6 @@ const Footer = () => {
         <Box
             component="footer"
             sx={{
-                
                 backgroundColor: "#0D2E4D", 
                 color: "#FFFFFF",
                 py: 6, 
@@ -105,13 +102,11 @@ const Footer = () => {
                 <Grid size={{ xs: 12, md: 7 }}>
                     <Grid container spacing={4} justifyContent={{ xs: 'center', md: 'flex-end' }}>
                         
-                   
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
                                 <FooterTitle>SGCA</FooterTitle>
                                 <FooterLink href="/about">Documentação</FooterLink>
-                                <FooterLink href="/login">Login</FooterLink>
-                                <FooterLink href="/landing">Landing Page</FooterLink>
+                                <FooterLink href="/patients">Home</FooterLink>
                             </Stack>
                         </Grid>
 
