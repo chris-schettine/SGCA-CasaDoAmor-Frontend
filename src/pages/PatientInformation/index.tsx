@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Box, Typography, Card, CardContent, Chip, Pagination } from "@mui/material";
+import { Button, Box, Typography, Card, CardContent, Chip, Pagination } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { pacienteService } from "../../api/paciente.service";
@@ -9,6 +9,8 @@ import { useAcompanhantesPorPaciente } from "../../hooks/useAcompanhantes";
 import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import { toastError, toastWarn } from "../../utils/toast";
+import LoadingState from '../../components/LoadingState';
+import { CardSkeleton } from '../../components/SuspenseWrapper';
 
 const PatientInformation = () => {
   const navigate = useNavigate();
@@ -118,11 +120,7 @@ const PatientInformation = () => {
   };
 
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState message="Carregando paciente..." />;
   }
 
   return (
@@ -254,7 +252,7 @@ const PatientInformation = () => {
 
             {isLoadingAcompanhantes ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <CircularProgress size={24} />
+                <CardSkeleton />
               </Box>
             ) : acompanhantesData && acompanhantesData.nodes.length > 0 ? (
               <>

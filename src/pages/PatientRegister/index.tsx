@@ -1,3 +1,4 @@
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { Button, Stepper, Step, StepLabel, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
@@ -5,11 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { patientSchema, type PatientFormInputs } from '../../schemas/patientSchema';
 import { useForm } from "react-hook-form";
 import type { FieldErrors, SubmitHandler, Resolver } from "react-hook-form";
-import { useCallback, useEffect, useState } from "react";
 import { isAxiosError } from "axios";
-import { fetchAddressByCep } from "../../utils/cepService";
-import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
-import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
+// fetchAddressByCep is dynamically imported where needed to allow code-splitting
+const PatientPersonalDataForm = React.lazy(() => import('../../components/PatientForm/PatientPersonalDataForm'));
+const PatientDetailsForm = React.lazy(() => import('../../components/PatientForm/PatientDetailsForm'));
+import { FormSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
@@ -273,6 +274,7 @@ const PatientRegisterPage = () => {
     if (cleanedCep.length === 8) {
       setIsCepLoading(true);
       try {
+        const { fetchAddressByCep } = await import('../../utils/cepService');
         const addressData = await fetchAddressByCep(cleanedCep);
         if (addressData && !addressData.erro) {
           setValue('endereco', addressData.logradouro ?? "", { shouldDirty: true });
@@ -358,25 +360,29 @@ const PatientRegisterPage = () => {
 
         {/* Dados Pessoais - Step 0 */}
         {activeStep === 0 && (
-          <PatientPersonalDataForm
-            register={register}
-            errors={errors}
-            watch={watch}
-            setValue={setValue}
-            handleCepSearch={handleCepSearch}
-            isCepLoading={isCepLoading}
-            control={control}
-          />
+          <Suspense fallback={<FormSkeleton fields={6} />}>
+            <PatientPersonalDataForm
+              register={register}
+              errors={errors}
+              watch={watch}
+              setValue={setValue}
+              handleCepSearch={handleCepSearch}
+              isCepLoading={isCepLoading}
+              control={control}
+            />
+          </Suspense>
         )}
 
         {/* Mais detalhes do paciente - Step 1 */}
         {activeStep === 1 && (
-          <PatientDetailsForm
-            register={register}
-            errors={errors}
-            control={control}
-            watch={watch}
-          />
+          <Suspense fallback={<FormSkeleton fields={4} />}>
+            <PatientDetailsForm
+              register={register}
+              errors={errors}
+              control={control}
+              watch={watch}
+            />
+          </Suspense>
         )}
 
         {/* Botões de Navegação */}

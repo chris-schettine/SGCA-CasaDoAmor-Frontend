@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { authService } from "../../api/auth.service";
-import { Box, CircularProgress, Container, Typography, Alert, Button } from "@mui/material";
+import { Box, Container, Typography, Alert, Button } from "@mui/material";
+import { CardSkeleton } from '../../components/SuspenseWrapper';
 import { toastErrorCritical } from "../../utils/toast";
 // (Estilos - pode reutilizar de outras páginas)
 const BoxStyles = {
@@ -63,7 +64,7 @@ const VerifyEmailPage = () => {
       case 'verifying':
         return (
           <>
-            <CircularProgress sx={{ mb: 2 }} />
+            <CardSkeleton />
             <Typography variant="h5">Verificando seu e-mail...</Typography>
           </>
         );

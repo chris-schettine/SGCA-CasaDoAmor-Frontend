@@ -26,13 +26,14 @@ describe('Página de Login', () => {
     )
 
     expect(screen.getByLabelText(/CPF/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Senha/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Senha/i, { selector: 'input' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
 
   it('exibe snackbar de erro quando loginApi lança erro', async () => {
   // Simula erro no formato do axios: error.response.data.message
-  vi.spyOn(authService, 'login').mockRejectedValue({ response: { data: { message: 'API indisponível' } } })
+  // Ensure isAxiosError check succeeds by adding `isAxiosError: true`
+  vi.spyOn(authService, 'login').mockRejectedValue({ isAxiosError: true, response: { data: { message: 'API indisponível' } } })
 
     render(
       <BrowserRouter>
@@ -44,7 +45,7 @@ describe('Página de Login', () => {
     )
 
     fireEvent.change(screen.getByLabelText(/CPF/i), { target: { value: '12345678901' } })
-    fireEvent.change(screen.getByLabelText(/Senha/i), { target: { value: 'senha' } })
+    fireEvent.change(screen.getByLabelText(/Senha/i, { selector: 'input' }), { target: { value: 'senha' } })
 
     fireEvent.click(screen.getByRole('button', { name: /login/i }))
 

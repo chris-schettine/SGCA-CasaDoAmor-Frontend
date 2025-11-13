@@ -1,1 +1,0 @@
-import{e as a,j as t}from"./patient-pages-BYFJIop3.js";import{N as i}from"./react-vendor-DjnJ9H4W.js";import{L as s}from"./index-DUtl-vo7.js";import"./mui-core-CuAhHL9B.js";const c=({children:r})=>{const{isAuthenticated:e,isLoading:o}=a();return o?t(s,{}):e?t(i,{to:"/patients",replace:!0}):r};export{c as default};

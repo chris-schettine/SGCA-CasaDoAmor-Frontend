@@ -422,7 +422,7 @@ const UserRegisterPage = () => {
       >
         <DialogTitle id="confirm-rejection-title" sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <WarningIcon color="error" fontSize="large" />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: '1rem', color: ConsentColors.text.primary }}>
+          <Typography component="div" variant="subtitle1" sx={{ fontWeight: 700, fontSize: '1rem', color: ConsentColors.text.primary }}>
             Confirmar Cancelamento de Cadastro
           </Typography>
         </DialogTitle>

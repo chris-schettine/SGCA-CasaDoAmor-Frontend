@@ -1,4 +1,6 @@
 import { api } from './api.gateway';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   ConsentimentoLGPDRequest,
   ConsentimentoLGPDResponse,

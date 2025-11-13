@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore, setQueryClient } from './stores/useAuthStore'
 import { ConsentProvider } from './consent/provider/ConsentProvider'
+import TransitionProvider from './motion/TransitionProvider';
 
 // Configuração do QueryClient com defaults otimizados
 const queryClient = new QueryClient({
@@ -71,10 +72,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthInitializer>
-        {/* ✨ ConsentProvider: Gerencia estado global de consentimento LGPD */}
-        <ConsentProvider>
-          <App />
-        </ConsentProvider>
+        {/* TransitionProvider moved up so any top-level components (eg. ConsentProvider/Dialog) can use motion tokens */}
+        <TransitionProvider>
+          {/* ✨ ConsentProvider: Gerencia estado global de consentimento LGPD */}
+          <ConsentProvider>
+            <App />
+          </ConsentProvider>
+        </TransitionProvider>
       </AuthInitializer>
       {/* DevTools apenas em desenvolvimento */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

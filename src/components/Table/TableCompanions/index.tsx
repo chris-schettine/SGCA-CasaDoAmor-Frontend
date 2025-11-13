@@ -1,7 +1,9 @@
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, TablePagination, IconButton, Box, CircularProgress, Typography, Tooltip, useMediaQuery, useTheme } from "@mui/material";
+import { Paper, TablePagination, IconButton, Box, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { PatientListSkeleton } from '../../SuspenseWrapper';
+import StandardTooltip from '../../StandardTooltip';
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatRG } from '../../../utils/formatters';
@@ -90,7 +92,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
             gap: isMobile ? 0.25 : 0.5, 
             justifyContent: 'center' 
           }}>
-            <Tooltip title="Visualizar informações do acompanhante">
+            <StandardTooltip title="Visualizar informações do acompanhante">
               <IconButton 
                 color="primary"
                 onClick={(e) => {
@@ -102,9 +104,9 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
               >
                 <VisibilityIcon fontSize={isMobile ? "medium" : "small"} />
               </IconButton>
-            </Tooltip>
+            </StandardTooltip>
             
-            <Tooltip title="Editar dados do acompanhante">
+            <StandardTooltip title="Editar dados do acompanhante">
               <IconButton 
                 color="success"
                 onClick={(e) => {
@@ -116,7 +118,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
               >
                 <EditIcon fontSize={isMobile ? "medium" : "small"} />
               </IconButton>
-            </Tooltip>
+            </StandardTooltip>
           </Box>
         ),
       },
@@ -159,12 +161,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
   };
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ marginLeft: 2 }}>Carregando acompanhantes...</Typography>
-      </Box>
-    );
+    return <PatientListSkeleton />;
   }
 
   if (error) {
@@ -212,7 +209,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
               ]}
               actions={
                 <>
-                  <Tooltip title="Visualizar">
+                  <StandardTooltip title="Visualizar">
                     <IconButton 
                       color="primary"
                       onClick={() => handleView(row.id, row._companionData)}
@@ -220,8 +217,8 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
                     >
                       <VisibilityIcon />
                     </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Editar">
+                  </StandardTooltip>
+                  <StandardTooltip title="Editar">
                     <IconButton 
                       color="success"
                       onClick={() => handleEdit(row.id, row._companionData)}
@@ -229,7 +226,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
                     >
                       <EditIcon />
                     </IconButton>
-                  </Tooltip>
+                  </StandardTooltip>
                 </>
               }
             />

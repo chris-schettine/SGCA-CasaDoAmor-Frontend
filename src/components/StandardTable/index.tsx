@@ -10,8 +10,8 @@ import {
   TableRow,
   TablePagination,
   IconButton,
-  Tooltip,
 } from '@mui/material';
+import StandardTooltip from '../StandardTooltip';
 import LoadingState from '../LoadingState';
 import EmptyState from '../EmptyState';
 
@@ -172,7 +172,7 @@ function StandardTable<T extends TableRowData>({
                         {actions.map((action, actionIndex) => {
                           const isDisabled = action.disabled ? action.disabled(row) : false;
                           return (
-                            <Tooltip key={actionIndex} title={action.tooltip}>
+                            <StandardTooltip key={actionIndex} title={action.tooltip}>
                               <span>
                                 <IconButton
                                   size="small"
@@ -187,7 +187,7 @@ function StandardTable<T extends TableRowData>({
                                   {action.icon}
                                 </IconButton>
                               </span>
-                            </Tooltip>
+                            </StandardTooltip>
                           );
                         })}
                       </Box>

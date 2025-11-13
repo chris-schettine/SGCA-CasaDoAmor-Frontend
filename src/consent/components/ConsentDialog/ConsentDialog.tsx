@@ -27,6 +27,7 @@ import {
 import { ConsentPreferencesPanel } from '../ConsentPreferencesPanel/ConsentPreferencesPanel';
 import ConsentTechnicalDetails from '../ConsentTechnicalDetails/ConsentTechnicalDetails';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTransition } from '../../../motion/TransitionProvider';
 import type { ConsentChoice } from '../../types/consent.types';
 import { ConsentColors } from '../../config/designTokens';
 import { ConsentAnalytics } from '../../analytics/consentAnalytics';
@@ -97,6 +98,8 @@ export function ConsentDialog({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   // showFullTerms is now handled inside the shared ConsentTechnicalDetails component
   const [showPreferences, setShowPreferences] = useState(false);
+
+  const { tokens, reducedMotion } = useTransition();
 
   // Focus trap (WCAG 2.1.2) - call hook at top-level to respect rules-of-hooks
   useFocusTrap(dialogRef as React.RefObject<HTMLElement>, open);
@@ -187,6 +190,7 @@ export function ConsentDialog({
       aria-labelledby="consent-dialog-title"
       aria-describedby="consent-dialog-description"
       disableEscapeKeyDown={required}
+      transitionDuration={reducedMotion ? 0 : tokens.duration.modal}
       PaperProps={{
         sx: {
           borderRadius: 3,

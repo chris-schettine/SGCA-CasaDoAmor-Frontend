@@ -1,4 +1,5 @@
-import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText, Tooltip } from "@mui/material";
+import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, FormHelperText } from "@mui/material";
+import StandardTooltip from '../StandardTooltip';
 import type { SelectChangeEvent } from "@mui/material";
 import InfoIcon from '@mui/icons-material/Info';
 import MaskedTextField from "../MaskedTextField";
@@ -189,9 +190,9 @@ const UserForm = (
                               label={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   Registro
-                                  <Tooltip title="Número de registro profissional (ex: CRM para médicos, COREN para enfermeiros)">
+                                  <StandardTooltip title="Número de registro profissional (ex: CRM para médicos, COREN para enfermeiros)">
                                     <InfoIcon sx={{ fontSize: 16, color: 'action.active' }} />
-                                  </Tooltip>
+                                  </StandardTooltip>
                                 </Box>
                               }
                               variant="outlined" 
@@ -221,9 +222,9 @@ const UserForm = (
                               label={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   RQE
-                                  <Tooltip title="Registro de Qualificação de Especialista - certifica que o médico tem especialização reconhecida">
+                                    <StandardTooltip title="Registro de Qualificação de Especialista - certifica que o médico tem especialização reconhecida">
                                     <InfoIcon sx={{ fontSize: 16, color: 'action.active' }} />
-                                  </Tooltip>
+                                  </StandardTooltip>
                                 </Box>
                               }
                               variant="outlined" 

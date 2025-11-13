@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
-import Dialog from '@mui/material/Dialog';
+import StandardDialog from '../StandardDialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import type { Theme } from '@mui/material/styles';
 
-const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
+const BootstrapDialog = styled(StandardDialog)(({ theme }: { theme: Theme }) => ({
   '& .MuiDialogContent-root': {
     padding: theme.spacing(2),
   },

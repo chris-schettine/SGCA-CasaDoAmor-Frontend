@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
   List,
   ListItem,
   ListItemText,
   Divider,
   Paper,
 } from '@mui/material';
+import { CardSkeleton } from '../SuspenseWrapper';
 import { useParams, useLocation } from 'react-router-dom';
 
 interface PatientBasicDTO {
@@ -78,7 +78,7 @@ const RelatoryPage = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
+        <CardSkeleton />
         <Typography variant="h6" sx={{ marginLeft: 2 }}>Carregando histórico...</Typography>
       </Box>
     );

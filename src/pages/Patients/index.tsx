@@ -1,7 +1,8 @@
-import { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { Box, Button } from "@mui/material";
 import { Link } from "react-router-dom";
-import TablePatients from "../../components/Table/TablePatients";
+const LazyTablePatients = React.lazy(() => import('../../components/Table/TablePatients'));
+import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from "../../components/PageHeader";
 import { AnimatedPage } from "../../components/AnimatedPage";
 import SearchBar from "../../components/SearchBar";
@@ -41,7 +42,9 @@ const Patients = () => {
           searchComponent={searchComponent}
           action={actionButton}
         />
-        <TablePatients searchText={searchText} />
+        <Suspense fallback={<TableSkeleton rows={10} />}>
+          <LazyTablePatients searchText={searchText} />
+        </Suspense>
       </Box>
     </AnimatedPage>
   );

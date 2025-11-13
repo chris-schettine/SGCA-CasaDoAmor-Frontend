@@ -2,7 +2,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AssignmentIcon from '@mui/icons-material/Assignment'; 
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, TablePagination, IconButton, Box, CircularProgress, Typography, Tooltip, useMediaQuery, useTheme } from "@mui/material"
+import { Paper, TablePagination, IconButton, Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { PatientListSkeleton } from '../../SuspenseWrapper';
+import StandardTooltip from '../../StandardTooltip';
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatRG } from '../../../utils/formatters';
@@ -88,7 +90,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            <Tooltip title="Visualizar informações do paciente">
+            <StandardTooltip title="Visualizar informações do paciente">
               <IconButton 
                 color="primary"
                 onClick={(e) => {
@@ -100,9 +102,9 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
               >
                 <VisibilityIcon fontSize={isMobile ? "medium" : "small"} />
               </IconButton>
-            </Tooltip>
+            </StandardTooltip>
             
-            <Tooltip title="Editar dados do paciente">
+            <StandardTooltip title="Editar dados do paciente">
               <IconButton 
                 color="success"
                 onClick={(e) => {
@@ -114,10 +116,10 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
               >
                 <EditIcon fontSize={isMobile ? "medium" : "small"} />
               </IconButton>
-            </Tooltip>
+            </StandardTooltip>
 
             {!isMobile && (
-              <Tooltip title="Gerar relatório do paciente">
+              <StandardTooltip title="Gerar relatório do paciente">
                 <IconButton 
                   color="secondary" 
                   onClick={(e) => {
@@ -129,7 +131,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
                 >
                   <AssignmentIcon fontSize="small" />
                 </IconButton>
-              </Tooltip>
+              </StandardTooltip>
             )}
           </Box>
         ),
@@ -185,12 +187,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   }
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ marginLeft: 2 }}>Carregando pacientes...</Typography>
-      </Box>
-    );
+    return <PatientListSkeleton />;
   }
 
   if (error) {
@@ -237,7 +234,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
               ]}
               actions={
                 <>
-                  <Tooltip title="Visualizar">
+                  <StandardTooltip title="Visualizar">
                     <IconButton 
                       color="primary"
                       onClick={() => handleViewMedicalRecords(row.id, row._patientData)}
@@ -245,8 +242,8 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
                     >
                       <VisibilityIcon />
                     </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Editar">
+                  </StandardTooltip>
+                  <StandardTooltip title="Editar">
                     <IconButton 
                       color="success"
                       onClick={() => handleEdit(row.id, row._patientData)}
@@ -254,7 +251,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
                     >
                       <EditIcon />
                     </IconButton>
-                  </Tooltip>
+                  </StandardTooltip>
                 </>
               }
             />

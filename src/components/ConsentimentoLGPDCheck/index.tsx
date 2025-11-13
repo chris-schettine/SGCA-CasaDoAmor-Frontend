@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
   Button,
 } from '@mui/material';
+import StandardDialog from '../StandardDialog';
 import WarningIcon from '@mui/icons-material/Warning';
 import { useAuth } from '../../hooks/useAuth';
 import { useConsentimentosPorCpf } from '../../hooks/useConsentimento';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ConsentDialog } from '../../consent/components/ConsentDialog/ConsentDialog';
 import { ConsentStore } from '../../consent/store/consentStore';
 import { toastError } from '../../utils/toast';
@@ -297,7 +298,7 @@ const ConsentimentoLGPDCheck = () => {
         onCompleteRejection={handleCompleteRejection}
       />
 
-      <Dialog
+      <StandardDialog
         open={openConfirmDialog}
         onClose={handleCancelRejection}
         maxWidth="sm"
@@ -306,7 +307,7 @@ const ConsentimentoLGPDCheck = () => {
       >
         <DialogTitle id="confirm-rejection-title" sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <WarningIcon color="error" fontSize="large" />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: '1rem', color: ConsentColors.text.primary }}>
+          <Typography component="div" variant="subtitle1" sx={{ fontWeight: 700, fontSize: '1rem', color: ConsentColors.text.primary }}>
             Confirmar Recusa de Consentimento
           </Typography>
         </DialogTitle>
@@ -352,7 +353,7 @@ const ConsentimentoLGPDCheck = () => {
             Confirmar Recusa e Fazer Logout
           </Button>
         </DialogActions>
-      </Dialog>
+      </StandardDialog>
     </>
   );
 };

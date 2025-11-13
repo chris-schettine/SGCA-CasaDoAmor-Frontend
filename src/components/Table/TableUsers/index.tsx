@@ -4,7 +4,9 @@ import CheckIcon from '@mui/icons-material/Check';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, CircularProgress, Menu, MenuItem, Box, Tooltip, useMediaQuery, useTheme } from "@mui/material"
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Menu, MenuItem, Box, useMediaQuery, useTheme } from "@mui/material"
+import StandardTooltip from '../../StandardTooltip';
+import { TableSkeleton } from '../../SuspenseWrapper';
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import type { UserResponseDTO } from '../../../api/admin.dto';
@@ -122,9 +124,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
         WebkitOverflowScrolling: 'touch'
       }} >
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-            <CircularProgress />
-          </div>
+          <TableSkeleton rows={10} />
         ) : isMobile ? (
           <Box sx={{ p: 2 }}>
             {displayRows.length === 0 ? (
@@ -148,7 +148,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                   ]}
                   actions={
                     <>
-                      <Tooltip title="Editar dados do usuário">
+                      <StandardTooltip title="Editar dados do usuário">
                         <IconButton 
                           color="success"
                           onClick={() => handleEdit(row.id)}
@@ -157,8 +157,8 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                         >
                           <EditIcon />
                         </IconButton>
-                      </Tooltip>
-                      <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
+                      </StandardTooltip>
+                      <StandardTooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
                         <span>
                           <IconButton
                             color={row.ativo ? 'error' : 'success'}
@@ -170,7 +170,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                             {row.ativo ? <BlockIcon /> : <CheckCircleIcon />}
                           </IconButton>
                         </span>
-                      </Tooltip>
+                      </StandardTooltip>
                     </>
                   }
                 />
@@ -190,11 +190,11 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                   {column.id === 'function' ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box component="span" sx={{ fontWeight: 600 }}>{column.label}</Box>
-                      <Tooltip title="Filtrar por função">
+                      <StandardTooltip title="Filtrar por função">
                         <IconButton size="small" onClick={handleOpenFilter} aria-label="filtrar-funcao">
                           <FilterListIcon fontSize="small" />
                         </IconButton>
-                      </Tooltip>
+                      </StandardTooltip>
 
                       <Menu
                         anchorEl={anchorElFilter}
@@ -203,12 +203,10 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                         MenuListProps={{ 'aria-labelledby': 'filter-tipo' }}
                       >
                         <MenuItem
-                          selected={filterTipo === ''}
-                          onClick={() => { setFilterTipo(''); setPage(0); handleCloseFilter(); }}
-                        >
-                          {filterTipo === '' && <CheckIcon fontSize="small" sx={{ mr: 1 }} />}
-                          Todos
-                        </MenuItem>
+                            selected={filterTipo === ''}
+                          >
+                            Todos
+                          </MenuItem>
                         {tipos.map((t) => (
                           <MenuItem
                             key={t}
@@ -250,7 +248,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                   {!isMobile && <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.telefone}</TableCell>}
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: isMobile ? 0.25 : 0.5, justifyContent: 'center' }}>
-                      <Tooltip title="Editar dados do usuário">
+                      <StandardTooltip title="Editar dados do usuário">
                         <IconButton 
                           color="success"
                           onClick={() => handleEdit(row.id)}
@@ -259,9 +257,9 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                         >
                           <EditIcon fontSize={isMobile ? "medium" : "small"} />
                         </IconButton>
-                      </Tooltip>
+                      </StandardTooltip>
                       {/* Toggle active/inactive button */}
-                      <Tooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
+                      <StandardTooltip title={row.ativo ? 'Desativar usuário' : 'Ativar usuário'}>
                         <span>
                           <IconButton
                             color={row.ativo ? 'error' : 'success'}
@@ -273,7 +271,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                             {row.ativo ? <BlockIcon fontSize={isMobile ? "medium" : "small"} /> : <CheckCircleIcon fontSize={isMobile ? "medium" : "small"} />}
                           </IconButton>
                         </span>
-                      </Tooltip>
+                      </StandardTooltip>
                     </Box>
                   </TableCell>
                 </TableRow>

@@ -4,7 +4,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import AppRoutes from './Routes';
 import { ToastContainer } from 'react-toastify';
 import { theme } from './theme';
-import { AnimatePresence } from 'framer-motion';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
@@ -13,9 +12,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Router>
-          <AnimatePresence mode="wait">
-            <AppRoutes />
-          </AnimatePresence>
+          <AppRoutes />
           {/* Limita toasts simultâneos e mostra os mais novos no topo */}
           <ToastContainer limit={3} newestOnTop />
         </Router>

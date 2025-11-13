@@ -17,8 +17,8 @@ import {
   DialogContent,
   IconButton,
   Alert,
-  CircularProgress,
 } from '@mui/material';
+import { TableSkeleton } from '../../components/SuspenseWrapper';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -121,9 +121,7 @@ const ConsentimentoLGPDPage = () => {
 
       <Paper elevation={2} sx={{ mt: 3 }}>
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-            <CircularProgress />
-          </Box>
+          <TableSkeleton rows={8} />
         ) : error ? (
           <Box sx={{ p: 3 }}>
             <Alert severity="error">

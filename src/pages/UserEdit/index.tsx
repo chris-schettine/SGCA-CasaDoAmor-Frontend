@@ -1,4 +1,5 @@
-import { Button, Grid, CircularProgress, Box } from "@mui/material";
+import { Button, Grid, Box } from "@mui/material";
+import { FormSkeleton } from '../../components/SuspenseWrapper';
 import { isAxiosError } from "axios";
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
@@ -184,13 +185,21 @@ const UserEditPage = () => {
           extended.registroProfissional?.numeroRegistro ?? extended.registro ?? null;
         const rqeValue = extended.registroProfissional?.rqe ?? extended.rqe ?? null;
 
+        const rawSexo = personal?.sexo;
+        const normalizedSexo: UserFormInputs['sexo'] | '' =
+          rawSexo === 'MASCULINO' || rawSexo === 'FEMININO'
+            ? (rawSexo as UserFormInputs['sexo'])
+            : rawSexo
+            ? (String(rawSexo).toUpperCase() as UserFormInputs['sexo'])
+            : '';
+
         const defaultValues: DeepPartial<UserFormInputs> = {
           tipo: response.tipo as UserFormInputs['tipo'],
           cpfUsuario: formatCPF(response.cpf) ?? '',
           email: response.email ?? '',
           telefone: formatPhone(response.telefone ?? '') ?? '',
           nomeUsuario: response.nome ?? '',
-          sexo: personal?.sexo ?? '',
+          sexo: normalizedSexo,
           registro: registroValue ?? '',
           estado: normalizedAddress.uf ?? '',
           rqe: rqeValue ?? '',
@@ -357,7 +366,7 @@ const UserEditPage = () => {
   const handleConfirmSave = handleSubmit(handleSaveUser, onError);
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}><CircularProgress /></Box>;
+    return <FormSkeleton fields={8} />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import RouteTransition from './motion/RouteTransition';
 import { TableSkeleton } from './components/SuspenseWrapper';
 
 // Carregamento dinamico (Lazy Loading) dos componentes de estrutura de rotas
@@ -66,27 +67,31 @@ const AppRoutes = () => {
       {/* Protegida por PublicRoute: Se o usuario ja estiver logado, redireciona para o sistema */}
       <Route path="/" element={
         <PublicRoute>
-          <LandingPage />
+          <RouteTransition>
+            <LandingPage />
+          </RouteTransition>
         </PublicRoute>
       } />
 
       {/* Pagina Sobre/Institucional */}
-      <Route path="/about" element={<AboutPage />} />
+      <Route path="/about" element={<RouteTransition><AboutPage /></RouteTransition>} />
 
       {/* Pagina de Login */}
       {/* Tambem protegida por PublicRoute para evitar acesso de usuarios ja autenticados */}
       <Route path="/login" element={
         <PublicRoute>
-          <LoginPage />
+          <RouteTransition>
+            <LoginPage />
+          </RouteTransition>
         </PublicRoute>
       } />
       
       {/* Rotas de Recuperacao e Ativacao de Conta */}
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-      <Route path="/activate-account" element={<ActivateAccountPage />} />
-      <Route path="/login/verify-2fa" element={<LoginVerify2FAPage />} />
+      <Route path="/forgot-password" element={<RouteTransition><ForgotPasswordPage /></RouteTransition>} />
+      <Route path="/reset-password" element={<RouteTransition><ResetPasswordPage /></RouteTransition>} />
+      <Route path="/verify-email/:token" element={<RouteTransition><VerifyEmailPage /></RouteTransition>} />
+      <Route path="/activate-account" element={<RouteTransition><ActivateAccountPage /></RouteTransition>} />
+      <Route path="/login/verify-2fa" element={<RouteTransition><LoginVerify2FAPage /></RouteTransition>} />
       
       
       {/* Rotas Privadas e do Sistema Principal */}
@@ -99,50 +104,54 @@ const AppRoutes = () => {
         }
       >
         {/* Dashboard Principal: Lista de Pacientes */}
-        <Route path="/patients" element={<Patients />} />
+        <Route path="/patients" element={<RouteTransition><Patients /></RouteTransition>} />
         
         {/* Gestao de Pacientes */}
-        <Route path="patient/information" element={<PatientInformation />} />
-        <Route path="patient/information/medical-record" element={<MedicalRecordPage />} />
-        <Route path="patient/edit/:id" element={<PatientEditPage />} />
-        <Route path="/patient/report/:id" element={<RelatoryPage />} />
-        <Route path="patient/register" element={<PatientRegisterPage />} />
+        <Route path="patient/information" element={<RouteTransition><PatientInformation /></RouteTransition>} />
+        <Route path="patient/information/medical-record" element={<RouteTransition><MedicalRecordPage /></RouteTransition>} />
+        <Route path="patient/edit/:id" element={<RouteTransition><PatientEditPage /></RouteTransition>} />
+        <Route path="/patient/report/:id" element={<RouteTransition><RelatoryPage /></RouteTransition>} />
+        <Route path="patient/register" element={<RouteTransition><PatientRegisterPage /></RouteTransition>} />
         
         {/* Gestao de Acompanhantes */}
-        <Route path="companions" element={<Companions />} />
-        <Route path="companion/information" element={<CompanionInformation />} />
-        <Route path="companion/edit/:id" element={<CompanionEditPage />} />
-        <Route path="patient/companion/register" element={<CompanionRegisterPage />} />
+        <Route path="companions" element={<RouteTransition><Companions /></RouteTransition>} />
+        <Route path="companion/information" element={<RouteTransition><CompanionInformation /></RouteTransition>} />
+        <Route path="companion/edit/:id" element={<RouteTransition><CompanionEditPage /></RouteTransition>} />
+        <Route path="patient/companion/register" element={<RouteTransition><CompanionRegisterPage /></RouteTransition>} />
         
         {/* Auditoria e Logs (Acesso restrito) */}
-        <Route path="/auditoria" element={<AuditLogPage />} />
+        <Route path="/auditoria" element={<RouteTransition><AuditLogPage /></RouteTransition>} />
 
         {/* Gestao de Usuarios do Sistema (Requer permissao de Administrador) */}
         <Route path="users" element={
           <AdminRoute>
-            <Users />
+            <RouteTransition>
+              <Users />
+            </RouteTransition>
           </AdminRoute>
         } />
         
         {/* Gestao de Sessoes Ativas (Requer permissao de Administrador) */}
         <Route path="sessions" element={
           <AdminRoute>
-            <SessionsPage />
+            <RouteTransition>
+              <SessionsPage />
+            </RouteTransition>
           </AdminRoute>
         } />
         
         {/* Cadastro de Usuarios (Acesso interno) */}
-        <Route path="user/register" element={<UserRegisterPage />} />
-        <Route path="user/edit/:id" element={<UserEditPage />} />
+        <Route path="user/register" element={<RouteTransition><UserRegisterPage /></RouteTransition>} />
+        <Route path="user/edit/:id" element={<RouteTransition><UserEditPage /></RouteTransition>} />
 
         {/* Perfil do Usuario Logado e Termos */}
-        <Route path="profile" element={<MyProfilePage />} />
-        <Route path="consentimentos-lgpd" element={<ConsentimentoLGPDPage />} />
+        <Route path="profile" element={<RouteTransition><MyProfilePage /></RouteTransition>} />
+        <Route path="consentimentos-lgpd" element={<RouteTransition><ConsentimentoLGPDPage /></RouteTransition>} />
 
       </Route>
 
       {/* Rota de "Página Não Encontrada" (404) para qualquer URL desconhecida */}
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="*" element={<RouteTransition><NotFoundPage /></RouteTransition>} />
 
     </Routes>
   </Suspense>

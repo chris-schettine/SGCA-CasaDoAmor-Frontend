@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Box } from "@mui/material";
+import { Button, Box, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,9 +6,11 @@ import { patientSchema, type PatientFormInputs } from '../../schemas/patientSche
 import { useForm, type SubmitErrorHandler, type SubmitHandler, type Resolver } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
-import { fetchAddressByCep } from "../../utils/cepService";
-import PatientPersonalDataForm from "../../components/PatientForm/PatientPersonalDataForm";
-import PatientDetailsForm from "../../components/PatientForm/PatientDetailsForm";
+// `fetchAddressByCep` will be dynamically imported where used to allow code-splitting
+import React, { Suspense } from 'react';
+const PatientPersonalDataForm = React.lazy(() => import('../../components/PatientForm/PatientPersonalDataForm'));
+const PatientDetailsForm = React.lazy(() => import('../../components/PatientForm/PatientDetailsForm'));
+import { FormSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { pacienteService } from "../../api/paciente.service";
@@ -298,6 +300,7 @@ const PatientEditPage = () => {
     if (cleanedCep.length === 8) {
       setIsCepLoading(true);
       try {
+        const { fetchAddressByCep } = await import('../../utils/cepService');
         const addressData = await fetchAddressByCep(cleanedCep);
         if (addressData) {
           setValue('endereco', addressData.logradouro ?? "");
@@ -478,11 +481,7 @@ const PatientEditPage = () => {
     fetchPatientFallback();
   }, [id, navigate, setValue, passedPatient]);
 
-  if (loading) return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-      <CircularProgress />
-    </Box>
-  );
+  if (loading) return <FormSkeleton fields={8} />;
 
   return (
     <Box sx={{ 
@@ -509,24 +508,28 @@ const PatientEditPage = () => {
       <form noValidate>
 
         {/* Dados Pessoais */}
-        <PatientPersonalDataForm
-          register={register}
-          errors={errors}
-          watch={watch}
-          setValue={setValue}
-          handleCepSearch={handleCepSearch}
-          control={control}
-          isCepLoading={isCepLoading}
-          disabledFields={["nomeCompletoPaciente", "dataNascimento", "cpfPaciente", "rg", "naturalidade", "nomeMae"]}
-        />
+        <Suspense fallback={<FormSkeleton fields={6} />}>
+          <PatientPersonalDataForm
+            register={register}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            handleCepSearch={handleCepSearch}
+            control={control}
+            isCepLoading={isCepLoading}
+            disabledFields={["nomeCompletoPaciente", "dataNascimento", "cpfPaciente", "rg", "naturalidade", "nomeMae"]}
+          />
+        </Suspense>
 
         {/* Mais detalhes do paciente */}
-        <PatientDetailsForm
-          register={register}
-          errors={errors}
-          control={control}
-          watch={watch}
-        />
+        <Suspense fallback={<FormSkeleton fields={4} />}>
+          <PatientDetailsForm
+            register={register}
+            errors={errors}
+            control={control}
+            watch={watch}
+          />
+        </Suspense>
 
         {/* Botões Salvar e Cancelar */}
         <Grid size={{ xs: 12 }} sx={{ 
