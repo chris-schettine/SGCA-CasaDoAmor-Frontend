@@ -124,7 +124,7 @@ class ApiGateway {
               responseData: error.response?.data ?? null,
             });
           }
-        } catch (e) {
+        } catch {
           /* ignore logging failures */
         }
 

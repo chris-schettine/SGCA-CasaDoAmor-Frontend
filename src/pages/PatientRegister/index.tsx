@@ -1,5 +1,5 @@
 import { Button, Stepper, Step, StepLabel, Box } from "@mui/material";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { patientSchema, type PatientFormInputs } from '../../schemas/patientSchema';
@@ -25,8 +25,7 @@ const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { patientId } = location.state || {};
+  // location not used in this page; keep import removed to avoid unused var
   const { isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -71,14 +70,8 @@ const PatientRegisterPage = () => {
     }
   });
 
-  useEffect(() => {
-    if (!patientId) {
-      toastWarn("Nenhum paciente selecionado. Redirecionando...");
-      setTimeout(() => {
-        navigate('/patients');
-      }, 2000);
-    }
-  }, [patientId, navigate]);
+  // PatientRegister is used to create a new patient — no pre-selected patient
+  // is required. Removed redirect which belonged to companion registration.
   // Alerta de mudanças não salvas
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
 

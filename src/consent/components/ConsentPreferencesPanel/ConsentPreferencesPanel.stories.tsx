@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ConsentPreferencesPanel } from './ConsentPreferencesPanel';
-import type { ConsentChoice } from '../../types/consent.types';
 
 const meta: Meta<typeof ConsentPreferencesPanel> = {
   title: 'Consent/ConsentPreferencesPanel',

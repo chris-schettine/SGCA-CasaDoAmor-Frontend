@@ -53,7 +53,7 @@ export const AuthInitializer = ({ children }: { children: ReactNode }) => {
         }
 
         if (mounted) checkAuthStatus();
-      } catch (err) {
+      } catch {
         // fallback: call checkAuthStatus regardless
         if (mounted) checkAuthStatus();
       }

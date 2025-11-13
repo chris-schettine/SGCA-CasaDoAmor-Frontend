@@ -66,7 +66,7 @@ export class ConsentAnalytics {
         localStorage.setItem(this.DEVICE_ID_KEY, id);
       }
       return id;
-    } catch (error) {
+    } catch {
       // Fallback se localStorage falhar
       return 'anonymous';
     }
@@ -82,7 +82,7 @@ export class ConsentAnalytics {
 
       const snapshot = JSON.parse(stored);
       return snapshot.choices?.analytics_usage === true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

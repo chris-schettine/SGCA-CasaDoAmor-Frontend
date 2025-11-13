@@ -11,6 +11,8 @@ interface PrivateRouteProps {
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  // Access consent context unconditionally (hooks must be called in same order)
+  const consentCtx = useContext(ConsentContext);
   // Debug: log auth state
   if (import.meta.env.DEV) console.log('[PrivateRoute] render', { isAuthenticated, isLoading, pathname: location.pathname });
 
@@ -27,15 +29,12 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Verificar estado de consentimento global (se o provider estiver ativo)
-  const consentCtx = useContext(ConsentContext as unknown as any);
-
   // Se o provider ainda estiver carregando, mantemos o bloqueio.
   // Não bloqueamos as rotas para `first_visit` ou `version_mismatch` aqui
   // porque o próprio `ConsentProvider` renderiza o `ConsentDialog` e
   // deve controlar o fluxo (o dialog aparece em cima da aplicação).
   if (consentCtx) {
-    const stateType = (consentCtx as any).state?.type;
+    const stateType = consentCtx.state?.type;
     if (import.meta.env.DEV) console.log('[PrivateRoute] consent stateType:', stateType);
     if (stateType === 'loading') {
       if (import.meta.env.DEV) console.log('[PrivateRoute] Rendering LoadingBackdrop because consent.state.type === loading');

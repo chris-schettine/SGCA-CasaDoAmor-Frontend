@@ -15,7 +15,7 @@ class ConsentimentoService {
     data: ConsentimentoLGPDRequest
   ): Promise<ConsentimentoLGPDResponse> {
     const response = await api.post(
-      `/profissionais/${profissionalUuid}/consentimentos`,
+      `/api/profissionais/${profissionalUuid}/consentimentos`,
       data
     );
     return response.data;
@@ -29,7 +29,7 @@ class ConsentimentoService {
     pageable?: Pageable
   ): Promise<PageConsentimentoResponseDTO> {
     const response = await api.get(
-      `/profissionais/${profissionalUuid}/consentimentos`,
+      `/api/profissionais/${profissionalUuid}/consentimentos`,
       { params: pageable }
     );
     return response.data;
@@ -41,8 +41,27 @@ class ConsentimentoService {
    */
   async listarConsentimentosPorCpf(
     cpf: string
-  ): Promise<any[]> {
-    const response = await api.get(`/usuarios/${cpf}/consentimentos-lgpd`);
+  ): Promise<ConsentimentoLGPDResponse[]> {
+    const response = await api.get(`/api/usuarios/${cpf}/consentimentos-lgpd`);
+    if (import.meta.env.DEV) {
+      try {
+        console.debug('[consentimentoService] listarConsentimentosPorCpf response', { url: `/api/usuarios/${cpf}/consentimentos-lgpd`, status: response.status, dataPreview: Array.isArray(response.data) ? (response.data as any).slice(0,5) : response.data });
+      } catch (err) {
+        console.debug('[consentimentoService] failed to debug listarConsentimentosPorCpf response', err);
+      }
+    }
+    return response.data;
+  }
+
+  /**
+   * Registra consentimento LGPD para um usuário identificado por CPF (fluxo público)
+   * Endpoint: POST /api/usuarios/{cpf}/consentimentos-lgpd
+   */
+  async registrarConsentimentoPorCpf(
+    cpf: string,
+    data: ConsentimentoLGPDRequest
+  ): Promise<ConsentimentoLGPDResponse> {
+    const response = await api.post(`/api/usuarios/${cpf}/consentimentos-lgpd`, data);
     return response.data;
   }
 
@@ -54,7 +73,7 @@ class ConsentimentoService {
     consentimentoUuid: string
   ): Promise<ConsentimentoLGPDResponse> {
     const response = await api.get(
-      `/profissionais/${profissionalUuid}/consentimentos/${consentimentoUuid}`
+      `/api/profissionais/${profissionalUuid}/consentimentos/${consentimentoUuid}`
     );
     return response.data;
   }

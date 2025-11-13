@@ -12,6 +12,7 @@ import {
   Divider,
   Stack,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 // ExpandMoreIcon moved to shared technical details component
@@ -91,17 +92,14 @@ export function ConsentDialog({
   required = false,
   onCompleteRejection,
 }: ConsentDialogProps) {
+  if (import.meta.env.DEV) console.debug('[ConsentDialog] render', { open, required, hasCompleteRejection: !!onCompleteRejection });
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   // showFullTerms is now handled inside the shared ConsentTechnicalDetails component
   const [showPreferences, setShowPreferences] = useState(false);
 
-  // Focus trap (WCAG 2.1.2) - only when dialogRef.current exists
-  useEffect(() => {
-    if (open && dialogRef.current) {
-      useFocusTrap(dialogRef as React.RefObject<HTMLElement>, open);
-    }
-  }, [open]);
+  // Focus trap (WCAG 2.1.2) - call hook at top-level to respect rules-of-hooks
+  useFocusTrap(dialogRef as React.RefObject<HTMLElement>, open);
 
   // Salvar foco anterior (WCAG 2.4.3)
   useEffect(() => {
@@ -116,7 +114,7 @@ export function ConsentDialog({
   }, [open, required]);
 
   // Restaurar foco ao fechar
-  const handleClose = (method: 'escape' | 'close_button' | 'backdrop' = 'close_button') => {
+  const handleClose = React.useCallback((method: 'escape' | 'close_button' | 'backdrop' = 'close_button') => {
     if (required) {
       // Não permitir fechar sem escolher
       ConsentAnalytics.trackDialogClosed(method);
@@ -126,7 +124,7 @@ export function ConsentDialog({
     ConsentAnalytics.trackDialogClosed(method);
     onClose();
     setTimeout(() => previousFocusRef.current?.focus(), 0);
-  };
+  }, [required, onClose]);
 
   // ESC para fechar (se não obrigatório)
   useEffect(() => {
@@ -137,7 +135,7 @@ export function ConsentDialog({
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [open, required]);
+  }, [open, required, handleClose]);
 
   const handleAcceptAll = () => {
     onAcceptAll();
@@ -148,11 +146,18 @@ export function ConsentDialog({
   };
 
   const handleRejectAll = () => {
+    if (import.meta.env.DEV) console.debug('[ConsentDialog] handleRejectAll called', { required, hasCallback: !!onCompleteRejection });
+
     // Se obrigatório, chama callback de rejeição completa (logout/cancelar cadastro)
     if (required && onCompleteRejection) {
-      onCompleteRejection();
+      try {
+        onCompleteRejection();
+      } catch (err) {
+        console.error('[ConsentDialog] onCompleteRejection threw error:', err);
+      }
     } else {
       // Se opcional, apenas fecha
+      if (import.meta.env.DEV) console.debug('[ConsentDialog] optional reject -> closing dialog');
       onClose();
     }
   };
@@ -337,7 +342,7 @@ export function ConsentDialog({
               color="primary"
               disabled={isLoading}
               fullWidth
-              startIcon={<CheckCircleIcon aria-hidden="true" />}
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon aria-hidden="true" />}
               sx={{
                 height: 48,
                 fontWeight: 600,
@@ -362,7 +367,7 @@ export function ConsentDialog({
               color="primary"
               disabled={isLoading}
               fullWidth
-              startIcon={<BlockIcon aria-hidden="true" />}
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <BlockIcon aria-hidden="true" />}
               sx={{
                 height: 48,
                 fontWeight: 600,
@@ -405,7 +410,7 @@ export function ConsentDialog({
               variant="outlined"
               disabled={isLoading}
               fullWidth
-              startIcon={<CancelIcon aria-hidden="true" />}
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <CancelIcon aria-hidden="true" />}
               sx={{
                 height: 44,
                 fontWeight: 600,
@@ -415,6 +420,9 @@ export function ConsentDialog({
                 borderColor: ConsentColors.error.main,
               }}
               aria-label={required ? 'Recusar tudo e cancelar cadastro' : 'Recusar tudo'}
+              data-testid="consent-reject-all"
+              onPointerDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onPointerDown reject button'); }}
+              onMouseDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onMouseDown reject button'); }}
             >
               {required ? 'Recusar tudo (cancela cadastro)' : 'Recusar tudo'}
             </Button>

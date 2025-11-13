@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Typography, 
-  Button 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  Button,
 } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import { useAuth } from '../../hooks/useAuth';
 import { useConsentimentosPorCpf } from '../../hooks/useConsentimento';
 import { ConsentDialog } from '../../consent/components/ConsentDialog/ConsentDialog';
 import { ConsentStore } from '../../consent/store/consentStore';
+import { toastError } from '../../utils/toast';
 import { ConsentAnalytics } from '../../consent/analytics/consentAnalytics';
 import { CONSENT_VERSION } from '../../consent/config/consentConfig';
 import { ConsentColors } from '../../consent/config/designTokens';
@@ -20,233 +21,266 @@ import type { ConsentChoice } from '../../consent/types/consent.types';
 import { toastInfo } from '../../utils/toast';
 
 /**
- * Componente que verifica se o usuário logado precisa registrar consentimento LGPD
- * Exibe automaticamente no primeiro login de administradores
- * 
- * ✨ NOVO: Usa sistema de consentimento WCAG 2.2 AA compliant
+ * Verifica consentimento LGPD preferindo a busca por CPF público.
+ * Faz uma chamada por navegação para garantir que a API foi consultada
+ * e abre o dialog obrigatório se não houver consentimento backend/local.
  */
 const ConsentimentoLGPDCheck = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [openDialog, setOpenDialog] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastRefetchPath, setLastRefetchPath] = useState('');
 
-  // Obter informações mínimas do usuário (se houver)
-
-  // Buscar consentimentos existentes do backend (React Query)
-  // Sempre preferimos consultar pelo CPF: primeiro `user.cpf` (se logado), senão `sessionStorage`.
-  const cpfFromSessionStorage = (typeof window !== 'undefined')
+  // Preferir CPF do usuário logado, senão procurar em sessionStorage
+  const cpfFromSessionStorage = typeof window !== 'undefined'
     ? (sessionStorage.getItem('cpfFor2FA') || sessionStorage.getItem('cpf') || '')
     : '';
 
-  const cpfToUse = (user && (user as any).cpf) ? (user as any).cpf : cpfFromSessionStorage;
+  const cpfToUse = user?.cpf ?? cpfFromSessionStorage;
 
-  // Key used to store/load local consent snapshots — sempre usamos CPF para este componente
+  // Snapshot key uses CPF for this component so local snapshots don't collide with uuid-based ones
   const snapshotKey = cpfToUse;
 
-  const { data: consentimentosDataByCpf, isLoading: isLoadingConsentsByCpf, refetch: refetchConsentimentosByCpf } = useConsentimentosPorCpf(cpfToUse);
-
-  const location = useLocation();
-  const [lastRefetchPath, setLastRefetchPath] = useState('');
+  const {
+    data: consentimentosDataByCpf,
+    isLoading: isLoadingConsentsByCpf,
+    refetch: refetchConsentimentosByCpf,
+  } = useConsentimentosPorCpf(cpfToUse);
 
   useEffect(() => {
-    // Verifica se já foi checado nesta sessão
     const consentimentoChecked = sessionStorage.getItem('consentimento-lgpd-checked');
-    
-    // Only run when we have a logged user and we haven't already processed checks for this session
-    const isLoadingConsents = isLoadingConsentsByCpf;
-    const consentimentosData = consentimentosDataByCpf;
-    const refetchConsentimentos = refetchConsentimentosByCpf;
 
-    // Trigger a refetch when navigating to a new path (ensure API is called at least once per page)
+    // On navigation, trigger a refetch at least once per path
     if (cpfToUse && location.pathname && location.pathname !== lastRefetchPath) {
-      // attempt a lightweight refetch (won't run if query disabled)
       try {
-        refetchConsentimentos();
-      } catch (e) {
-        // ignore
+        refetchConsentimentosByCpf();
+      } catch {
+        void 0;
       } finally {
         setLastRefetchPath(location.pathname);
       }
     }
 
-    if (!hasChecked && !consentimentoChecked && !isLoadingConsents && cpfToUse) {
-      // Ensure the backend API was called at least once for this session. We trigger a refetch
-      // when we detect a navigation (location changes) and the session flag is missing.
+    if (import.meta.env.DEV) {
+      console.debug('[ConsentimentoLGPDCheck] useEffect start', {
+        cpfToUse,
+        consentimentoChecked,
+        apiCalled: sessionStorage.getItem('consentimento-api-called'),
+        consentimentosDataByCpf,
+        isLoadingConsentsByCpf,
+        hasChecked,
+        location: location.pathname,
+        lastRefetchPath,
+        snapshotKey,
+      });
+    }
+
+    if (!hasChecked && !consentimentoChecked && !isLoadingConsentsByCpf && cpfToUse) {
       const ensureApiCall = async () => {
         try {
-          // Try to refetch the consent list from backend (this will call the API)
-          await refetchConsentimentos();
+          const result = await refetchConsentimentosByCpf();
+          return result?.data as unknown;
         } catch (err) {
-          // Ignore fetch errors here - we'll fallback to local cache below
           console.error('[ConsentimentoLGPDCheck] Erro ao listar consentimentos:', err);
+          return undefined;
         } finally {
-          // Mark that we've invoked the API this session (prevents repeated calls on every route)
           sessionStorage.setItem('consentimento-api-called', 'true');
         }
       };
 
-      // If the API wasn't called yet this session, call it now (on first navigation)
       const apiCalled = sessionStorage.getItem('consentimento-api-called');
       if (!apiCalled) {
-        // trigger API call but continue to the consent check after it
-        ensureApiCall().finally(() => {
-          // After trying API, decide whether to require consent based on backend/local cache
-          // Note: endpoint by CPF returns an array
-          const hasBackendConsent = Array.isArray(consentimentosData)
-            ? consentimentosData.length > 0
-            : false;
+        ensureApiCall().then((refetchedData) => {
+          if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] refetch result (raw)', { refetchedData, consentimentosDataByCpf });
+
+          // Normalizar resultado do refetch / query para um array quando possível.
+          // Alguns adapters/padrões podem devolver o payload em { data: [...] } ou diretamente [...].
+          const normalizeToArray = (maybeArrayOrResp: unknown): unknown[] | null => {
+            if (!maybeArrayOrResp) return null;
+            if (Array.isArray(maybeArrayOrResp)) return maybeArrayOrResp as unknown[];
+            // Caso o resultado venha como { data: [...] }
+            if (typeof maybeArrayOrResp === 'object' && (maybeArrayOrResp as any).data && Array.isArray((maybeArrayOrResp as any).data)) {
+              return (maybeArrayOrResp as any).data as unknown[];
+            }
+            return null;
+          };
+
+          const backendFromRefetch = normalizeToArray(refetchedData);
+          const backendFromQuery = normalizeToArray(consentimentosDataByCpf as unknown);
+
+          const backendData = backendFromRefetch ?? backendFromQuery ?? [];
+          const hasBackendConsent = backendData.length > 0;
+
+          if (import.meta.env.DEV) {
+            try {
+              console.debug('[ConsentimentoLGPDCheck] normalized backendData', {
+                cpfToUse,
+                backendFromRefetchPreview: Array.isArray(backendFromRefetch) ? backendFromRefetch.slice(0, 5) : backendFromRefetch,
+                backendFromQueryPreview: Array.isArray(backendFromQuery) ? backendFromQuery.slice(0, 5) : backendFromQuery,
+                backendDataCount: backendData.length,
+                sessionFlags: {
+                  apiCalled: sessionStorage.getItem('consentimento-api-called'),
+                  checked: sessionStorage.getItem('consentimento-lgpd-checked'),
+                  pending: sessionStorage.getItem('consentimento-pending'),
+                },
+              });
+            } catch (err) {
+              console.debug('[ConsentimentoLGPDCheck] failed to stringify debug info', err);
+            }
+          }
 
           const localSnapshot = ConsentStore.load(snapshotKey);
           const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
 
-          if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision after API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, consentimentosData });
+          if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision after API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, backendData });
 
           if (!hasBackendConsent && !hasLocalConsent) {
-            // No consent anywhere: force the required dialog (blocks interaction)
+            if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] Opening dialog (no backend or local consent)', { backendData, localSnapshot });
             setOpenDialog(true);
             ConsentAnalytics.trackDialogShown('first_visit');
           } else {
-            // There is consent in either backend or local cache
+            if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] Consent present, skipping dialog', { hasBackendConsent, hasLocalConsent });
             sessionStorage.setItem('consentimento-lgpd-checked', 'true');
           }
 
           setHasChecked(true);
         });
       } else {
-        // API was called previously this session — just check caches
-        const hasBackendConsent = Array.isArray(consentimentosData)
-          ? consentimentosData.length > 0
-          : false;
+        // Normalize query result as above
+        const normalizeToArray = (maybeArrayOrResp: unknown): unknown[] | null => {
+          if (!maybeArrayOrResp) return null;
+          if (Array.isArray(maybeArrayOrResp)) return maybeArrayOrResp as unknown[];
+          if (typeof maybeArrayOrResp === 'object' && (maybeArrayOrResp as any).data && Array.isArray((maybeArrayOrResp as any).data)) {
+            return (maybeArrayOrResp as any).data as unknown[];
+          }
+          return null;
+        };
 
+        const backendFromQuery = normalizeToArray(consentimentosDataByCpf as unknown) ?? [];
+        const hasBackendConsent = backendFromQuery.length > 0;
+
+        if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] backendFromQuery preview', { cpfToUse, backendFromQueryPreview: backendFromQuery.slice(0,5), backendFromQueryCount: backendFromQuery.length, sessionFlags: { apiCalled: sessionStorage.getItem('consentimento-api-called'), checked: sessionStorage.getItem('consentimento-lgpd-checked') } });
         const localSnapshot = ConsentStore.load(snapshotKey);
         const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
 
-        if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision without API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, consentimentosData });
+        if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] Decision without API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, consentimentosDataByCpf, localSnapshot });
 
         if (!hasBackendConsent && !hasLocalConsent) {
+          if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] Opening dialog (no backend or local consent) - no apiCalled branch');
           setOpenDialog(true);
           ConsentAnalytics.trackDialogShown('first_visit');
         } else {
+          if (import.meta.env.DEV) console.debug('[ConsentimentoLGPDCheck] Consent present, skipping dialog - no apiCalled branch', { hasBackendConsent, hasLocalConsent });
           sessionStorage.setItem('consentimento-lgpd-checked', 'true');
         }
 
         setHasChecked(true);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpfToUse, consentimentosDataByCpf, isLoadingConsentsByCpf, hasChecked, location.pathname, lastRefetchPath]);
 
-  /**
-   * Handler: Aceitar todos
-   */
+  /** Handler: Aceitar todos */
   const handleAcceptAll = async () => {
     setIsLoading(true);
     const choices = ConsentStore.getAcceptAllChoices();
 
     try {
-      await ConsentStore.save(snapshotKey, choices);
+      await ConsentStore.save(snapshotKey, choices, { requireApi: true });
       ConsentAnalytics.trackAcceptAll(CONSENT_VERSION);
-
-      // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
-    } catch (error) {
+      } catch (error) {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
+      const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';
+      // Mark pending so reloads keep the dialog open until successful
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
+      toastError(`Falha ao registrar consentimento: ${msg}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Handler: Apenas essenciais
-   */
+  /** Handler: Apenas essenciais */
   const handleRejectNonEssential = async () => {
     setIsLoading(true);
     const choices = ConsentStore.getEssentialOnlyChoices();
 
     try {
-      await ConsentStore.save(snapshotKey, choices);
+      await ConsentStore.save(snapshotKey, choices, { requireApi: true });
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
-
-      // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
     } catch (error) {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
+      const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
+      toastError(`Falha ao registrar consentimento: ${msg}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Handler: Salvar preferências customizadas
-   */
+  /** Handler: Salvar preferências customizadas */
   const handleSavePreferences = async (choices: ConsentChoice) => {
     setIsLoading(true);
 
     try {
-      await ConsentStore.save(snapshotKey, choices);
+      await ConsentStore.save(snapshotKey, choices, { requireApi: true });
       const purposesAccepted = Object.keys(choices).filter((k) => choices[k]);
       ConsentAnalytics.trackSavePreferences(CONSENT_VERSION, purposesAccepted);
-
-      // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
     } catch (error) {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
+      const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
+      toastError(`Falha ao registrar consentimento: ${msg}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Handler: Fechar dialog (bloqueado se obrigatório)
-   */
+  /** Handler: Fechar dialog (bloqueado se obrigatório) */
   const handleClose = () => {
-    // Não permite fechar sem consentir (primeira visita obrigatória)
     console.log('[ConsentimentoLGPDCheck] Fechamento bloqueado - consentimento obrigatório');
   };
 
-  /**
-   * Handler: Rejeição completa do consentimento
-   * Abre dialog de confirmação primeiro
-   */
-  const handleCompleteRejection = () => {
-    setOpenConfirmDialog(true);
-  };
-
-  /**
-   * Handler: Confirma rejeição e faz logout
-   */
-  const handleConfirmRejection = async () => {
-    setOpenConfirmDialog(false);
+  /** Handler: Rejeição completa do consentimento (logout imediato) */
+  const handleCompleteRejection = async () => {
     setOpenDialog(false);
-    
     toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
-    
-    // Aguarda 2s para usuário ler o toast
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Faz logout
-    logout();
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    try {
+      await logout();
+    } catch (err) {
+      console.error('[ConsentimentoLGPDCheck] Erro ao deslogar após recusa de consentimento:', err);
+    }
+
     navigate('/login');
   };
 
-  /**
-   * Handler: Cancela rejeição e volta ao dialog
-   */
-  const handleCancelRejection = () => {
+  /** Handler: Confirma rejeição e faz logout */
+  const handleConfirmRejection = async () => {
     setOpenConfirmDialog(false);
+    setOpenDialog(false);
+    toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try { await logout(); } catch { /* ignore */ }
+    navigate('/login');
   };
 
-  // Não renderiza nada se não for para exibir o dialog
-  if (!openDialog && !openConfirmDialog) {
-    return null;
-  }
+  const handleCancelRejection = () => setOpenConfirmDialog(false);
 
-  // Choices atuais (cache local ou defaults)
+  // Não renderiza nada se não for para exibir o dialog
+  if (!openDialog && !openConfirmDialog) return null;
+
   const currentChoices = ConsentStore.load(snapshotKey)?.choices || ConsentStore.getDefaultChoices();
 
   return (
@@ -259,11 +293,10 @@ const ConsentimentoLGPDCheck = () => {
         onSavePreferences={handleSavePreferences}
         currentChoices={currentChoices}
         isLoading={isLoading}
-        required={true} // Obrigatório para administradores no primeiro login
+        required={true}
         onCompleteRejection={handleCompleteRejection}
       />
 
-      {/* Dialog de Confirmação de Rejeição */}
       <Dialog
         open={openConfirmDialog}
         onClose={handleCancelRejection}
@@ -282,7 +315,7 @@ const ConsentimentoLGPDCheck = () => {
             Você está prestes a <strong>recusar o consentimento LGPD</strong>.
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7, fontSize: '0.9rem' }}>
-            <strong>Importante:</strong> O consentimento é obrigatório para usar o sistema. 
+            <strong>Importante:</strong> O consentimento é obrigatório para usar o sistema.
             Ao recusar, você será desconectado e redirecionado para a tela de login.
           </Typography>
           <Typography variant="body2" color="error.main" sx={{ lineHeight: 1.7, fontSize: '0.9rem' }}>
@@ -294,7 +327,7 @@ const ConsentimentoLGPDCheck = () => {
             onClick={handleCancelRejection}
             variant="outlined"
             color="primary"
-            sx={{ 
+            sx={{
               height: 48,
               fontWeight: 600,
               textTransform: 'none',
@@ -308,7 +341,7 @@ const ConsentimentoLGPDCheck = () => {
             onClick={handleConfirmRejection}
             variant="contained"
             color="error"
-            sx={{ 
+            sx={{
               height: 48,
               fontWeight: 600,
               textTransform: 'none',

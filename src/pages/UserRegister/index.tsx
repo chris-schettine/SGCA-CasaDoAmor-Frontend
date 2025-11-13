@@ -187,11 +187,12 @@ const UserRegisterPage = () => {
   setNewUserId(newUserResponse.id);
   newUserUuidRef.current = newUserResponse.uuid;
 
-      await ConsentStore.save(newUserResponse.uuid, choices);
+      await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackAcceptAll(CONSENT_VERSION);
       handleConsentimentoSuccess();
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
       toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
     } finally {
       setIsLoadingConsent(false);
@@ -219,11 +220,12 @@ const UserRegisterPage = () => {
   setNewUserId(newUserResponse.id);
   newUserUuidRef.current = newUserResponse.uuid;
 
-      await ConsentStore.save(newUserResponse.uuid, choices);
+      await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
       handleConsentimentoSuccess();
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
       toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
     } finally {
       setIsLoadingConsent(false);
@@ -250,12 +252,13 @@ const UserRegisterPage = () => {
   setNewUserId(newUserResponse.id);
   newUserUuidRef.current = newUserResponse.uuid;
 
-      await ConsentStore.save(newUserResponse.uuid, choices);
+      await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       const purposesAccepted = Object.keys(choices).filter((k) => choices[k]);
       ConsentAnalytics.trackSavePreferences(CONSENT_VERSION, purposesAccepted);
       handleConsentimentoSuccess();
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
+      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
       toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
     } finally {
       setIsLoadingConsent(false);
@@ -273,6 +276,7 @@ const UserRegisterPage = () => {
    * Abre dialog de confirmação
    */
   const handleCompleteRejection = () => {
+    if (import.meta.env.DEV) console.debug('[UserRegister] handleCompleteRejection called - opening confirm rejection dialog');
     setOpenConfirmRejectionDialog(true);
   };
 
@@ -280,6 +284,7 @@ const UserRegisterPage = () => {
    * Handler: Confirma rejeição e cancela cadastro
    */
   const handleConfirmRejection = () => {
+    if (import.meta.env.DEV) console.debug('[UserRegister] handleConfirmRejection called - attempting to delete created user (if any) and navigate back');
     setOpenConfirmRejectionDialog(false);
     setOpenConsentimentoDialog(false);
 
@@ -287,7 +292,9 @@ const UserRegisterPage = () => {
     (async () => {
       try {
         if (newUserId) {
+          if (import.meta.env.DEV) console.debug('[UserRegister] Deleting user id', { newUserId });
           await adminService.deleteUser(newUserId);
+          if (import.meta.env.DEV) console.debug('[UserRegister] User deleted', { newUserId });
         }
       } catch (err) {
         console.error('[UserRegister] Erro ao excluir usuário após recusa de consentimento:', err);
@@ -303,6 +310,7 @@ const UserRegisterPage = () => {
    * Handler: Cancela rejeição e volta ao dialog de consentimento
    */
   const handleCancelRejection = () => {
+    if (import.meta.env.DEV) console.debug('[UserRegister] handleCancelRejection called - closing confirmation dialog');
     setOpenConfirmRejectionDialog(false);
   };
 

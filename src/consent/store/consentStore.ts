@@ -36,33 +36,70 @@ export class ConsentStore {
    */
   static async save(
     userUuid: string,
-    choices: ConsentChoice
+    choices: ConsentChoice,
+    options?: { requireApi?: boolean }
   ): Promise<ConsentSnapshot> {
     const snapshot: ConsentSnapshot = {
       version: CONSENT_VERSION,
       choices,
       timestamp: new Date().toISOString(),
     };
+    const requireApi = options?.requireApi === true;
 
-    // 1. Salvar localmente (síncrono, garantido)
+    // If requireApi is set, call API first and only persist locally after success.
+    if (requireApi) {
+      try {
+        const payload = {
+          versaoTermo: snapshot.version,
+          escopo: 'GERAL',
+          concorda: this.hasAcceptedAll(choices),
+          metadata: JSON.stringify(choices),
+        };
+        if (import.meta.env.DEV) console.log('[ConsentStore] (requireApi) Enviando payload para registrarConsentimento:', { identifier: userUuid, payload });
+        // If identifier looks like a CPF (11 digits), use the public CPF endpoint
+        const cpfMatch = typeof userUuid === 'string' && /^[0-9]{11}$/.test(userUuid);
+        const res = cpfMatch
+          ? await consentimentoService.registrarConsentimentoPorCpf(userUuid, payload)
+          : await consentimentoService.registrarConsentimento(userUuid, payload);
+        if (import.meta.env.DEV) console.log('[ConsentStore] (requireApi) Resposta registrarConsentimento:', res);
+
+        // Persist locally only after successful API call
+        try {
+          const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
+          localStorage.setItem(storageKey, JSON.stringify(snapshot));
+        } catch (err) {
+          console.error('[ConsentStore] Falha ao salvar no localStorage (post-API):', err);
+        }
+
+        return snapshot;
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('[ConsentStore] (requireApi) Falha ao sincronizar com API:', error);
+        // Rethrow to let caller handle failure (so UI can remain open)
+        throw error;
+      }
+    }
+
+    // Default flow: save locally first, then attempt API in best-effort (do not block caller)
     try {
-      localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(snapshot));
+      const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
+      localStorage.setItem(storageKey, JSON.stringify(snapshot));
     } catch (error) {
       console.error('[ConsentStore] Falha ao salvar no localStorage:', error);
       // Continuar mesmo com erro (pode ser quota exceeded)
     }
 
-    // 2. Sincronizar com API (assíncrono, melhor esforço)
     try {
       const payload = {
         versaoTermo: snapshot.version,
         escopo: 'GERAL',
         concorda: this.hasAcceptedAll(choices),
         metadata: JSON.stringify(choices), // Salvar escolhas granulares
-        // IP, userAgent, deviceId são capturados pelo backend
       };
-      if (import.meta.env.DEV) console.log('[ConsentStore] Enviando payload para registrarConsentimento:', { profissionalUuid: userUuid, payload });
-      const res = await consentimentoService.registrarConsentimento(userUuid, payload);
+      if (import.meta.env.DEV) console.log('[ConsentStore] Enviando payload para registrarConsentimento:', { identifier: userUuid, payload });
+      const cpfMatch = typeof userUuid === 'string' && /^[0-9]{11}$/.test(userUuid);
+      const res = cpfMatch
+        ? await consentimentoService.registrarConsentimentoPorCpf(userUuid, payload)
+        : await consentimentoService.registrarConsentimento(userUuid, payload);
       if (import.meta.env.DEV) console.log('[ConsentStore] Resposta registrarConsentimento:', res);
     } catch (error) {
       console.error('[ConsentStore] Falha ao sincronizar com API:', error);
@@ -80,20 +117,21 @@ export class ConsentStore {
    */
   static load(_userUuid?: string): ConsentSnapshot | null {
     try {
-      const cached = localStorage.getItem(CONSENT_STORAGE_KEY);
+      const storageKey = `${CONSENT_STORAGE_KEY}:${_userUuid || 'global'}`;
+      const cached = localStorage.getItem(storageKey);
       if (!cached) {
-        if (import.meta.env.DEV) console.log('[ConsentStore.load] no cached snapshot found');
+        if (import.meta.env.DEV) console.log('[ConsentStore.load] no cached snapshot found', { storageKey });
         return null;
       }
 
-      if (import.meta.env.DEV) console.log('[ConsentStore.load] raw cached value present');
+      if (import.meta.env.DEV) console.log('[ConsentStore.load] raw cached value present', { storageKey });
 
       const snapshot = JSON.parse(cached) as ConsentSnapshot;
 
       // Validar estrutura básica
       if (!snapshot.version || !snapshot.choices || !snapshot.timestamp) {
-        console.warn('[ConsentStore] Snapshot inválido, limpando cache');
-        this.clear();
+        console.warn('[ConsentStore] Snapshot inválido, limpando cache', { storageKey });
+        this.clear(_userUuid);
         return null;
       }
 
@@ -149,9 +187,10 @@ export class ConsentStore {
   /**
    * Limpa cache local
    */
-  static clear(): void {
+  static clear(userUuid?: string): void {
     try {
-      localStorage.removeItem(CONSENT_STORAGE_KEY);
+      const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
+      localStorage.removeItem(storageKey);
     } catch (error) {
       console.error('[ConsentStore] Erro ao limpar localStorage:', error);
     }
