@@ -112,11 +112,14 @@ const Footer = () => {
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                            <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
+                            <Stack alignItems="flex-start">
                                 <FooterTitle>Privacidade</FooterTitle>
                                 <Box 
                                     sx={{ 
                                         mb: 1,
+                                        display: 'flex',
+                                        justifyContent: 'flex-start',
+                                        width: '100%',
                                         '& > *': {
                                             opacity: 0.7,
                                             fontSize: '0.9rem',
@@ -128,7 +131,20 @@ const Footer = () => {
                                         }
                                     }}
                                 >
-                                    <ConsentManageLink />
+                                    <ConsentManageLink
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'flex-start',
+                                            width: '100%',
+                                            textAlign: 'left',
+                                            color: 'inherit',
+                                            opacity: 0.7,
+                                            fontSize: '0.9rem',
+                                            marginBottom: 1,
+                                            alignItems: 'center',
+                                            gap: 1,
+                                        }}
+                                    />
                                 </Box>
                                 <FooterLink href="/privacy-policy">Política de Privacidade</FooterLink>
                             </Stack>

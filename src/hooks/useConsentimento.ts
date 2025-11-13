@@ -31,6 +31,18 @@ export function useConsentimentos(profissionalUuid: string, pageable?: Pageable)
 }
 
 /**
+ * Hook para listar consentimentos por CPF (fluxo sem autenticação)
+ */
+export function useConsentimentosPorCpf(cpf: string) {
+  return useQuery({
+    queryKey: ['consentimentos', 'cpf', cpf],
+    queryFn: () => consentimentoService.listarConsentimentosPorCpf(cpf),
+    enabled: !!cpf,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/**
  * Hook para buscar um consentimento específico
  */
 export function useConsentimento(profissionalUuid: string, consentimentoUuid: string) {

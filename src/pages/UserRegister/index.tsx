@@ -1,14 +1,12 @@
-import { Button, Grid, Box, Dialog, DialogTitle, DialogContent, Typography, Alert, DialogActions } from "@mui/material";
+import { Button, Grid, Box, Dialog, DialogTitle, DialogContent, Typography, DialogActions } from "@mui/material";
 import WarningIcon from '@mui/icons-material/Warning';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import PageHeader from "../../components/PageHeader";
 import { ConsentDialog } from "../../consent/components/ConsentDialog/ConsentDialog";
-import { ConsentPreferencesPanel } from '../../consent/components/ConsentPreferencesPanel/ConsentPreferencesPanel';
 import { ConsentStore } from "../../consent/store/consentStore";
 import { ConsentAnalytics } from "../../consent/analytics/consentAnalytics";
 import { CONSENT_VERSION } from "../../consent/config/consentConfig";
 import { ConsentColors } from '../../consent/config/designTokens';
-import ConsentTechnicalDetails from '../../consent/components/ConsentTechnicalDetails/ConsentTechnicalDetails';
 import type { ConsentChoice } from "../../consent/types/consent.types";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";

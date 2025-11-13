@@ -10,13 +10,12 @@ import {
 } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import { useAuth } from '../../hooks/useAuth';
-import { useConsentimentos } from '../../hooks/useConsentimento';
+import { useConsentimentosPorCpf } from '../../hooks/useConsentimento';
 import { ConsentDialog } from '../../consent/components/ConsentDialog/ConsentDialog';
 import { ConsentStore } from '../../consent/store/consentStore';
 import { ConsentAnalytics } from '../../consent/analytics/consentAnalytics';
 import { CONSENT_VERSION } from '../../consent/config/consentConfig';
 import { ConsentColors } from '../../consent/config/designTokens';
-import type { UserType } from '../../stores/useAuthStore';
 import type { ConsentChoice } from '../../consent/types/consent.types';
 import { toastInfo } from '../../utils/toast';
 
@@ -34,25 +33,46 @@ const ConsentimentoLGPDCheck = () => {
   const [hasChecked, setHasChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obter UUID do usuário do contexto
-  type UserWithUuid = UserType & { uuid?: string };
-  const userUuid = (user as UserWithUuid)?.uuid ?? '';
-  const tipoUsuario = user?.tipoUsuario || '';
+  // Obter informações mínimas do usuário (se houver)
 
   // Buscar consentimentos existentes do backend (React Query)
-  const { data: consentimentosData, isLoading: isLoadingConsents, refetch: refetchConsentimentos } = useConsentimentos(
-    userUuid,
-    { page: 0, size: 1 }
-  );
+  // Sempre preferimos consultar pelo CPF: primeiro `user.cpf` (se logado), senão `sessionStorage`.
+  const cpfFromSessionStorage = (typeof window !== 'undefined')
+    ? (sessionStorage.getItem('cpfFor2FA') || sessionStorage.getItem('cpf') || '')
+    : '';
+
+  const cpfToUse = (user && (user as any).cpf) ? (user as any).cpf : cpfFromSessionStorage;
+
+  // Key used to store/load local consent snapshots — sempre usamos CPF para este componente
+  const snapshotKey = cpfToUse;
+
+  const { data: consentimentosDataByCpf, isLoading: isLoadingConsentsByCpf, refetch: refetchConsentimentosByCpf } = useConsentimentosPorCpf(cpfToUse);
 
   const location = useLocation();
+  const [lastRefetchPath, setLastRefetchPath] = useState('');
 
   useEffect(() => {
     // Verifica se já foi checado nesta sessão
     const consentimentoChecked = sessionStorage.getItem('consentimento-lgpd-checked');
     
     // Only run when we have a logged user and we haven't already processed checks for this session
-    if (!hasChecked && !consentimentoChecked && !isLoadingConsents && userUuid) {
+    const isLoadingConsents = isLoadingConsentsByCpf;
+    const consentimentosData = consentimentosDataByCpf;
+    const refetchConsentimentos = refetchConsentimentosByCpf;
+
+    // Trigger a refetch when navigating to a new path (ensure API is called at least once per page)
+    if (cpfToUse && location.pathname && location.pathname !== lastRefetchPath) {
+      // attempt a lightweight refetch (won't run if query disabled)
+      try {
+        refetchConsentimentos();
+      } catch (e) {
+        // ignore
+      } finally {
+        setLastRefetchPath(location.pathname);
+      }
+    }
+
+    if (!hasChecked && !consentimentoChecked && !isLoadingConsents && cpfToUse) {
       // Ensure the backend API was called at least once for this session. We trigger a refetch
       // when we detect a navigation (location changes) and the session flag is missing.
       const ensureApiCall = async () => {
@@ -74,11 +94,15 @@ const ConsentimentoLGPDCheck = () => {
         // trigger API call but continue to the consent check after it
         ensureApiCall().finally(() => {
           // After trying API, decide whether to require consent based on backend/local cache
-          const hasBackendConsent = consentimentosData?.content && consentimentosData.content.length > 0;
-          const localSnapshot = ConsentStore.load(userUuid);
+          // Note: endpoint by CPF returns an array
+          const hasBackendConsent = Array.isArray(consentimentosData)
+            ? consentimentosData.length > 0
+            : false;
+
+          const localSnapshot = ConsentStore.load(snapshotKey);
           const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
 
-          if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision after API call:', { userUuid, hasBackendConsent, hasLocalConsent, consentimentosData });
+          if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision after API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, consentimentosData });
 
           if (!hasBackendConsent && !hasLocalConsent) {
             // No consent anywhere: force the required dialog (blocks interaction)
@@ -93,11 +117,14 @@ const ConsentimentoLGPDCheck = () => {
         });
       } else {
         // API was called previously this session — just check caches
-        const hasBackendConsent = consentimentosData?.content && consentimentosData.content.length > 0;
-        const localSnapshot = ConsentStore.load(userUuid);
+        const hasBackendConsent = Array.isArray(consentimentosData)
+          ? consentimentosData.length > 0
+          : false;
+
+        const localSnapshot = ConsentStore.load(snapshotKey);
         const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
 
-        if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision without API call:', { userUuid, hasBackendConsent, hasLocalConsent, consentimentosData });
+        if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision without API call:', { snapshotKey, hasBackendConsent, hasLocalConsent, consentimentosData });
 
         if (!hasBackendConsent && !hasLocalConsent) {
           setOpenDialog(true);
@@ -109,21 +136,19 @@ const ConsentimentoLGPDCheck = () => {
         setHasChecked(true);
       }
     }
-  }, [userUuid, tipoUsuario, consentimentosData, isLoadingConsents, hasChecked, location.pathname]);
+  }, [cpfToUse, consentimentosDataByCpf, isLoadingConsentsByCpf, hasChecked, location.pathname, lastRefetchPath]);
 
   /**
    * Handler: Aceitar todos
    */
   const handleAcceptAll = async () => {
-    if (!userUuid) return;
-    
     setIsLoading(true);
     const choices = ConsentStore.getAcceptAllChoices();
-    
+
     try {
-      await ConsentStore.save(userUuid, choices);
+      await ConsentStore.save(snapshotKey, choices);
       ConsentAnalytics.trackAcceptAll(CONSENT_VERSION);
-      
+
       // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
@@ -138,15 +163,13 @@ const ConsentimentoLGPDCheck = () => {
    * Handler: Apenas essenciais
    */
   const handleRejectNonEssential = async () => {
-    if (!userUuid) return;
-    
     setIsLoading(true);
     const choices = ConsentStore.getEssentialOnlyChoices();
-    
+
     try {
-      await ConsentStore.save(userUuid, choices);
+      await ConsentStore.save(snapshotKey, choices);
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
-      
+
       // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
@@ -161,15 +184,13 @@ const ConsentimentoLGPDCheck = () => {
    * Handler: Salvar preferências customizadas
    */
   const handleSavePreferences = async (choices: ConsentChoice) => {
-    if (!userUuid) return;
-    
     setIsLoading(true);
-    
+
     try {
-      await ConsentStore.save(userUuid, choices);
+      await ConsentStore.save(snapshotKey, choices);
       const purposesAccepted = Object.keys(choices).filter((k) => choices[k]);
       ConsentAnalytics.trackSavePreferences(CONSENT_VERSION, purposesAccepted);
-      
+
       // Marca como checado APÓS sucesso
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       setOpenDialog(false);
@@ -226,7 +247,7 @@ const ConsentimentoLGPDCheck = () => {
   }
 
   // Choices atuais (cache local ou defaults)
-  const currentChoices = ConsentStore.load(userUuid)?.choices || ConsentStore.getDefaultChoices();
+  const currentChoices = ConsentStore.load(snapshotKey)?.choices || ConsentStore.getDefaultChoices();
 
   return (
     <>

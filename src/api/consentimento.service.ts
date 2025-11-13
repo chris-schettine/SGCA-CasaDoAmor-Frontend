@@ -36,6 +36,17 @@ class ConsentimentoService {
   }
 
   /**
+   * Lista consentimentos usando CPF (usuários não logados / fluxo público)
+   * Endpoint: GET /api/usuarios/{cpf}/consentimentos-lgpd
+   */
+  async listarConsentimentosPorCpf(
+    cpf: string
+  ): Promise<any[]> {
+    const response = await api.get(`/usuarios/${cpf}/consentimentos-lgpd`);
+    return response.data;
+  }
+
+  /**
    * Busca um consentimento específico
    */
   async buscarConsentimento(
