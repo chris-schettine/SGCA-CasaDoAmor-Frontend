@@ -78,6 +78,8 @@ const ConsentimentoLGPDCheck = () => {
           const localSnapshot = ConsentStore.load(userUuid);
           const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
 
+          if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision after API call:', { userUuid, hasBackendConsent, hasLocalConsent, consentimentosData });
+
           if (!hasBackendConsent && !hasLocalConsent) {
             // No consent anywhere: force the required dialog (blocks interaction)
             setOpenDialog(true);
@@ -94,6 +96,8 @@ const ConsentimentoLGPDCheck = () => {
         const hasBackendConsent = consentimentosData?.content && consentimentosData.content.length > 0;
         const localSnapshot = ConsentStore.load(userUuid);
         const hasLocalConsent = localSnapshot && !ConsentStore.needsUpdate(localSnapshot);
+
+        if (import.meta.env.DEV) console.log('[ConsentimentoLGPDCheck] Decision without API call:', { userUuid, hasBackendConsent, hasLocalConsent, consentimentosData });
 
         if (!hasBackendConsent && !hasLocalConsent) {
           setOpenDialog(true);

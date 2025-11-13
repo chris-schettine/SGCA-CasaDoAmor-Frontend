@@ -11,14 +11,18 @@ interface PrivateRouteProps {
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  // Debug: log auth state
+  if (import.meta.env.DEV) console.log('[PrivateRoute] render', { isAuthenticated, isLoading, pathname: location.pathname });
 
   // ⏳ Aguarda finalizar verificação de autenticação
   if (isLoading) {
+    if (import.meta.env.DEV) console.log('[PrivateRoute] Rendering LoadingBackdrop because isLoading === true');
     return <LoadingBackdrop />;
   }
 
   // 🔒 Redireciona para login se NÃO autenticado
   if (!isAuthenticated) {
+    if (import.meta.env.DEV) console.log('[PrivateRoute] Not authenticated - redirecting to /login', { pathname: location.pathname });
     // passando o caminho atual, para que após o login, o usuário possa ser redirecionado de volta.
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -26,11 +30,15 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   // Verificar estado de consentimento global (se o provider estiver ativo)
   const consentCtx = useContext(ConsentContext as unknown as any);
 
-  // Se o provider ainda estiver carregando ou for primeira visita/version_mismatch,
-  // bloqueamos o acesso centralizado aqui para evitar que o usuário navegue pelo sistema
+  // Se o provider ainda estiver carregando, mantemos o bloqueio.
+  // Não bloqueamos as rotas para `first_visit` ou `version_mismatch` aqui
+  // porque o próprio `ConsentProvider` renderiza o `ConsentDialog` e
+  // deve controlar o fluxo (o dialog aparece em cima da aplicação).
   if (consentCtx) {
     const stateType = (consentCtx as any).state?.type;
-    if (stateType === 'loading' || stateType === 'first_visit' || stateType === 'version_mismatch') {
+    if (import.meta.env.DEV) console.log('[PrivateRoute] consent stateType:', stateType);
+    if (stateType === 'loading') {
+      if (import.meta.env.DEV) console.log('[PrivateRoute] Rendering LoadingBackdrop because consent.state.type === loading');
       return <LoadingBackdrop />;
     }
   }

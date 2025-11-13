@@ -109,7 +109,20 @@ export const useAuthStore = create<AuthState>()(
         
         // Se não tem token/user no localStorage, não precisa verificar
         if (!token || !user) {
-          if (import.meta.env.DEV) console.log('[useAuthStore.checkAuthStatus] Sem token/user - finalizando');
+          if (import.meta.env.DEV) {
+            console.log('[useAuthStore.checkAuthStatus] Sem token/user - finalizando');
+            try {
+              const raw = localStorage.getItem('auth-storage');
+              console.log('[useAuthStore.checkAuthStatus] auth-storage (raw):', raw ? '[present]' : '[missing]');
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                const storedToken = parsed?.state?.token ?? null;
+                console.log('[useAuthStore.checkAuthStatus] auth-storage.token present:', !!storedToken);
+              }
+            } catch (e) {
+              console.warn('[useAuthStore.checkAuthStatus] Falha ao parsear auth-storage', e);
+            }
+          }
           set({ isLoading: false, isAuthenticated: false });
           return;
         }

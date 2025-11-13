@@ -33,7 +33,35 @@ export const AuthInitializer = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
 
   useEffect(() => {
-    checkAuthStatus();
+    let mounted = true;
+
+    const waitForRehydrateAndCheck = async () => {
+      try {
+        // If there's persisted auth data, wait briefly for zustand persist to restore it
+        const hasPersisted = !!localStorage.getItem('auth-storage');
+        if (hasPersisted) {
+          // poll up to ~500ms for the store to be rehydrated (token/user available)
+          const start = Date.now();
+          while (mounted && Date.now() - start < 500) {
+            const token = (await import('./stores/useAuthStore')).useAuthStore.getState().token;
+            const user = (await import('./stores/useAuthStore')).useAuthStore.getState().user;
+            if (token && user) break;
+            // small delay
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise((res) => setTimeout(res, 50));
+          }
+        }
+
+        if (mounted) checkAuthStatus();
+      } catch (err) {
+        // fallback: call checkAuthStatus regardless
+        if (mounted) checkAuthStatus();
+      }
+    };
+
+    waitForRehydrateAndCheck();
+
+    return () => { mounted = false; };
   }, [checkAuthStatus]);
 
   return <>{children}</>;

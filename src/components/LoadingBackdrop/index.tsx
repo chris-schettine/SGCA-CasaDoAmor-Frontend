@@ -7,6 +7,8 @@ interface LoadingBackdropProps {
 }
 
 export default function LoadingBackdrop({ message = 'Carregando...' }: LoadingBackdropProps) {
+  if (import.meta.env.DEV) console.log('[LoadingBackdrop] mounted', { message });
+
   return (
     <Backdrop
       sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}

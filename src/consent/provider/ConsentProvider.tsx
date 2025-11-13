@@ -57,16 +57,22 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
    * Hydration inicial: carrega do cache ou detecta primeira visita
    */
   useEffect(() => {
-    if (!userUuid) {
-      // Sem usuário logado, manter estado de loading
+    if (import.meta.env.DEV) console.log('[ConsentProvider] useEffect triggered', { user, userUuid });
+
+    // If there's no user object at all, keep loading until auth hydrates
+    if (!user) {
+      if (import.meta.env.DEV) console.log('[ConsentProvider] no user yet - staying in loading');
       setState({ type: 'loading' });
       return;
     }
 
-    const snapshot = ConsentStore.load(userUuid);
+    // Use userUuid when available; otherwise fall back to reading cache without UUID
+    const snapshot = userUuid ? ConsentStore.load(userUuid) : ConsentStore.load();
+    if (import.meta.env.DEV) console.log('[ConsentProvider] loaded snapshot', { userUuid: userUuid || '[none]', snapshot });
 
     if (!snapshot) {
       // Primeira visita: nenhum consentimento salvo
+      if (import.meta.env.DEV) console.log('[ConsentProvider] no snapshot - first_visit');
       setState({
         type: 'first_visit',
         defaultChoices: ConsentStore.getDefaultChoices(),
@@ -76,6 +82,7 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
       ConsentAnalytics.trackDialogShown('first_visit');
     } else if (ConsentStore.needsUpdate(snapshot)) {
       // Versão do termo mudou: solicitar re-consentimento
+      if (import.meta.env.DEV) console.log('[ConsentProvider] snapshot needs update - version_mismatch', { snapshotVersion: snapshot.version, expected: CONSENT_VERSION });
       setState({
         type: 'version_mismatch',
         currentChoices: snapshot.choices,
@@ -87,13 +94,14 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
       ConsentAnalytics.trackDialogShown('version_change');
     } else {
       // Consentimento válido
+      if (import.meta.env.DEV) console.log('[ConsentProvider] snapshot OK - consented', { timestamp: snapshot.timestamp });
       setState({
         type: 'consented',
         choices: snapshot.choices,
         timestamp: snapshot.timestamp,
       });
     }
-  }, [userUuid]);
+  }, [user, userUuid]);
 
   /**
    * Salva consentimento (chamado pelos botões do dialog)

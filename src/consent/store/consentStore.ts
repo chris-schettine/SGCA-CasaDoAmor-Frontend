@@ -54,13 +54,16 @@ export class ConsentStore {
 
     // 2. Sincronizar com API (assíncrono, melhor esforço)
     try {
-      await consentimentoService.registrarConsentimento(userUuid, {
+      const payload = {
         versaoTermo: snapshot.version,
         escopo: 'GERAL',
         concorda: this.hasAcceptedAll(choices),
         metadata: JSON.stringify(choices), // Salvar escolhas granulares
         // IP, userAgent, deviceId são capturados pelo backend
-      });
+      };
+      if (import.meta.env.DEV) console.log('[ConsentStore] Enviando payload para registrarConsentimento:', { profissionalUuid: userUuid, payload });
+      const res = await consentimentoService.registrarConsentimento(userUuid, payload);
+      if (import.meta.env.DEV) console.log('[ConsentStore] Resposta registrarConsentimento:', res);
     } catch (error) {
       console.error('[ConsentStore] Falha ao sincronizar com API:', error);
       // Não rejeitar promise - cache local é suficiente
@@ -78,7 +81,12 @@ export class ConsentStore {
   static load(_userUuid?: string): ConsentSnapshot | null {
     try {
       const cached = localStorage.getItem(CONSENT_STORAGE_KEY);
-      if (!cached) return null;
+      if (!cached) {
+        if (import.meta.env.DEV) console.log('[ConsentStore.load] no cached snapshot found');
+        return null;
+      }
+
+      if (import.meta.env.DEV) console.log('[ConsentStore.load] raw cached value present');
 
       const snapshot = JSON.parse(cached) as ConsentSnapshot;
 
@@ -89,6 +97,7 @@ export class ConsentStore {
         return null;
       }
 
+      if (import.meta.env.DEV) console.log('[ConsentStore.load] parsed snapshot', { version: snapshot.version, timestamp: snapshot.timestamp, choicesPreview: Object.keys(snapshot.choices).slice(0,5) });
       return snapshot;
     } catch (error) {
       console.error('[ConsentStore] Erro ao ler localStorage:', error);
@@ -165,12 +174,15 @@ export class ConsentStore {
     if (!snapshot) return;
 
     try {
-      await consentimentoService.registrarConsentimento(userUuid, {
+      const payload = {
         versaoTermo: snapshot.version,
         escopo: 'GERAL',
         concorda: this.hasAcceptedAll(snapshot.choices),
         metadata: JSON.stringify(snapshot.choices),
-      });
+      };
+      if (import.meta.env.DEV) console.log('[ConsentStore.sync] Sincronizando snapshot para', userUuid, payload);
+      const res = await consentimentoService.registrarConsentimento(userUuid, payload);
+      if (import.meta.env.DEV) console.log('[ConsentStore.sync] Resposta sync:', res);
     } catch (error) {
       console.error('[ConsentStore] Falha ao sincronizar:', error);
       throw error;

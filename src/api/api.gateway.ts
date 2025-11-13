@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import { forceLogout } from '../stores/useAuthStore';
+import { forceLogout, useAuthStore } from '../stores/useAuthStore';
 
 class ApiGateway {
   public gateway: AxiosInstance;
@@ -15,22 +15,41 @@ class ApiGateway {
     
     this.gateway.interceptors.request.use(
       (config) => {
-        // 🚀 Zustand persist salva em 'auth-storage'
-        const authStorage = localStorage.getItem('auth-storage');
-        let token = null;
-        
-        if (authStorage) {
-          try {
-            const parsed = JSON.parse(authStorage);
-            token = parsed.state?.token;
-          } catch (e) {
-            if (import.meta.env.DEV) console.warn('[API Gateway] Erro ao parsear auth-storage:', e);
+        // Primeiro prefira o token atual da store (evita condição de corrida
+        // quando a persistência ainda não gravou no localStorage após login)
+        let token: string | null = useAuthStore.getState().token ?? null;
+
+        // Fallback: ler auth-storage (compatibilidade com instâncias fora do React)
+        if (!token) {
+          const authStorage = localStorage.getItem('auth-storage');
+          if (authStorage) {
+            try {
+              const parsed = JSON.parse(authStorage);
+              token = parsed.state?.token ?? null;
+            } catch (e) {
+              if (import.meta.env.DEV) console.warn('[API Gateway] Erro ao parsear auth-storage:', e);
+            }
           }
         }
-        
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           if (import.meta.env.DEV) console.log('[API Gateway] Token enviado:', token.substring(0, 20) + '...');
+        }
+
+        // Extra debug for consent endpoints: log payload/params to help diagnose 500s
+        if (import.meta.env.DEV && config.url && config.url.includes('/profissionais') && config.url.includes('consentimentos')) {
+          try {
+            console.log('[API Gateway] Consent endpoint request details:', {
+              method: config.method?.toUpperCase(),
+              url: config.url,
+              params: config.params ?? null,
+              data: config.data ?? null,
+              headers: config.headers ? { ...config.headers, Authorization: config.headers.Authorization ? '***REDACTED***' : undefined } : null,
+            });
+          } catch (e) {
+            console.warn('[API Gateway] Failed to log consent request details', e);
+          }
         }
         
         if (import.meta.env.DEV) console.log('[API Gateway] Requisição:', config.method?.toUpperCase(), config.url);
@@ -94,6 +113,21 @@ class ApiGateway {
             console.warn('[API Gateway] Acesso negado (403) - sem permissão');
           }
         }
+        // Additional debug for consent endpoints errors
+        try {
+          const url = error.config?.url as string | undefined;
+          if (import.meta.env.DEV && url && url.includes('/profissionais') && url.includes('consentimentos')) {
+            console.error('[API Gateway] Consent endpoint error payload:', {
+              status: error.response?.status,
+              url,
+              requestData: error.config?.data ?? null,
+              responseData: error.response?.data ?? null,
+            });
+          }
+        } catch (e) {
+          /* ignore logging failures */
+        }
+
         return Promise.reject(error);
       }
     );
