@@ -5,6 +5,7 @@ import { ConsentStore } from '../store/consentStore';
 import { consentimentoService } from '../../api/consentimento.service';
 import { ConsentAnalytics } from '../analytics/consentAnalytics';
 import { CONSENT_VERSION } from '../config/consentConfig';
+import { CONSENT_STORAGE_KEY } from '../config/consentConfig';
 import { useAuthStore, forceLogout } from '../../stores/useAuthStore';
 import { toastError } from '../../utils/toast';
 import type {
@@ -56,7 +57,9 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   // Prefer uuid when available; otherwise use CPF as identifier for public endpoint
-  const identifier = user?.uuid || user?.cpf || '';
+  // Normalize CPF to digits-only to avoid mismatch with API endpoints
+  const normalizeId = (v?: string | null) => (v ? String(v).replace(/\D/g, '') : '');
+  const identifier = user?.uuid || normalizeId(user?.cpf) || '';
 
   // Estado do consentimento
   const [state, setState] = useState<ConsentState>({ type: 'loading' });
@@ -73,6 +76,17 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
     if (import.meta.env.DEV) console.log('[ConsentProvider] useEffect triggered', { user, identifier, isAuthenticated });
 
     const run = async () => {
+      // If an immediate logout due to consent rejection is in progress,
+      // avoid opening the dialog or forcing a first_visit state. This prevents
+      // a flicker where the dialog is closed then re-opened while logout/navigation occurs.
+      const logoutPending = typeof window !== 'undefined' && sessionStorage.getItem('consentimento-logout-pending') === 'true';
+      if (logoutPending) {
+        if (import.meta.env.DEV) console.debug('[ConsentProvider] logout-pending flag set - skipping consent checks to avoid flicker');
+        if (!cancelled) setState({ type: 'loading' });
+        if (!cancelled) setIsDialogOpen(false);
+        return;
+      }
+
       const pendingFlag = typeof window !== 'undefined' && sessionStorage.getItem('consentimento-pending') === 'true';
 
       // Only proceed when we have an authenticated user and an identifier (uuid or cpf).
@@ -94,39 +108,22 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
         if (import.meta.env.DEV) console.log('[ConsentProvider] pending consent flag present - verifying backend before forcing dialog open');
 
         // If we have an identifier, attempt to query the backend to confirm saved consent.
+        // IMPORTANT: never call listarConsentimentos by UUID. Only consult by CPF.
         if (identifier) {
           try {
-            const cpfMatch = /^[0-9]{11}$/.test(identifier);
-            if (import.meta.env.DEV) console.debug('[ConsentProvider] pendingFlag check - identifier type', { identifier, cpfMatch });
+            const cpfCandidate = normalizeId(user?.cpf);
+            if (import.meta.env.DEV) console.debug('[ConsentProvider] pendingFlag check - using cpfCandidate', { cpfCandidate });
 
             let backendArray: any[] = [];
 
-            if (cpfMatch) {
-              const resp = await consentimentoService.listarConsentimentosPorCpf(identifier);
-              backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
-            } else {
-              // If identifier is a UUID, try both the profissional endpoint and
-              // the public CPF endpoint (if we have a CPF on the user object).
-              const respProf = await consentimentoService.listarConsentimentos(identifier).catch((e) => {
-                if (import.meta.env.DEV) console.debug('[ConsentProvider] listarConsentimentos failed', e);
+            if (cpfCandidate && /^[0-9]{11}$/.test(cpfCandidate)) {
+              const resp = await consentimentoService.listarConsentimentosPorCpf(cpfCandidate).catch((e) => {
+                if (import.meta.env.DEV) console.debug('[ConsentProvider] listarConsentimentosPorCpf failed', e);
                 return null;
               });
-              const profArray = Array.isArray(respProf) ? respProf : (respProf && (respProf as any).content && Array.isArray((respProf as any).content) ? (respProf as any).content : []);
-
-              let cpfArray: any[] = [];
-              const cpfCandidate = user?.cpf;
-              if (cpfCandidate && /^[0-9]{11}$/.test(cpfCandidate)) {
-                const respCpf = await consentimentoService.listarConsentimentosPorCpf(cpfCandidate).catch((e) => {
-                  if (import.meta.env.DEV) console.debug('[ConsentProvider] listarConsentimentosPorCpf (fallback) failed', e);
-                  return null;
-                });
-                cpfArray = Array.isArray(respCpf) ? respCpf : (respCpf && (respCpf as any).data && Array.isArray((respCpf as any).data) ? (respCpf as any).data : []);
-              }
-
-              // Combine results from both endpoints (unique by uuid)
-              const combined = [...profArray, ...cpfArray];
-              const uniqueByUuid = combined.filter((v, i, a) => v && v.uuid && a.findIndex((x) => x.uuid === v.uuid) === i);
-              backendArray = uniqueByUuid;
+              backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
+            } else {
+              if (import.meta.env.DEV) console.debug('[ConsentProvider] no cpf available to verify pending consent; skipping backend check (never list by uuid)');
             }
 
             if (import.meta.env.DEV) console.debug('[ConsentProvider] pendingFlag backend check result', { identifier, backendCount: backendArray.length, preview: backendArray.slice(0,3) });
@@ -181,7 +178,22 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
       }
 
       // Load snapshot namespaced by identifier (uuid or cpf)
-      const snapshot = ConsentStore.load(identifier);
+      let snapshot = ConsentStore.load(identifier);
+
+      // Fallback: if identifier is a UUID but user has a CPF, check CPF-namespaced snapshot
+      try {
+        const cpfCandidate = normalizeId(user?.cpf);
+        if (!snapshot && cpfCandidate && cpfCandidate !== identifier) {
+          if (import.meta.env.DEV) console.debug('[ConsentProvider] trying fallback load using cpf identifier', { cpfCandidate });
+          const snapshotByCpf = ConsentStore.load(cpfCandidate);
+          if (snapshotByCpf) {
+            if (import.meta.env.DEV) console.debug('[ConsentProvider] found snapshot under cpf key - using it', { cpfCandidate });
+            snapshot = snapshotByCpf;
+          }
+        }
+      } catch (err) {
+        if (import.meta.env.DEV) console.debug('[ConsentProvider] fallback cpf load failed', err);
+      }
       if (import.meta.env.DEV) console.log('[ConsentProvider] loaded snapshot', { identifier: identifier || '[none]', snapshot });
 
       if (!snapshot) {
@@ -227,6 +239,60 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
       cancelled = true;
     };
   }, [user, identifier, isAuthenticated]);
+
+  /**
+   * Cross-tab sync: respond to localStorage changes for consent snapshots.
+   * When another tab updates the snapshot for this identifier, update local state
+   * immediately so that multi-tab coherence is preserved (<1s via storage event).
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const onStorage = (e: StorageEvent) => {
+      try {
+        if (!identifier) return;
+        const logoutPending = typeof window !== 'undefined' && sessionStorage.getItem('consentimento-logout-pending') === 'true';
+        if (logoutPending) {
+          if (import.meta.env.DEV) console.debug('[ConsentProvider] storage event ignored while logout pending', { key: e.key });
+          return;
+        }
+        const expectedKey = `${CONSENT_STORAGE_KEY}:${identifier || 'global'}`;
+        // Respond to changes for this user's snapshot key (uuid) or their cpf key
+        const cpfCandidate = normalizeId(user?.cpf);
+        const cpfKey = cpfCandidate ? `${CONSENT_STORAGE_KEY}:${cpfCandidate}` : null;
+        if (e.key !== expectedKey && e.key !== cpfKey) return;
+
+        if (import.meta.env.DEV) console.debug('[ConsentProvider] storage event for consent snapshot', { key: e.key, newValue: e.newValue });
+
+        // Prefer uuid-keyed snapshot; fallback to cpf-keyed snapshot if present
+        let snapshot = ConsentStore.load(identifier);
+        if ((!snapshot || ConsentStore.needsUpdate(snapshot)) && cpfKey) {
+          const snapshotByCpf = ConsentStore.load(cpfCandidate as string);
+          if (snapshotByCpf && !ConsentStore.needsUpdate(snapshotByCpf)) {
+            snapshot = snapshotByCpf;
+          }
+        }
+
+        if (snapshot && !ConsentStore.needsUpdate(snapshot)) {
+          // Another tab accepted/updated consent -> reflect it immediately
+          setState({ type: 'consented', choices: snapshot.choices, timestamp: snapshot.timestamp });
+          setIsDialogOpen(false);
+          setIsDialogRequired(false);
+          try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {}
+        } else {
+          // Snapshot removed or expired -> require re-consent
+          setState({ type: 'first_visit', defaultChoices: ConsentStore.getDefaultChoices() });
+          setIsDialogOpen(true);
+          setIsDialogRequired(true);
+        }
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('[ConsentProvider] storage event handler failed', err);
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [identifier]);
 
   /**
    * Salva consentimento (chamado pelos botões do dialog)

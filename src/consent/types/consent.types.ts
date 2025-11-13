@@ -62,6 +62,12 @@ export interface ConsentSnapshot {
   /** Timestamp ISO 8601 da última atualização */
   timestamp: string;
   
+  /** TTL em ms para expiração local (opcional) */
+  ttlMs?: number;
+  
+  /** ETag/validator retornado pelo backend quando disponível (opcional) */
+  etag?: string;
+  
   /** IP de origem (armazenado no backend, não exibido na UI) */
   ipAddress?: string;
   

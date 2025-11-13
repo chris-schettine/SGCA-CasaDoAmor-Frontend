@@ -101,8 +101,21 @@ const fillSelect = (
   } = options || {};
 
   const isClearing = value === undefined || value === null || value === '';
-  const formValue = isClearing ? clearFallback : value;
-  const domValue = isClearing ? String(clearFallback ?? '') : String(value ?? '');
+
+    const shouldNormalizeSexo =
+    fieldName === 'sexo' || fieldName.endsWith('.sexo') || (elementId && elementId.includes('sexo'));
+
+  const normalizeSexoValue = (v: unknown) => {
+    if (typeof v !== 'string') return v;
+    const t = v.trim().toLowerCase();
+    if (t === 'masculino') return 'MASCULINO';
+    if (t === 'feminino') return 'FEMININO';
+    return v;
+  };
+
+  const preparedValue = shouldNormalizeSexo ? normalizeSexoValue(value) : value;
+  const formValue = isClearing ? clearFallback : preparedValue;
+  const domValue = isClearing ? String(clearFallback ?? '') : String(preparedValue ?? '');
 
   // 1. Atualiza via react-hook-form
   setValue(fieldName, formValue, { shouldValidate, shouldDirty, shouldTouch });

@@ -3,6 +3,7 @@ import {
   CONSENT_STORAGE_KEY,
   CONSENT_VERSION,
   CONSENT_PURPOSES,
+  CONSENT_CACHE_TTL,
 } from '../config/consentConfig';
 import { consentimentoService } from '../../api/consentimento.service';
 
@@ -43,7 +44,9 @@ export class ConsentStore {
       version: CONSENT_VERSION,
       choices,
       timestamp: new Date().toISOString(),
+      ttlMs: CONSENT_CACHE_TTL,
     };
+    if (import.meta.env.DEV) console.debug('[ConsentStore.save] snapshot prepared (to persist locally)', { userUuid, snapshotPreview: { version: snapshot.version, timestamp: snapshot.timestamp, choicesPreview: Object.keys(choices).slice(0,5) } });
     const requireApi = options?.requireApi === true;
 
     // If requireApi is set, call API first and only persist locally after success.
@@ -67,6 +70,7 @@ export class ConsentStore {
         try {
           const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
           localStorage.setItem(storageKey, JSON.stringify(snapshot));
+          if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (post-API)', { storageKey });
         } catch (err) {
           console.error('[ConsentStore] Falha ao salvar no localStorage (post-API):', err);
         }
@@ -83,6 +87,7 @@ export class ConsentStore {
     try {
       const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
       localStorage.setItem(storageKey, JSON.stringify(snapshot));
+      if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (optimistic)', { storageKey });
     } catch (error) {
       console.error('[ConsentStore] Falha ao salvar no localStorage:', error);
       // Continuar mesmo com erro (pode ser quota exceeded)
@@ -181,7 +186,24 @@ export class ConsentStore {
    */
   static needsUpdate(snapshot: ConsentSnapshot | null): boolean {
     if (!snapshot) return true;
-    return snapshot.version !== CONSENT_VERSION;
+    // If version differs, update required
+    if (snapshot.version !== CONSENT_VERSION) return true;
+
+    // If snapshot has ttlMs use it, otherwise use config default
+    try {
+      const ttl = (snapshot.ttlMs && typeof snapshot.ttlMs === 'number') ? snapshot.ttlMs : CONSENT_CACHE_TTL;
+      const ts = new Date(snapshot.timestamp).getTime();
+      if (Number.isFinite(ts) && Date.now() - ts > (ttl || 0)) {
+        if (import.meta.env.DEV) console.log('[ConsentStore.needsUpdate] snapshot expired by TTL', { timestamp: snapshot.timestamp, ttl });
+        return true;
+      }
+    } catch (err) {
+      // If parsing fails, consider it needing an update
+      if (import.meta.env.DEV) console.warn('[ConsentStore.needsUpdate] failed to evaluate TTL, forcing update', err);
+      return true;
+    }
+
+    return false;
   }
 
   /**

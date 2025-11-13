@@ -1,5 +1,14 @@
 import { api } from './api.gateway';
 
+// DEV-only instrumentation: count how many times the consent API is called
+if (import.meta.env.DEV) {
+  try {
+    (window as any).__consentApiCallCount = (window as any).__consentApiCallCount || 0;
+  } catch {
+    // ignore (server-side or locked globals)
+  }
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   ConsentimentoLGPDRequest,
@@ -44,6 +53,14 @@ class ConsentimentoService {
   async listarConsentimentosPorCpf(
     cpf: string
   ): Promise<ConsentimentoLGPDResponse[]> {
+    if (import.meta.env.DEV) {
+      try {
+        (window as any).__consentApiCallCount = ((window as any).__consentApiCallCount || 0) + 1;
+        console.debug('[consentimentoService] listarConsentimentosPorCpf called', { cpf, count: (window as any).__consentApiCallCount });
+      } catch {
+        // ignore
+      }
+    }
     const response = await api.get(`/api/usuarios/${cpf}/consentimentos-lgpd`);
     if (import.meta.env.DEV) {
       try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   DialogTitle,
@@ -14,6 +14,7 @@ import { useConsentimentosPorCpf } from '../../hooks/useConsentimento';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ConsentDialog } from '../../consent/components/ConsentDialog/ConsentDialog';
 import { ConsentStore } from '../../consent/store/consentStore';
+import { ConsentContext } from '../../consent/provider/ConsentProvider';
 import { toastError } from '../../utils/toast';
 import { ConsentAnalytics } from '../../consent/analytics/consentAnalytics';
 import { CONSENT_VERSION } from '../../consent/config/consentConfig';
@@ -42,7 +43,8 @@ const ConsentimentoLGPDCheck = () => {
     ? (sessionStorage.getItem('cpfFor2FA') || sessionStorage.getItem('cpf') || '')
     : '';
 
-  const cpfToUse = user?.cpf ?? cpfFromSessionStorage;
+  const cpfToUseRaw = user?.cpf ?? cpfFromSessionStorage;
+  const cpfToUse = typeof cpfToUseRaw === 'string' ? cpfToUseRaw.replace(/\D/g, '') : cpfToUseRaw;
 
   // Snapshot key uses CPF for this component so local snapshots don't collide with uuid-based ones
   const snapshotKey = cpfToUse;
@@ -53,17 +55,36 @@ const ConsentimentoLGPDCheck = () => {
     refetch: refetchConsentimentosByCpf,
   } = useConsentimentosPorCpf(cpfToUse);
 
+  // Read global consent context to avoid duplicate checks when provider
+  // has already determined consent state (bootstrap or manual)
+  const consentCtx = useContext(ConsentContext);
+
   useEffect(() => {
     const consentimentoChecked = sessionStorage.getItem('consentimento-lgpd-checked');
 
     // On navigation, trigger a refetch at least once per path
+    // Skip calling backend if global ConsentProvider already marks user as consented
+    // or if a bootstrap previously set the session flag.
+    const apiCalledFlag = typeof window !== 'undefined' ? sessionStorage.getItem('consentimento-api-called') : null;
+
     if (cpfToUse && location.pathname && location.pathname !== lastRefetchPath) {
-      try {
-        refetchConsentimentosByCpf();
-      } catch {
-        void 0;
-      } finally {
+      // If provider indicates consented, skip refetch and mark checked
+      const providerStateType = consentCtx?.state?.type;
+      if (providerStateType === 'consented') {
+        try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {}
+        setHasChecked(true);
         setLastRefetchPath(location.pathname);
+      } else if (apiCalledFlag) {
+        // another part of the app already called the API this session
+        setLastRefetchPath(location.pathname);
+      } else {
+        try {
+          refetchConsentimentosByCpf();
+        } catch {
+          void 0;
+        } finally {
+          setLastRefetchPath(location.pathname);
+        }
       }
     }
 
@@ -216,7 +237,27 @@ const ConsentimentoLGPDCheck = () => {
       await ConsentStore.save(snapshotKey, choices, { requireApi: true });
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
+      // Mark logout pending so provider and other tabs do not re-open the dialog
+      try { sessionStorage.setItem('consentimento-logout-pending', 'true'); } catch {}
+
       setOpenDialog(false);
+
+      // User explicitly rejected non-essential purposes -> log them out and redirect to login.
+      try {
+        toastInfo('Consentimento necessário. Fazendo logout...');
+      } catch {}
+      try {
+        await logout();
+      } catch (err) {
+        console.error('[ConsentimentoLGPDCheck] Erro ao deslogar após recusa de consentimento:', err);
+      }
+
+      // navigate immediately and clear the logout-pending flag so other tabs can continue
+      try {
+        navigate('/login');
+      } finally {
+        try { sessionStorage.removeItem('consentimento-logout-pending'); } catch {}
+      }
     } catch (error) {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
       const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';

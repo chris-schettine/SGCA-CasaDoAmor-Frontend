@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore, setQueryClient } from './stores/useAuthStore'
+import { bootstrapConsent } from './consent/bootstrap/consentBootstrap';
 import { ConsentProvider } from './consent/provider/ConsentProvider'
 import TransitionProvider from './motion/TransitionProvider';
 
@@ -32,6 +33,8 @@ setQueryClient(queryClient);
 // Componente para inicializar auth
 export const AuthInitializer = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     let mounted = true;
@@ -64,6 +67,30 @@ export const AuthInitializer = ({ children }: { children: ReactNode }) => {
 
     return () => { mounted = false; };
   }, [checkAuthStatus]);
+
+  // Bootstrap consent once when user becomes available after auth rehydrate
+  useEffect(() => {
+    let mounted = true;
+
+    const runBootstrap = async () => {
+      try {
+        if (!mounted) return;
+        if (!isAuthenticated || !user) return;
+        // Prefer CPF for backend listing calls. NEVER call listar by UUID.
+        const identifier = user?.cpf ? String(user.cpf).replace(/\D/g, '') : (user?.uuid || '');
+        if (!identifier) return;
+
+        if (import.meta.env.DEV) console.debug('[AuthInitializer] Running consent bootstrap for identifier', identifier);
+        await bootstrapConsent(identifier);
+      } catch (err) {
+        console.error('[AuthInitializer] consent bootstrap failed', err);
+      }
+    };
+
+    void runBootstrap();
+
+    return () => { mounted = false; };
+  }, [isAuthenticated, user]);
 
   return <>{children}</>;
 }
