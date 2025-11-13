@@ -212,7 +212,7 @@ export default function Layout() {
         { key: 'k', ctrl: true, handler: () => setShortcutsHelpOpen(true), description: 'Exibir ajuda de atalhos' },
         { key: 'Escape', handler: () => setShortcutsHelpOpen(false), description: 'Fechar diálogos' },
         { key: 'p', ctrl: true, handler: () => navigate('/patients'), description: 'Ir para Pacientes' },
-        { key: 'u', ctrl: true, handler: () => navigate('/users'), description: 'Ir para Profissionais' },
+        { key: 'u', ctrl: true, handler: () => navigate('/users'), description: 'Ir para Usuários Autorizados' },
         { key: 'm', ctrl: true, handler: () => navigate('/my-profile'), description: 'Ir para Meu Perfil' },
     ], [navigate]);
 

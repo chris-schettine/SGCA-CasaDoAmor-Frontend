@@ -383,11 +383,11 @@ const UserEditPage = () => {
       px: { xs: 2, sm: 3 }
     }}>
       <Breadcrumbs items={[
-        { label: 'Profissionais', path: '/users' },
+        { label: 'Usuários Autorizados', path: '/users' },
         { label: userName || 'Carregando...', path: `/users/${id}` },
         { label: 'Editar' }
       ]} />
-      <PageHeader title="Editar Profissional" subtitle="Atualize os dados do usuário" />
+      <PageHeader title="Editar Usuário Autorizado" subtitle="Atualize os dados do usuário" />
       <form noValidate>
 
         <UserForm

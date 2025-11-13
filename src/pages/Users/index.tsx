@@ -50,7 +50,7 @@ const Users = () => {
       px: { xs: 1, sm: 2 }
     }}>
       <PageHeader 
-        title="Profissionais"
+        title="Usuários Autorizados"
         searchComponent={searchComponent}
         action={actionButton}
       />
