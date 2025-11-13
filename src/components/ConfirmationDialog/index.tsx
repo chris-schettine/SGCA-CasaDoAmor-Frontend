@@ -9,7 +9,6 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import type { Theme } from '@mui/material/styles';
-import { ConsentColors } from '../../consent/config/designTokens';
 
 const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
   '& .MuiDialogContent-root': {
@@ -48,9 +47,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       fullWidth
     >
       <DialogTitle sx={{ m: 0, p: 2 }} id="confirmation-dialog-title">
-        <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: ConsentColors.text.primary }}>
-          {title}
-        </Typography>
+        {title}
       </DialogTitle>
       <IconButton
         aria-label="close"
@@ -65,39 +62,15 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <CloseIcon />
       </IconButton>
       <DialogContent dividers>
-        <Typography gutterBottom sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: ConsentColors.text.secondary }}>
+        <Typography gutterBottom>
           {message}
         </Typography>
       </DialogContent>
-      <DialogActions sx={{ p: 2, gap: 1.5 }}>
-        <Button
-          autoFocus
-          onClick={onConfirm}
-          variant="contained"
-          color="primary"
-          sx={{
-            height: 44,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '0.9rem',
-            backgroundColor: ConsentColors.primary.main,
-            color: ConsentColors.primary.contrast,
-            '&:hover': { backgroundColor: ConsentColors.primary.dark },
-          }}
-        >
+      <DialogActions>
+        <Button autoFocus onClick={onConfirm} variant="contained" color="primary">
           {confirmButtonText}
         </Button>
-        <Button
-          onClick={onClose}
-          color="error"
-          variant="outlined"
-          sx={{
-            height: 44,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '0.9rem',
-          }}
-        >
+        <Button onClick={onClose} color="error" variant="outlined">
           {cancelButtonText}
         </Button>
       </DialogActions>
