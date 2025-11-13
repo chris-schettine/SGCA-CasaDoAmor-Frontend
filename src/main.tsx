@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore, setQueryClient } from './stores/useAuthStore'
+import { ConsentProvider } from './consent/provider/ConsentProvider'
 
 // Configuração do QueryClient com defaults otimizados
 const queryClient = new QueryClient({
@@ -42,7 +43,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthInitializer>
-        <App />
+        {/* ✨ ConsentProvider: Gerencia estado global de consentimento LGPD */}
+        <ConsentProvider>
+          <App />
+        </ConsentProvider>
       </AuthInitializer>
       {/* DevTools apenas em desenvolvimento */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

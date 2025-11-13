@@ -30,6 +30,7 @@ import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
 import ConsentimentoLGPDCheck from '../ConsentimentoLGPDCheck';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
+import { useConsent } from '../../consent/hooks/useConsent';
 import Footer from '../Footer';
 
 const drawerWidth = 280;
@@ -215,7 +216,8 @@ export default function Layout() {
         { key: 'm', ctrl: true, handler: () => navigate('/my-profile'), description: 'Ir para Meu Perfil' },
     ], [navigate]);
 
-    useKeyboardShortcuts(shortcuts);
+    const { dialogOpen } = useConsent();
+    useKeyboardShortcuts(shortcuts, !dialogOpen);
     const { user } = useAuth();
     const navItems = [
         { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 

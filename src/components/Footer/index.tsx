@@ -3,6 +3,7 @@ import { Box, Typography, Link, Grid, Stack } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import { ConsentManageLink } from '../../consent/components/ConsentManageLink/ConsentManageLink';
 
 const FooterLink = ({ children, href, icon }: { children: React.ReactNode; href: string; icon?: React.ReactNode }) => (
     <Link
@@ -102,7 +103,7 @@ const Footer = () => {
                 <Grid size={{ xs: 12, md: 7 }}>
                     <Grid container spacing={4} justifyContent={{ xs: 'center', md: 'flex-end' }}>
                         
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                             <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
                                 <FooterTitle>SGCA</FooterTitle>
                                 <FooterLink href="/about">Documentação</FooterLink>
@@ -110,7 +111,30 @@ const Footer = () => {
                             </Stack>
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                            <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
+                                <FooterTitle>Privacidade</FooterTitle>
+                                <Box 
+                                    sx={{ 
+                                        mb: 1,
+                                        '& > *': {
+                                            opacity: 0.7,
+                                            fontSize: '0.9rem',
+                                            transition: '0.2s',
+                                            '&:hover': {
+                                                opacity: 1,
+                                                color: '#65ACD6',
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <ConsentManageLink />
+                                </Box>
+                                <FooterLink href="/privacy-policy">Política de Privacidade</FooterLink>
+                            </Stack>
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                             <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
                                 <FooterTitle>Contato</FooterTitle>
                                 <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />}>
