@@ -1,22 +1,45 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { usePermissions } from '../../hooks/usePermissions';
 import LoadingBackdrop from '../LoadingBackdrop';
 
 interface AdminRouteProps {
   children: React.ReactElement;
 }
 
+/**
+ * Componente de rota protegida para administradores
+ * 
+ * Verifica se o usuário está autenticado e tem role de ADMINISTRADOR.
+ * Redireciona para /patients se não autorizado (evita cascata de redirecionamentos).
+ * 
+ * @example
+ * ```tsx
+ * <Route path="/users" element={
+ *   <AdminRoute>
+ *     <Users />
+ *   </AdminRoute>
+ * } />
+ * ```
+ */
 const AdminRoute = ({ children }: AdminRouteProps) => {
-  const { isLoading, isAuthenticated, user } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
+  const { isAdmin } = usePermissions();
 
-  if (isLoading) return <LoadingBackdrop />;
+  // ⏳ Aguarda verificação de autenticação
+  if (isLoading) {
+    return <LoadingBackdrop />;
+  }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // 🔒 Redireciona para login se não autenticado
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-  if (!user || user.tipoUsuario !== 'ADMINISTRADOR') {
-    // Not authorized - redirect to home
-    return <Navigate to="/" replace />;
+  // 🚫 Redireciona para dashboard se não for administrador
+  if (!isAdmin) {
+    return <Navigate to="/patients" replace />;
   }
 
   return children;

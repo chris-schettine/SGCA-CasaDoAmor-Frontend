@@ -1,15 +1,19 @@
 import React from 'react';
-import { Box, Typography, Link, Grid, Stack } from '@mui/material';
+import { Box, Typography, Link, Grid, Stack, useTheme } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { ConsentManageLink } from '../../consent/components/ConsentManageLink/ConsentManageLink';
+import { useDesignTokens } from '../../design-tokens/utils';
 
-const FooterLink = ({ children, href, icon }: { children: React.ReactNode; href: string; icon?: React.ReactNode }) => (
+const FooterLink = ({ children, href, icon, external }: { children: React.ReactNode; href: string; icon?: React.ReactNode; external?: boolean }) => (
     <Link
         href={href}
         color="inherit"
         underline="none"
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        aria-label={external ? `${children} (abre em nova aba)` : undefined}
         sx={{
             display: 'flex',
             alignItems: 'center',
@@ -17,11 +21,21 @@ const FooterLink = ({ children, href, icon }: { children: React.ReactNode; href:
             opacity: 0.7,
             fontSize: '0.9rem',
             marginBottom: 1,
-            transition: '0.2s',
+            transition: 'opacity 0.2s, color 0.2s',
+            '@media (prefers-reduced-motion: reduce)': {
+                transition: 'none',
+                '&:hover': {
+                    transform: 'none',
+                },
+            },
             '&:hover': {
                 opacity: 1,
-                color: '#65ACD6', 
-                transform: 'translateX(5px)', 
+                color: (theme) => theme.custom.brandColors.secondary[500],
+            },
+            '@media (min-width: 600px)': {
+                '&:hover': {
+                    transform: 'translateX(5px)',
+                },
             },
         }}
     >
@@ -45,13 +59,21 @@ const FooterTitle = ({ children }: { children: React.ReactNode }) => (
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
+    const theme = useTheme();
+    const tokens = useDesignTokens();
 
     return (
         <Box
             component="footer"
+            role="contentinfo"
+            aria-label="Rodapé do site"
             sx={{
-                backgroundColor: "#0D2E4D", 
-                color: "#FFFFFF",
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? theme.palette.background.default
+                  : tokens.brandColors.dark[500], 
+                color: theme.palette.mode === 'dark'
+                  ? theme.palette.text.primary
+                  : "#FFFFFF",
                 py: 6, 
                 px: 3,
                 mt: 'auto',
@@ -126,7 +148,7 @@ const Footer = () => {
                                             transition: '0.2s',
                                             '&:hover': {
                                                 opacity: 1,
-                                                color: '#65ACD6',
+                                                color: (theme) => theme.custom.brandColors.secondary[500],
                                             }
                                         }
                                     }}
@@ -153,13 +175,13 @@ const Footer = () => {
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                             <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
                                 <FooterTitle>Contato</FooterTitle>
-                                <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />}>
+                                <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />} external>
                                     Instagram
                                 </FooterLink>
                                 <FooterLink href="mailto:202210325@uesb.edu.br" icon={<EmailIcon fontSize="small" />}>
                                     Email
                                 </FooterLink>
-                                <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon fontSize="small" />}>
+                                <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon fontSize="small" />} external>
                                     WhatsApp
                                 </FooterLink>
                             </Stack>

@@ -208,14 +208,29 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // Utility para forçar logout fora do React (API interceptor)
-export const forceLogout = () => {
+// Usa window.location.href para garantir limpeza completa e evitar problemas de estado
+export const forceLogout = async () => {
   try {
-    useAuthStore.getState().logout();
+    // Marca logout pendente para evitar reabertura de dialogs
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('consentimento-logout-pending', 'true');
+    }
+    
+    // Limpa store
+    await useAuthStore.getState().logout();
+    
+    // Aguarda um pouco para garantir que tudo foi limpo
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Redireciona usando window.location para garantir limpeza completa
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
   } catch (e) {
     console.warn('[forceLogout] erro ao limpar store', e);
-  }
-  
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login';
+    // Mesmo com erro, tenta redirecionar
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
   }
 };

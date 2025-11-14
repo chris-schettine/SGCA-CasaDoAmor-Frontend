@@ -288,6 +288,59 @@ export const theme = createTheme({
         },
       },
     },
+    // Melhorias de acessibilidade (WCAG 2.2 AA)
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          // Garante tamanho mínimo de toque (24x24px conforme WCAG 2.2)
+          minHeight: '44px',
+          minWidth: '44px',
+          // Melhora indicador de foco
+          '&:focus-visible': {
+            outline: '3px solid #09244B',
+            outlineOffset: '2px',
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          // Garante tamanho mínimo de toque mesmo para ícones
+          minWidth: '44px',
+          minHeight: '44px',
+          '&:focus-visible': {
+            outline: '3px solid #09244B',
+            outlineOffset: '2px',
+          },
+        },
+      },
+    },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          '&:focus-visible': {
+            outline: '3px solid #09244B',
+            outlineOffset: '2px',
+            borderRadius: '2px',
+          },
+        },
+      },
+    },
+    // Respeita preferência de movimento reduzido
+    MuiCssBaseline: {
+      styleOverrides: {
+        '@global': {
+          '@media (prefers-reduced-motion: reduce)': {
+            '*': {
+              animationDuration: '0.01ms !important',
+              animationIterationCount: '1 !important',
+              transitionDuration: '0.01ms !important',
+            },
+          },
+        },
+      },
+    },
   },
 });
 

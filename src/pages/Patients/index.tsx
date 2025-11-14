@@ -1,9 +1,10 @@
 import React, { Suspense, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 const LazyTablePatients = React.lazy(() => import('../../components/Table/TablePatients'));
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from "../../components/PageHeader";
+import PageContainer from "../../components/PageContainer";
 import { AnimatedPage } from "../../components/AnimatedPage";
 import SearchBar from "../../components/SearchBar";
 
@@ -31,12 +32,7 @@ const Patients = () => {
 
   return (
     <AnimatedPage>
-      <Box sx={{ 
-        width: { xs: '100%', sm: '95%', md: '90%' }, 
-        margin: '0 auto', 
-        py: { xs: 2, sm: 3 },
-        px: { xs: 1, sm: 2 }
-      }}>
+      <PageContainer>
         <PageHeader 
           title="Pacientes"
           searchComponent={searchComponent}
@@ -45,7 +41,7 @@ const Patients = () => {
         <Suspense fallback={<TableSkeleton rows={10} />}>
           <LazyTablePatients searchText={searchText} />
         </Suspense>
-      </Box>
+      </PageContainer>
     </AnimatedPage>
   );
 };

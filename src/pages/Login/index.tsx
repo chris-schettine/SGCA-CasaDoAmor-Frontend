@@ -1,4 +1,4 @@
-import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography, useTheme } from "@mui/material";
 import { useState, useEffect } from "react";
 import { isAxiosError } from 'axios';
 import Visibility from '@mui/icons-material/Visibility';
@@ -10,6 +10,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Link as MuiLink } from '@mui/material';
 import { toastError, toastSuccess } from "../../utils/toast";
 import { AnimatedPageScale } from "../../components/AnimatedPage";
+import { useDesignTokens } from "../../design-tokens/utils";
 import type { AuthSessionResponse } from "../../api/auth.dto";
 import type { LoginResponse } from "../../api/auth.dto";
 import type { UserType } from "../../contexts/AuthContext";
@@ -17,6 +18,9 @@ import type { UserType } from "../../contexts/AuthContext";
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const tokens = useDesignTokens();
+  
   interface LocationState {
     from?: { pathname: string };
   }
@@ -28,11 +32,12 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [cpfError, setCpfError] = useState('');
 
-  // ✅ Redireciona para menu inicial se já autenticado
+  // ✅ Redireciona para dashboard se já autenticado (evita mostrar tela de login)
+  // PublicRoute também faz isso, mas este é um fallback adicional
   useEffect(() => {
     if (isAuthenticated) {
-      const from = locationState?.from?.pathname ?? '/';
-      navigate(from, { replace: true });
+      const redirectTo = locationState?.from?.pathname || '/patients';
+      navigate(redirectTo, { replace: true });
     }
   }, [isAuthenticated, navigate, locationState]);
 
@@ -101,6 +106,12 @@ const Login = () => {
       }
 
       toastSuccess('Login realizado com sucesso!');
+      
+      // ✅ Redireciona imediatamente após login bem-sucedido
+      // Usa locationState.from se disponível (tentativa de acesso a rota protegida)
+      // Caso contrário, vai para dashboard principal (/patients)
+      const redirectTo = locationState?.from?.pathname || '/patients';
+      navigate(redirectTo, { replace: true });
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         const errorMessage = typeof error.response?.data?.message === 'string'
@@ -123,7 +134,10 @@ const Login = () => {
         minHeight: "100vh", 
         m: 0, 
         p: { xs: 2, sm: 3 }, 
-        backgroundColor: "#65ACD6" 
+        backgroundColor: theme.palette.mode === 'dark' 
+          ? theme.palette.background.default 
+          : tokens.brandColors.secondary[500],
+        transition: 'background-color 0.3s ease',
       }}>
       <Container sx={{ 
         display: "flex", 
@@ -134,9 +148,12 @@ const Login = () => {
         width: "100%", 
         minHeight: { xs: "auto", sm: "500px" }, 
         padding: { xs: "1.5rem 1rem", sm: "2rem 1.5rem" }, 
-        backgroundColor: "#fff", 
-        borderRadius: "8px", 
-        boxShadow: "0 0 14px rgba(0, 0, 0, 0.45)" 
+        backgroundColor: theme.palette.background.paper, 
+        borderRadius: `${tokens.borderRadius.base}px`, 
+        boxShadow: theme.palette.mode === 'dark'
+          ? '0 0 20px rgba(0, 0, 0, 0.8)'
+          : '0 0 14px rgba(0, 0, 0, 0.15)',
+        transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
       }}>
         <Box
           component="img"
@@ -247,20 +264,26 @@ const Login = () => {
             color="primary"
             fullWidth
             sx={{ 
-              mt: "20px", 
-              p: { xs: "0.65rem", sm: "0.75rem" }, 
-              fontWeight: "bold", 
-              textTransform: "uppercase",
-              fontSize: { xs: '0.875rem', sm: '1rem' },
+              mt: 2.5, 
+              py: { xs: 1.25, sm: 1.5 }, 
+              px: 3,
+              fontWeight: 600, 
+              textTransform: "none", // Remove uppercase para evitar sobreposição
+              fontSize: { xs: '0.9375rem', sm: '1rem' },
+              minHeight: { xs: '44px', sm: '48px' }, // WCAG 2.2 touch target
+              letterSpacing: '0.02em',
               '&:focus-visible': {
-                outline: '3px solid #90caf9',
-                outlineOffset: '2px',
-              }
+                outline: `${tokens.focus.outlineWidth}px solid ${tokens.brandColors.primary[500]}`,
+                outlineOffset: `${tokens.focus.outlineOffset}px`,
+              },
+              '&:hover': {
+                backgroundColor: tokens.brandColors.primary[600],
+              },
             }}
             type="submit"
             aria-label="Fazer login no sistema"
           >
-            Login
+            Entrar
           </Button>
         </Box>
         

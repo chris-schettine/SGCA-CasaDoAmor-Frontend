@@ -70,7 +70,16 @@ export class ConsentStore {
         try {
           const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
           localStorage.setItem(storageKey, JSON.stringify(snapshot));
-          if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (post-API)', { storageKey });
+          if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (post-API)', { storageKey, snapshotVersion: snapshot.version });
+          
+          // Disparar evento storage para sincronizar outras tabs
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new StorageEvent('storage', {
+              key: storageKey,
+              newValue: JSON.stringify(snapshot),
+              storageArea: localStorage,
+            }));
+          }
         } catch (err) {
           console.error('[ConsentStore] Falha ao salvar no localStorage (post-API):', err);
         }
@@ -87,7 +96,16 @@ export class ConsentStore {
     try {
       const storageKey = `${CONSENT_STORAGE_KEY}:${userUuid || 'global'}`;
       localStorage.setItem(storageKey, JSON.stringify(snapshot));
-      if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (optimistic)', { storageKey });
+      if (import.meta.env.DEV) console.debug('[ConsentStore.save] persisted snapshot to localStorage (optimistic)', { storageKey, snapshotVersion: snapshot.version });
+      
+      // Disparar evento storage para sincronizar outras tabs
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: storageKey,
+          newValue: JSON.stringify(snapshot),
+          storageArea: localStorage,
+        }));
+      }
     } catch (error) {
       console.error('[ConsentStore] Falha ao salvar no localStorage:', error);
       // Continuar mesmo com erro (pode ser quota exceeded)

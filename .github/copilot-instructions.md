@@ -15,45 +15,46 @@
 ## Developer Workflows
 - **Dev server:** `npm run dev` (Vite, hot reload)
 - **Build:** `npm run build` (output: `dist/`)
-- **Lint:** `npm run lint`
-- **Unit tests:** `npm run test` (Vitest)
-- **Storybook:** `npm run storybook` (for UI components)
-- **Consent system tests:** See `/src/consent/README.md` and `/docs/CONSENT_QA_CHECKLIST.md`.
+# Copilot Instructions — SGCA-CasaDoAmor-Frontend
 
-## Project Conventions
-- **TypeScript:** Strict types, no `any`. Use types from `src/types/` and `src/consent/types/`.
-- **Accessibility:** All UI must meet WCAG 2.2 AA. Use ARIA roles, keyboard navigation, and test with axe.
-- **Consent:** Never render protected content unless consent is current and valid. Use `ConsentStore` and `ConsentGuard`.
-- **API Integration:** Always use the API services, never call fetch/axios directly in components.
-- **Testing:** Place tests in `src/tests/` or alongside components. Use Vitest and axe for a11y.
-- **Env config:** Use `.env` and `VITE_API_BASE_URL` for API endpoints.
+Purpose: React + TypeScript patient & companion management app focused on LGPD privacy, WCAG accessibility, and robust auth/consent flows.
 
-## Integration Points
-- **Backend:** Expects JWT auth, consent versioning, and 2FA support. See `api.gateway.ts` and `auth.service.ts`.
-- **Consent:** Integrates with backend for consent version and choices. See `src/consent/store/consentStore.ts`.
-- **Deployment:** Vercel (`vercel.json` for SPA rewrites). CSP configured in `vite.config.ts`.
+Quick start (common commands):
+- `npm run dev` — start Vite dev server
+- `npm run build` — production build (`dist/`)
+- `npm run test` — run unit tests (Vitest)
+- `npm run lint` — run linter
+- `npm run storybook` — component playground
 
-## Examples
-- **Consent check in component:**
-  ```tsx
-  const { hasConsent } = useConsent();
-  if (!hasConsent('essential_auth')) return <ConsentDialog />;
-  ```
-- **Protected route:**
-  ```tsx
-  <PrivateRoute>
-    <ConsentGuard purposeId="essential_auth">
-      <PatientPage />
-    </ConsentGuard>
-  </PrivateRoute>
-  ```
+Big-picture architecture (what matters):
+- API layer lives in `src/api/` (see `api.gateway.ts`, `auth.service.ts`, `paciente.service.ts`). Use these services — do not call `fetch`/`axios` directly from components.
+- Consent system is global under `src/consent/`. Key files: `provider/`, `store/consentStore.ts`, `hooks/` and `config/consentConfig.ts`. Consent is versioned and persisted locally + backend.
+- Routing and access control: `src/Routes.tsx` plus `src/components/PrivateRoute/` and `ConsentGuard` components. Protect pages with both auth and consent checks.
+- Global session/auth: `src/contexts/AuthContext.tsx` and `src/hooks/useAuth.ts` manage JWT, 2FA flows and current user state.
 
-## References
-- Main docs: `README.md`, `src/consent/README.md`, `/docs/CONSENT_*`
-- Consent quick start: `/docs/CONSENT_QUICK_START.md`
-- Consent config: `src/consent/config/consentConfig.ts`
-- Auth/session: `src/contexts/AuthContext.tsx`
-- API: `src/api/`
+Project-specific conventions (follow these exactly):
+- Types: Strict TypeScript. Avoid `any`; prefer types from `src/types/` and `src/consent/types/`.
+- Forms: Zod schemas in `src/schemas/` + React Hook Form. Put schema next to the form component.
+- API calls: Use `*.service.ts` under `src/api/`. Return typed DTOs (`*.dto.ts`). Example: `paciente.service.ts` + `paciente.dto.ts`.
+- Consent gating: Always wrap protected UI with `ConsentGuard` or call `useConsent()` (example: `if (!hasConsent('essential_auth')) return <ConsentDialog />`).
+- Accessibility: Use ARIA roles and test with axe in component tests. Follow WCAG 2.2 AA.
+
+Integration points & external expectations:
+- Backend: JWT auth, refresh token flows, consent version APIs, and optional 2FA endpoints. See `api.gateway.ts` and `auth.service.ts` for expected headers and error handling.
+- Env: `VITE_API_BASE_URL` used by `api.gateway.ts`. Keep sensitive keys out of repo.
+- Deployment: Vercel config in `vercel.json`; CSP and build behavior in `vite.config.ts`.
+
+Where to look for examples in the codebase:
+- Protected routes: `src/Routes.tsx`, `src/components/PrivateRoute/` and `src/components/ConsentimentoLGPD/`
+- API pattern: `src/api/api.gateway.ts` + `src/api/*service.ts` + `src/api/*.dto.ts`
+- Consent details: `src/consent/store/consentStore.ts`, `src/consent/provider/*`, and `src/consent/config/consentConfig.ts`
+
+PR & change guidance for AI agents:
+- Prefer small, focused changes. Update/add service + dto together if altering an API contract.
+- Add/update Zod schemas when editing forms; keep schema next to component and update tests.
+- When touching consent or auth flows, include regression checks for gating (e.g., ensure a protected route still blocks without consent).
+
+If anything is unclear, inspect these files first: `src/Routes.tsx`, `src/api/api.gateway.ts`, `src/contexts/AuthContext.tsx`, and the `src/consent/` folder. Ask for specific endpoints or backend contract details when needed.
 
 ---
-**If unsure, search for similar patterns in `src/` or ask for clarification.**
+Please review and tell me if you want more examples (API call pattern, form + schema pair, or consent flow end-to-end). 

@@ -3,3 +3,45 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Acessibilidade: Melhorias de foco visível (WCAG 2.2 AA) */
+*:focus-visible {
+  outline: 3px solid #09244B;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Remove outline padrão para elementos que não devem ter foco visível */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Melhora contraste e visibilidade de foco em elementos interativos */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #09244B;
+  outline-offset: 2px;
+}
+
+/* Respeita preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Melhora legibilidade de texto */
+@media (prefers-contrast: high) {
+  body {
+    filter: contrast(1.2);
+  }
+}

@@ -3,6 +3,17 @@ import { Route, Routes } from 'react-router-dom';
 import RouteTransition from './motion/RouteTransition';
 import { TableSkeleton } from './components/SuspenseWrapper';
 
+// TypeScript: Extend Window interface for requestIdleCallback
+declare global {
+  interface Window {
+    requestIdleCallback?: (
+      callback: (deadline: { timeRemaining: () => number; didTimeout: boolean }) => void,
+      options?: { timeout?: number }
+    ) => number;
+    cancelIdleCallback?: (id: number) => void;
+  }
+}
+
 // Carregamento dinamico (Lazy Loading) dos componentes de estrutura de rotas
 // Isso ajuda a reduzir o tamanho inicial do bundle da aplicacao
 const Layout = lazy(() => import('./components/Layout'));
@@ -44,18 +55,67 @@ const ConsentimentoLGPDPage = lazy(() => import('./pages/ConsentimentoLGPD'));
 
 // Funcao para pre-carregar rotas criticas em segundo plano
 // Melhora a percepcao de performance apos o carregamento inicial
+// Usa requestIdleCallback para não bloquear o thread principal
 const preloadRoutes = () => {
-  import('./pages/Login');
-  import('./pages/Patients');
-  import('./components/Layout');
-  import('./pages/LandingPage');
+  // Preload apenas rotas críticas que provavelmente serão acessadas
+  const criticalRoutes = [
+    () => import('./pages/Login'),
+    () => import('./pages/Patients'),
+    () => import('./components/Layout'),
+  ];
+
+  // Usa requestIdleCallback se disponível, senão usa setTimeout
+  const schedulePreload = (callback: () => void) => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(callback, { timeout: 2000 });
+    } else {
+      setTimeout(callback, 2000);
+    }
+  };
+
+  // Preload sequencial para não sobrecarregar
+  criticalRoutes.forEach((routeLoader, index) => {
+    schedulePreload(() => {
+      routeLoader().catch(() => {
+        // Silently fail - preload é otimização, não crítico
+      });
+    });
+  });
 };
 
 const AppRoutes = () => {
-  // Efeito para iniciar o pre-carregamento das rotas apos 2 segundos
+  // Efeito para iniciar o pre-carregamento das rotas após interação inicial
   useEffect(() => {
-    const timer = setTimeout(() => preloadRoutes(), 2000);
-    return () => clearTimeout(timer);
+    // Aguarda interação do usuário ou 3 segundos, o que vier primeiro
+    let preloadScheduled = false;
+    
+    const schedulePreload = () => {
+      if (!preloadScheduled) {
+        preloadScheduled = true;
+        preloadRoutes();
+      }
+    };
+
+    // Preload após primeira interação (mouse, touch, keyboard)
+    const events = ['mousedown', 'touchstart', 'keydown'];
+    const handlers = events.map(event => {
+      const handler = () => {
+        schedulePreload();
+        events.forEach(e => document.removeEventListener(e, handlers[events.indexOf(e)]));
+      };
+      document.addEventListener(event, handler, { once: true, passive: true });
+      return handler;
+    });
+
+    // Fallback: preload após 3 segundos se não houver interação
+    const fallbackTimer = setTimeout(schedulePreload, 3000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      events.forEach((event, index) => {
+        document.removeEventListener(event, handlers[index]);
+      });
+    };
   }, []);
 
   return (
@@ -119,8 +179,14 @@ const AppRoutes = () => {
         <Route path="companion/edit/:id" element={<RouteTransition><CompanionEditPage /></RouteTransition>} />
         <Route path="patient/companion/register" element={<RouteTransition><CompanionRegisterPage /></RouteTransition>} />
         
-        {/* Auditoria e Logs (Acesso restrito) */}
-        <Route path="/auditoria" element={<RouteTransition><AuditLogPage /></RouteTransition>} />
+        {/* Auditoria e Logs (Requer permissao de Administrador) */}
+        <Route path="/auditoria" element={
+          <AdminRoute>
+            <RouteTransition>
+              <AuditLogPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
 
         {/* Gestao de Usuarios do Sistema (Requer permissao de Administrador) */}
         <Route path="users" element={

@@ -27,17 +27,15 @@ import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
-import ConsentimentoLGPDCheck from '../ConsentimentoLGPDCheck';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 import { useConsent } from '../../consent/hooks/useConsent';
+import { useDesignTokens } from '../../design-tokens/utils';
 import Footer from '../Footer';
+import ThemeToggle from '../ThemeToggle';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
-
-const activeBgColor = '#09244B';
-const activeTextColor = '#FFFFFF';
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -89,7 +87,7 @@ const AppBar = styled(MuiAppBar, {
 })<{
     open?: boolean;
 }>(({ theme, open }) => ({
-    backgroundColor: "#65ACD6",
+    backgroundColor: theme.custom.brandColors.secondary[500],
     zIndex: theme.zIndex.drawer + 1,
     boxShadow: 'none',
     transition: theme.transitions.create(['width', 'margin'], {
@@ -134,10 +132,14 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     const location = useLocation();
     const theme = useTheme();
     const navigate = useNavigate();
+    const tokens = useDesignTokens();
     
     const isActive = location.pathname.startsWith(to) && to !== '/';
     const isRootActive = (location.pathname === '/' && to === '/patients') || (location.pathname === '/profile' && to === '/profile');
     const isCurrentActive = isActive || isRootActive;
+    
+    const activeBgColor = tokens.brandColors.primary[500];
+    const activeTextColor = '#FFFFFF';
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
@@ -230,7 +232,13 @@ export default function Layout() {
     return (
         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <CssBaseline />
-            <AppBar position="fixed" open={open}>
+            <AppBar 
+                position="fixed" 
+                open={open}
+                component="header"
+                role="banner"
+                aria-label="Cabeçalho principal"
+            >
                  
                  <Toolbar>
                     <IconButton
@@ -249,6 +257,7 @@ export default function Layout() {
                         SGCA
                     </Typography>
                     <Box sx={{ flexGrow: 1 }} />
+                    <ThemeToggle />
                     <Tooltip title="Atalhos de teclado (?)">
                         <IconButton color="inherit" onClick={() => setShortcutsHelpOpen(true)} aria-label="atalhos de teclado" sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <KeyboardIcon fontSize="small" />
@@ -274,10 +283,38 @@ export default function Layout() {
                 onOpen={handleDrawerToggle}
                 disableBackdropTransition
                 disableScrollLock
-                ModalProps={{ keepMounted: true }}
-                sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth, backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', zIndex: (theme) => theme.zIndex.drawer + 2 }, '& .MuiBackdrop-root': { zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
+                ModalProps={{ 
+                    keepMounted: true,
+                    role: 'navigation',
+                    'aria-label': 'Menu de navegação móvel'
+                }}
+                sx={{ 
+                    display: { xs: 'block', md: 'none' }, 
+                    '& .MuiDrawer-paper': { 
+                        width: drawerWidth, 
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? theme.palette.background.paper 
+                          : theme.custom.brandColors.light[500], 
+                        boxShadow: 'none', 
+                        border: 'none', 
+                        zIndex: (theme) => theme.zIndex.drawer + 2 
+                    }, 
+                    '& .MuiBackdrop-root': { 
+                        zIndex: (theme) => theme.zIndex.drawer + 1, 
+                        backgroundColor: theme.palette.mode === 'dark'
+                          ? 'rgba(0, 0, 0, 0.7)'
+                          : 'rgba(0, 0, 0, 0.5)' 
+                    } 
+                }}
             >
-                <DrawerHeader sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: theme.spacing(1, 2), minHeight: '56px', backgroundColor: '#65ACD6' }}>
+                <DrawerHeader sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end', 
+                    alignItems: 'center', 
+                    padding: theme.spacing(1, 2), 
+                    minHeight: '56px', 
+                    backgroundColor: theme.custom.brandColors.secondary[500] 
+                }}>
                     <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600, color: '#FFFFFF', fontSize: '1rem' }}>Menu</Typography>
                     <IconButton color="inherit" aria-label="fechar menu" onClick={handleDrawerToggle} sx={{ color: '#FFFFFF', flexShrink: 0, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}>
                         <ChevronLeftIcon />
@@ -293,11 +330,41 @@ export default function Layout() {
                 variant="permanent"
                 open={open}
                 sx={{ display: { xs: 'none', md: 'block' } }}
-                PaperProps={{ sx: { backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', width: open ? drawerWidth : closedDrawerWidth, transition: theme => theme.transitions.create('width', { easing: theme.transitions.easing.sharp, duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen }), overflowX: 'hidden' } }}
+                PaperProps={{ 
+                    component: 'nav',
+                    'aria-label': 'Navegação principal',
+                    sx: { 
+                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                          ? theme.palette.background.paper
+                          : theme.custom.brandColors.light[500], 
+                        boxShadow: 'none', 
+                        border: 'none', 
+                        width: open ? drawerWidth : closedDrawerWidth, 
+                        transition: theme => theme.transitions.create('width', { 
+                            easing: theme.transitions.easing.sharp, 
+                            duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen 
+                        }), 
+                        overflowX: 'hidden' 
+                    } 
+                }}
             >
                 <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
                     <Box component="img" src="logo2.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
-                    {open && (<IconButton color="inherit" aria-label="fechar drawer" onClick={handleDrawerToggle} sx={{ color: '#000000DA', flexShrink: 0 }}><ChevronLeftIcon /></IconButton>)}
+                    {open && (
+                        <IconButton 
+                            color="inherit" 
+                            aria-label="fechar drawer" 
+                            onClick={handleDrawerToggle} 
+                            sx={{ 
+                                color: theme.palette.mode === 'dark' 
+                                    ? theme.palette.text.primary 
+                                    : '#000000DA', 
+                                flexShrink: 0 
+                            }}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+                    )}
                 </DrawerHeader>
                 <List sx={{ padding: '0px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
@@ -311,13 +378,19 @@ export default function Layout() {
                 <DrawerHeader />
 
               
-                <Box sx={{ 
-                    flexGrow: 1, 
-                    overflowY: 'auto', 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                }}>
+                <Box 
+                    component="main"
+                    id="main-content"
+                    role="main"
+                    aria-label="Conteúdo principal"
+                    sx={{ 
+                        flexGrow: 1, 
+                        overflowY: 'auto', 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '100%',
+                    }}
+                >
                     
                     
                     <Box component="div" sx={{ 
@@ -338,7 +411,6 @@ export default function Layout() {
                 </Box>
             </Main>
 
-            <ConsentimentoLGPDCheck />
             <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} />
         </Box>
     );

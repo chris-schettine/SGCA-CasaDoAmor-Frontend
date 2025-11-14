@@ -11,6 +11,9 @@ export default defineConfig({
           // Vendor chunks - bibliotecas grandes
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'mui-core': ['@mui/material', '@mui/system', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'query-vendor': ['@tanstack/react-query'],
+          'motion-vendor': ['framer-motion'],
           
           // Chunks de páginas por funcionalidade
           'patient-pages': [
@@ -39,12 +42,25 @@ export default defineConfig({
             './src/pages/Sessions/index.tsx',
             './src/pages/AuditLogPage/index.tsx'
           ]
-        }
+        },
+        // Otimiza nomes de chunks para melhor cache
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     chunkSizeWarningLimit: 500,
     sourcemap: false,
-    minify: 'esbuild'
+    minify: 'esbuild',
+    // Otimizações de performance
+    target: 'esnext',
+    cssCodeSplit: true,
+    // Melhora tree-shaking
+    terserOptions: {
+      compress: {
+        drop_console: false, // Mantém console em dev, pode remover em prod se necessário
+      },
+    },
   },
   server: {
     headers:{

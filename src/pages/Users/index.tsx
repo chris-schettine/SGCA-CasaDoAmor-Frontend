@@ -1,14 +1,16 @@
 import Button from '@mui/material/Button';
 import { Link } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { usePermissions } from "../../hooks/usePermissions";
 import TableUsers from "../../components/Table/TableUsers";
 import PageHeader from "../../components/PageHeader";
-import { Box, FormControl, Input, InputAdornment, InputLabel, IconButton } from '@mui/material';
+import PageContainer from "../../components/PageContainer";
+import { FormControl, Input, InputAdornment, InputLabel, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState } from 'react';
+import { AnimatedPage } from "../../components/AnimatedPage";
 
 const Users = () => {
-  const { user } = useAuth();
+  const { canManageUsers } = usePermissions();
   const [searchText, setSearchText] = useState('');
 
   const searchComponent = (
@@ -22,7 +24,7 @@ const Users = () => {
         placeholder="Digite os dados para pesquisa"
         endAdornment={
           <InputAdornment position="end">
-            <IconButton>
+            <IconButton aria-label="buscar">
               <SearchIcon />
             </IconButton>
           </InputAdornment>
@@ -31,7 +33,7 @@ const Users = () => {
     </FormControl>
   );
 
-  const actionButton = user?.tipoUsuario === "ADMINISTRADOR" ? (
+  const actionButton = canManageUsers ? (
     <Button
       component={Link}
       to="/user/register"
@@ -43,19 +45,16 @@ const Users = () => {
   ) : undefined;
 
   return (
-    <Box sx={{ 
-      width: { xs: '100%', sm: '95%', md: '90%' }, 
-      margin: '0 auto', 
-      py: { xs: 2, sm: 3 },
-      px: { xs: 1, sm: 2 }
-    }}>
-      <PageHeader 
-        title="Usuários Autorizados"
-        searchComponent={searchComponent}
-        action={actionButton}
-      />
-      <TableUsers searchText={searchText} />
-    </Box>
+    <AnimatedPage>
+      <PageContainer>
+        <PageHeader 
+          title="Usuários Autorizados"
+          searchComponent={searchComponent}
+          action={actionButton}
+        />
+        <TableUsers searchText={searchText} />
+      </PageContainer>
+    </AnimatedPage>
   );
 };
 
