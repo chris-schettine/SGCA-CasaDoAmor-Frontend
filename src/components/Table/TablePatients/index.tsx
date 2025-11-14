@@ -80,7 +80,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
       {
         field: 'acoes' as const,
         headerName: 'Ações',
-        width: isMobile ? 120 : 170,
+        width: isMobile ? 140 : 210,
         headerAlign: 'center' as const,
         align: 'center' as const,
         renderCell: (row) => (
@@ -88,7 +88,9 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
             display: 'flex', 
             gap: isMobile ? 0.25 : 0.5, 
             justifyContent: 'center',
-            flexWrap: 'wrap'
+            flexWrap: 'nowrap',
+            alignItems: 'center',
+            flexShrink: 0,
           }}>
             <StandardTooltip title="Visualizar informações do paciente">
               <IconButton 
