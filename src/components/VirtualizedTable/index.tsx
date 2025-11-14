@@ -44,11 +44,18 @@ export function VirtualizedTable<T extends TableRowData>({
 }: VirtualizedTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
+  const getVirtualRowKey = (index: number) => {
+    const row = data[index];
+    return getRowId ? getRowId(row) : index;
+  };
+
   const virtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => rowHeight,
     overscan: 5, // Renderiza 5 linhas extras acima e abaixo do viewport
+    getItemKey: getVirtualRowKey,
+    measureElement: (element) => element?.getBoundingClientRect().height ?? rowHeight,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -112,81 +119,87 @@ export function VirtualizedTable<T extends TableRowData>({
                 },
               }}
             >
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
-                }}
-              >
-                {virtualItems.map((virtualRow: VirtualItem) => {
-                  const row = data[virtualRow.index];
-                  const rowId = getRowId ? getRowId(row) : virtualRow.index;
-                  const isOdd = virtualRow.index % 2 === 1;
+              {virtualItems.length > 0 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
+                  }}
+                >
+                  {virtualItems.map((virtualRow: VirtualItem) => {
+                    const row = data[virtualRow.index];
+                    if (!row) return null;
 
-                  return (
-                    <Box
-                      key={rowId}
-                      sx={{
-                        display: 'table',
-                        width: '100%',
-                        tableLayout: 'fixed',
-                        height: rowHeight,
-                      }}
-                    >
+                    const rowId = getVirtualRowKey(virtualRow.index);
+                    const isOdd = virtualRow.index % 2 === 1;
+
+                    return (
                       <Box
-                        component="div"
-                        onClick={() => onRowClick?.(row)}
+                        key={rowId}
+                        ref={virtualizer.measureElement}
+                        data-index={virtualRow.index}
                         sx={{
-                          display: 'table-row',
-                          cursor: onRowClick ? 'pointer' : 'default',
-                          backgroundColor: isOdd ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
-                          transition: 'background-color 0.15s ease',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                          },
+                          display: 'table',
+                          width: '100%',
+                          tableLayout: 'fixed',
+                          minHeight: rowHeight,
                         }}
                       >
-                        {columns.map((column) => {
-                          const defaultValue = (() => {
-                            if (column.renderCell) {
-                              return column.renderCell(row);
-                            }
+                        <Box
+                          component="div"
+                          onClick={() => onRowClick?.(row)}
+                          sx={{
+                            display: 'table-row',
+                            cursor: onRowClick ? 'pointer' : 'default',
+                            backgroundColor: isOdd ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                            transition: 'background-color 0.15s ease',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                            },
+                          }}
+                        >
+                          {columns.map((column) => {
+                            const defaultValue = (() => {
+                              if (column.renderCell) {
+                                return column.renderCell(row);
+                              }
 
-                            if (typeof column.field === 'string' && column.field in row) {
-                              return String(row[column.field as keyof T] ?? '');
-                            }
+                              if (typeof column.field === 'string' && column.field in row) {
+                                return String(row[column.field as keyof T] ?? '');
+                              }
 
-                            return '';
-                          })();
+                              return '';
+                            })();
 
-                          return (
-                            <Box
-                              key={String(column.field)}
-                              component="div"
-                              sx={{
-                                display: 'table-cell',
-                                width: column.width,
-                                padding: '16px',
-                                borderBottom: '1px solid',
-                                borderColor: 'divider',
-                                verticalAlign: 'middle',
-                                textAlign: column.align || 'left',
-                                backgroundColor: 'inherit',
+                            return (
+                              <Box
+                                key={String(column.field)}
+                                component="div"
+                                sx={{
+                                  display: 'table-cell',
+                                  width: column.width,
+                                  padding: '16px',
+                                  borderBottom: '1px solid',
+                                  borderColor: 'divider',
+                                  verticalAlign: 'middle',
+                                  textAlign: column.align || 'left',
+                                  backgroundColor: 'inherit',
 
-                              }}
-                            >
-                              {defaultValue}
-                            </Box>
-                          );
-                        })}
+                                }}
+                              >
+                                {defaultValue}
+                              </Box>
+                            );
+                          })}
+                        </Box>
                       </Box>
-                    </Box>
-                  );
-                })}
-              </Box>
+                    );
+                  })}
+                </Box>
+              )}
             </TableCell>
           </TableRow>
         </TableBody>
