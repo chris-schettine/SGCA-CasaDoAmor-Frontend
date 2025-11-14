@@ -3,13 +3,12 @@ import { api } from './api.gateway';
 // DEV-only instrumentation: count how many times the consent API is called
 if (import.meta.env.DEV) {
   try {
-    (window as any).__consentApiCallCount = (window as any).__consentApiCallCount || 0;
+    const win = window as typeof window & { __consentApiCallCount?: number };
+    win.__consentApiCallCount = win.__consentApiCallCount || 0;
   } catch {
     // ignore (server-side or locked globals)
   }
 }
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   ConsentimentoLGPDRequest,
   ConsentimentoLGPDResponse,
@@ -55,16 +54,15 @@ class ConsentimentoService {
   ): Promise<ConsentimentoLGPDResponse[]> {
     if (import.meta.env.DEV) {
       try {
-        (window as any).__consentApiCallCount = ((window as any).__consentApiCallCount || 0) + 1;
-        console.debug('[consentimentoService] listarConsentimentosPorCpf called', { cpf, count: (window as any).__consentApiCallCount });
-      } catch {
-        // ignore
-      }
-    }
-    const response = await api.get(`/api/usuarios/${cpf}/consentimentos-lgpd`);
-    if (import.meta.env.DEV) {
-      try {
-        console.debug('[consentimentoService] listarConsentimentosPorCpf response', { url: `/api/usuarios/${cpf}/consentimentos-lgpd`, status: response.status, dataPreview: Array.isArray(response.data) ? (response.data as any).slice(0,5) : response.data });
+        type ResponsePreview = ConsentimentoLGPDResponse | ConsentimentoLGPDResponse[];
+        const preview: ResponsePreview = Array.isArray(response.data)
+          ? response.data.slice(0, 5)
+          : response.data;
+        console.debug('[consentimentoService] listarConsentimentosPorCpf response', {
+          url: `/api/usuarios/${cpf}/consentimentos-lgpd`,
+          status: response.status,
+          dataPreview: preview,
+        });
       } catch (err) {
         console.debug('[consentimentoService] failed to debug listarConsentimentosPorCpf response', err);
       }
@@ -114,7 +112,7 @@ class ConsentimentoService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: { ip?: string } = await response.json();
       return data.ip || '';
     } catch (error) {
       console.error('Erro ao obter IP público com ipify:', error);
@@ -129,7 +127,7 @@ class ConsentimentoService {
         });
         
         if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
+          const fallbackData: { ip?: string } = await fallbackResponse.json();
           return fallbackData.ip || '';
         }
       } catch (fallbackError) {

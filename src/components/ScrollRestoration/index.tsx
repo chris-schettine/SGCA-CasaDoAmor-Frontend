@@ -13,7 +13,7 @@ export default function ScrollRestoration(): null {
     if (saved) {
       try {
         window.scrollTo(0, Number(saved));
-      } catch (e) {
+      } catch {
         // ignore
       }
     } else {

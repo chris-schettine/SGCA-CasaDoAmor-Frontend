@@ -18,25 +18,41 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
     const snapshot = ConsentStore.load(identifier);
     if (snapshot && !ConsentStore.needsUpdate(snapshot)) {
       if (import.meta.env.DEV) console.debug('[consentBootstrap] Local snapshot fresh - skipping backend call');
-      try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {};
+      try {
+        sessionStorage.setItem('consentimento-lgpd-checked', 'true');
+      } catch {
+        /* ignore */
+      }
       return snapshot;
     }
 
     // Avoid duplicate bootstrap calls inside the same tab
-    if (typeof (window as any).__consentBootstrapCalled !== 'undefined') {
+    const win = window as typeof window & { __consentBootstrapCalled?: boolean };
+    if (typeof win.__consentBootstrapCalled !== 'undefined') {
       if (import.meta.env.DEV) console.debug('[consentBootstrap] bootstrap already called in this tab');
       return null;
     }
-    (window as any).__consentBootstrapCalled = true;
+    win.__consentBootstrapCalled = true;
 
     // Call backend to check for consent records
-    let backendArray: any[] = [];
+    type BackendRecord = {
+      concorda?: boolean;
+      createdAt?: string;
+      dataConsentimento?: string;
+      data?: string;
+      metadata?: string;
+      uuid?: string;
+      [key: string]: unknown;
+    };
+    let backendArray: BackendRecord[] = [];
     // We MUST NOT call listarConsentimentos by UUID. Only query by CPF.
     const isCpf = typeof identifier === 'string' && /^[0-9]{11}$/.test(identifier);
 
     if (isCpf) {
-      const resp: any = await consentimentoService.listarConsentimentosPorCpf(identifier);
-      backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
+      const resp = await consentimentoService.listarConsentimentosPorCpf(identifier);
+      backendArray = Array.isArray(resp)
+        ? resp
+        : (resp && (resp as { data?: BackendRecord[] }).data && Array.isArray(resp.data) ? resp.data : []);
     } else {
       // If we don't have a CPF as identifier, try to read a CPF from sessionStorage
       // (some flows populate cpf or cpfFor2FA). If none exists, skip backend listing.
@@ -45,8 +61,10 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
 
       if (cpfCandidate && /^[0-9]{11}$/.test(cpfCandidate)) {
         if (import.meta.env.DEV) console.debug('[consentBootstrap] using cpf from sessionStorage for backend list', { cpfCandidate });
-        const resp: any = await consentimentoService.listarConsentimentosPorCpf(cpfCandidate).catch(() => null);
-        backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
+        const resp = await consentimentoService.listarConsentimentosPorCpf(cpfCandidate).catch(() => null);
+        backendArray = Array.isArray(resp)
+          ? resp
+          : (resp && (resp as { data?: BackendRecord[] }).data && Array.isArray(resp.data) ? resp.data : []);
       } else {
         if (import.meta.env.DEV) console.debug('[consentBootstrap] no cpf available; skipping backend listado (never call listar by uuid)');
         backendArray = [];
@@ -57,7 +75,7 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       // Backend may return a history of consent records (accepted/revoked).
       // Find the most recent *accepted* record (concorda === true). If none,
       // treat as no backend consent (user has revoked).
-      const asRecords = backendArray.slice().map((r: any) => ({
+      const asRecords = backendArray.slice().map((r) => ({
         ...r,
         _ts: r.createdAt || r.dataConsentimento || r.data || null,
       }));
@@ -65,20 +83,24 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       if (import.meta.env.DEV) console.debug('[consentBootstrap] backend records mapped for selection', { identifier, count: asRecords.length, preview: asRecords.slice(0,3) });
 
       // Sort by timestamp desc
-      asRecords.sort((a: any, b: any) => {
+      asRecords.sort((a, b) => {
         const ta = a._ts ? new Date(a._ts).getTime() : 0;
         const tb = b._ts ? new Date(b._ts).getTime() : 0;
         return tb - ta;
       });
 
-      const latestAccepted = asRecords.find((r: any) => r.concorda === true);
+      const latestAccepted = asRecords.find((r) => r.concorda === true);
 
       if (import.meta.env.DEV) console.debug('[consentBootstrap] selected latestAccepted (if any)', { latestAccepted });
 
       if (!latestAccepted) {
         // No accepted consent found - treat as no backend consent (user revoked)
         if (import.meta.env.DEV) console.debug('[consentBootstrap] backend has records but no accepted consent (latest is revoke)');
-        try { sessionStorage.setItem('consentimento-api-called', 'true'); } catch {}
+        try {
+          sessionStorage.setItem('consentimento-api-called', 'true');
+        } catch {
+          /* ignore */
+        }
         return null;
       }
 
@@ -86,9 +108,9 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       let choices = ConsentStore.getDefaultChoices();
       try {
         if (latestAccepted && latestAccepted.metadata) {
-          const parsed = JSON.parse(latestAccepted.metadata);
+          const parsed = JSON.parse(latestAccepted.metadata) as Record<string, unknown>;
           if (parsed && typeof parsed === 'object') {
-            choices = parsed as any;
+            choices = parsed;
           }
         }
       } catch (err) {
@@ -99,20 +121,36 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       const saved = await ConsentStore.save(identifier, choices, { requireApi: false });
 
       if (import.meta.env.DEV) console.debug('[consentBootstrap] saved snapshot returned from ConsentStore.save', { identifier, saved });
-      try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {}
-      try { sessionStorage.setItem('consentimento-api-called', 'true'); } catch {}
+      try {
+        sessionStorage.setItem('consentimento-lgpd-checked', 'true');
+      } catch {
+        /* ignore */
+      }
+      try {
+        sessionStorage.setItem('consentimento-api-called', 'true');
+      } catch {
+        /* ignore */
+      }
 
       if (import.meta.env.DEV) console.debug('[consentBootstrap] backend accepted consent found - local snapshot saved', { identifier, uuid: latestAccepted.uuid });
       return saved;
     }
 
     // No backend data -> mark that we called API so other components don't re-call repeatedly
-    try { sessionStorage.setItem('consentimento-api-called', 'true'); } catch {}
+    try {
+      sessionStorage.setItem('consentimento-api-called', 'true');
+    } catch {
+      /* ignore */
+    }
     if (import.meta.env.DEV) console.debug('[consentBootstrap] no backend consent found');
     return null;
   } catch (err) {
     console.error('[consentBootstrap] Error during bootstrap:', err);
-    try { sessionStorage.setItem('consentimento-api-called', 'true'); } catch {}
+    try {
+      sessionStorage.setItem('consentimento-api-called', 'true');
+    } catch {
+      /* ignore */
+    }
     return null;
   }
 }

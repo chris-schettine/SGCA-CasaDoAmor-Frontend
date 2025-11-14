@@ -19,13 +19,9 @@ import type {
  */
 export const ConsentContext = createContext<ConsentContextValue | null>(null);
 
-/*
-  NOTE: this file intentionally allows a few `any` usages when parsing
-  backend responses of uncertain shape. These are localized and safe;
-  disabling the rule here avoids noisy lint failures while we refactor
-  the API layer to return typed responses.
-*/
-/* eslint-disable @typescript-eslint/no-explicit-any */
+interface BackendPayload<T = unknown> {
+  data?: T;
+}
 
 interface ConsentProviderProps {
   children: ReactNode;
@@ -390,14 +386,19 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
           try {
             if (import.meta.env.DEV) console.debug('[ConsentProvider] pendingFlag check - using cpfNormalized', { cpfNormalized });
 
-            let backendArray: any[] = [];
+            type ConsentRecord = ConsentChoice & {
+              metadata?: string;
+            };
+            let backendArray: ConsentRecord[] = [];
 
             if (cpfNormalized && /^[0-9]{11}$/.test(cpfNormalized)) {
               const resp = await consentimentoService.listarConsentimentosPorCpf(cpfNormalized).catch((e) => {
                 if (import.meta.env.DEV) console.debug('[ConsentProvider] listarConsentimentosPorCpf failed', e);
                 return null;
               });
-              backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
+              backendArray = Array.isArray(resp)
+                ? resp
+                : (resp && (resp as BackendPayload<ConsentRecord[]>).data && Array.isArray(resp.data) ? resp.data : []);
             } else {
               if (import.meta.env.DEV) console.debug('[ConsentProvider] no cpf available to verify pending consent; skipping backend check (never list by uuid)');
             }
@@ -523,8 +524,12 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
               console.warn('[ConsentProvider] listarConsentimentosPorCpf failed', e);
               return null;
             });
-            
-            const backendArray = Array.isArray(resp) ? resp : (resp && (resp as any).data && Array.isArray((resp as any).data) ? (resp as any).data : []);
+
+            const backendArray = Array.isArray(resp)
+              ? resp
+              : (resp && (resp as BackendPayload<ConsentChoice[]>).data && Array.isArray(resp.data)
+                  ? resp.data
+                  : []);
             console.log('[ConsentProvider] backend API response', { cpfNormalized, count: backendArray.length, isEmpty: backendArray.length === 0 });
             
             // Se backend retornou array vazio, não há consentimento = primeira visita
@@ -533,17 +538,21 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
               hasBackendConsent = false;
             } else {
               // Verificar se há algum consentimento aceito (concorda === true)
-              const hasAccepted = backendArray.some((r: any) => r.concorda === true);
+              const hasAccepted = backendArray.some((r) => r.concorda === true);
               console.log('[ConsentProvider] backend has records', { count: backendArray.length, hasAccepted });
               hasBackendConsent = hasAccepted;
               
               // Se há consentimento aceito, tentar criar snapshot local
               if (hasAccepted) {
                 const latestAccepted = backendArray
-                  .filter((r: any) => r.concorda === true)
-                  .sort((a: any, b: any) => {
-                    const ta = (a.createdAt || a.dataConsentimento || a.data) ? new Date(a.createdAt || a.dataConsentimento || a.data).getTime() : 0;
-                    const tb = (b.createdAt || b.dataConsentimento || b.data) ? new Date(b.createdAt || b.dataConsentimento || b.data).getTime() : 0;
+                  .filter((r) => r.concorda === true)
+                  .sort((a, b) => {
+                    const ta = (a.createdAt || a.dataConsentimento || a.data)
+                      ? new Date(a.createdAt || a.dataConsentimento || a.data).getTime()
+                      : 0;
+                    const tb = (b.createdAt || b.dataConsentimento || b.data)
+                      ? new Date(b.createdAt || b.dataConsentimento || b.data).getTime()
+                      : 0;
                     return tb - ta;
                   })[0];
                 
@@ -643,7 +652,15 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
       cancelled = true;
       console.log('[ConsentProvider] useEffect cleanup - cancelled');
     };
-  }, [identifier, isAuthenticated, cpfNormalized, state.type, forceHydrationRef.current, isLoginPage]); // Incluir forceHydrationRef.current e isLoginPage para forçar execução quando necessário
+  }, [
+    identifier,
+    isAuthenticated,
+    cpfNormalized,
+    state.type,
+    isLoginPage,
+    isDialogOpen,
+    isDialogRequired,
+  ]); // Incluir isLoginPage para forçar execução quando necessário
 
   /**
    * Cross-tab sync: respond to localStorage changes for consent snapshots.
@@ -682,7 +699,11 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
           setState({ type: 'consented', choices: snapshot.choices, timestamp: snapshot.timestamp });
           setIsDialogOpen(false);
           setIsDialogRequired(false);
-          try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {}
+          try {
+            sessionStorage.setItem('consentimento-lgpd-checked', 'true');
+          } catch {
+            /* ignore */
+          }
         } else {
           // Snapshot removed or expired -> require re-consent
           setState({ type: 'first_visit', defaultChoices: ConsentStore.getDefaultChoices() });
@@ -696,7 +717,7 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
 
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [identifier]);
+  }, [identifier, cpfNormalized]);
 
   /**
    * Salva consentimento (chamado pelos botões do dialog)

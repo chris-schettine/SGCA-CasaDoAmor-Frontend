@@ -19,27 +19,24 @@ export const TransitionProvider: React.FC<React.PropsWithChildren<unknown>> = ({
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handler = () => setReducedMotion(mq.matches);
     handler();
-    try {
+    if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', handler);
-    } catch (e) {
-      // fallback
-      // @ts-ignore
-      mq.addListener?.(handler);
+    } else if (typeof mq.addListener === 'function') {
+      // @ts-expect-error - deprecated API fallback
+      mq.addListener(handler);
     }
     return () => {
-      try {
+      if (typeof mq.removeEventListener === 'function') {
         mq.removeEventListener('change', handler);
-      } catch (e) {
-        // @ts-ignore
-        mq.removeListener?.(handler);
+      } else if (typeof mq.removeListener === 'function') {
+        // @ts-expect-error - deprecated API fallback
+        mq.removeListener(handler);
       }
     };
   }, []);
 
-  const emitNavEvent = (e: NavEvent) => {
-    // Lightweight instrumentation hook — console for now
-    if (import.meta.env.DEV) console.debug('[nav_event]', e);
-    // TODO: plug into analytics
+  const emitNavEvent = (event: NavEvent) => {
+    if (import.meta.env.DEV) console.debug('[nav_event]', event);
   };
 
   const value = useMemo<TransitionContextValue>(() => ({

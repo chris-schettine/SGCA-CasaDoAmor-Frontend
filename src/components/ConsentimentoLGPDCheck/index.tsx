@@ -11,7 +11,6 @@ import StandardDialog from '../StandardDialog';
 import WarningIcon from '@mui/icons-material/Warning';
 import { useAuth } from '../../hooks/useAuth';
 import { useConsentimentosPorCpf } from '../../hooks/useConsentimento';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ConsentDialog } from '../../consent/components/ConsentDialog/ConsentDialog';
 import { ConsentStore } from '../../consent/store/consentStore';
 import { ConsentContext } from '../../consent/provider/ConsentProvider';
@@ -71,20 +70,18 @@ const ConsentimentoLGPDCheck = () => {
       // If provider indicates consented, skip refetch and mark checked
       const providerStateType = consentCtx?.state?.type;
       if (providerStateType === 'consented') {
-        try { sessionStorage.setItem('consentimento-lgpd-checked', 'true'); } catch {}
+        try {
+          sessionStorage.setItem('consentimento-lgpd-checked', 'true');
+        } catch {
+          // ignore storage errors
+        }
         setHasChecked(true);
         setLastRefetchPath(location.pathname);
       } else if (apiCalledFlag) {
         // another part of the app already called the API this session
         setLastRefetchPath(location.pathname);
       } else {
-        try {
-          refetchConsentimentosByCpf();
-        } catch {
-          void 0;
-        } finally {
-          setLastRefetchPath(location.pathname);
-        }
+        refetchConsentimentosByCpf().finally(() => setLastRefetchPath(location.pathname));
       }
     }
 
@@ -126,8 +123,13 @@ const ConsentimentoLGPDCheck = () => {
             if (!maybeArrayOrResp) return null;
             if (Array.isArray(maybeArrayOrResp)) return maybeArrayOrResp as unknown[];
             // Caso o resultado venha como { data: [...] }
-            if (typeof maybeArrayOrResp === 'object' && (maybeArrayOrResp as any).data && Array.isArray((maybeArrayOrResp as any).data)) {
-              return (maybeArrayOrResp as any).data as unknown[];
+            if (
+              typeof maybeArrayOrResp === 'object' &&
+              maybeArrayOrResp !== null &&
+              'data' in maybeArrayOrResp &&
+              Array.isArray((maybeArrayOrResp as { data?: unknown }).data)
+            ) {
+              return (maybeArrayOrResp as { data?: unknown[] }).data ?? null;
             }
             return null;
           };
@@ -177,8 +179,13 @@ const ConsentimentoLGPDCheck = () => {
         const normalizeToArray = (maybeArrayOrResp: unknown): unknown[] | null => {
           if (!maybeArrayOrResp) return null;
           if (Array.isArray(maybeArrayOrResp)) return maybeArrayOrResp as unknown[];
-          if (typeof maybeArrayOrResp === 'object' && (maybeArrayOrResp as any).data && Array.isArray((maybeArrayOrResp as any).data)) {
-            return (maybeArrayOrResp as any).data as unknown[];
+          if (
+            typeof maybeArrayOrResp === 'object' &&
+            maybeArrayOrResp !== null &&
+            'data' in maybeArrayOrResp &&
+            Array.isArray((maybeArrayOrResp as { data?: unknown }).data)
+          ) {
+            return (maybeArrayOrResp as { data?: unknown[] }).data ?? null;
           }
           return null;
         };
@@ -205,7 +212,16 @@ const ConsentimentoLGPDCheck = () => {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cpfToUse, consentimentosDataByCpf, isLoadingConsentsByCpf, hasChecked, location.pathname, lastRefetchPath]);
+  }, [
+    consentCtx?.state?.type,
+    consentimentosDataByCpf,
+    cpfToUse,
+    hasChecked,
+    isLoadingConsentsByCpf,
+    lastRefetchPath,
+    location.pathname,
+    refetchConsentimentosByCpf,
+  ]);
 
   /** Handler: Aceitar todos */
   const handleAcceptAll = async () => {
@@ -221,7 +237,13 @@ const ConsentimentoLGPDCheck = () => {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
       const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';
       // Mark pending so reloads keep the dialog open until successful
-      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('consentimento-pending', 'true');
+        }
+      } catch {
+        // ignore storage errors
+      }
       toastError(`Falha ao registrar consentimento: ${msg}`);
     } finally {
       setIsLoading(false);
@@ -238,14 +260,20 @@ const ConsentimentoLGPDCheck = () => {
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
       sessionStorage.setItem('consentimento-lgpd-checked', 'true');
       // Mark logout pending so provider and other tabs do not re-open the dialog
-      try { sessionStorage.setItem('consentimento-logout-pending', 'true'); } catch {}
+      try {
+        sessionStorage.setItem('consentimento-logout-pending', 'true');
+      } catch {
+        // ignore storage errors
+      }
 
       setOpenDialog(false);
 
       // User explicitly rejected non-essential purposes -> log them out and redirect to login.
       try {
         toastInfo('Consentimento necessário. Fazendo logout...');
-      } catch {}
+      } catch {
+        // ignore toast errors
+      }
       try {
         await logout();
       } catch (err) {
@@ -256,12 +284,20 @@ const ConsentimentoLGPDCheck = () => {
       try {
         navigate('/login');
       } finally {
-        try { sessionStorage.removeItem('consentimento-logout-pending'); } catch {}
+      try {
+        sessionStorage.removeItem('consentimento-logout-pending');
+      } catch {
+        // ignore storage errors
+      }
       }
     } catch (error) {
       console.error('[ConsentimentoLGPDCheck] Erro ao salvar:', error);
       const msg = error instanceof Error ? error.message : 'Erro desconhecido ao salvar consentimento';
-      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
+      try {
+        if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true');
+      } catch {
+        // ignore storage errors
+      }
       toastError(`Falha ao registrar consentimento: ${msg}`);
     } finally {
       setIsLoading(false);
@@ -296,7 +332,11 @@ const ConsentimentoLGPDCheck = () => {
   /** Handler: Rejeição completa do consentimento (logout imediato) */
   const handleCompleteRejection = async () => {
     setOpenDialog(false);
-    toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
+    try {
+      toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
+    } catch {
+      // ignore toast errors
+    }
     await new Promise((resolve) => setTimeout(resolve, 1200));
 
     try {
@@ -312,9 +352,17 @@ const ConsentimentoLGPDCheck = () => {
   const handleConfirmRejection = async () => {
     setOpenConfirmDialog(false);
     setOpenDialog(false);
-    toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
+    try {
+      toastInfo('Consentimento necessário para usar o sistema. Fazendo logout...');
+    } catch {
+      // ignore toast errors
+    }
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    try { await logout(); } catch { /* ignore */ }
+    try {
+      await logout();
+    } catch {
+      // ignore logout errors
+    }
     navigate('/login');
   };
 

@@ -1,5 +1,5 @@
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode, type KeyboardEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -32,6 +32,7 @@ interface VirtualizedTableProps<T extends TableRowData> {
   height?: number | string;
   getRowId?: (row: T) => string | number;
   onRowClick?: (row: T) => void;
+  ariaLabel?: string;
 }
 
 export function VirtualizedTable<T extends TableRowData>({
@@ -41,6 +42,7 @@ export function VirtualizedTable<T extends TableRowData>({
   height = 600,
   getRowId,
   onRowClick,
+  ariaLabel,
 }: VirtualizedTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +73,8 @@ export function VirtualizedTable<T extends TableRowData>({
         maxHeight: 'calc(100vh - 280px)',
         overflowX: 'auto',
         overflowY: 'auto',
+        scrollbarGutter: 'stable both-edges',
+        overscrollBehavior: 'contain',
         // Better mobile scroll behavior
         WebkitOverflowScrolling: 'touch',
       }} 
@@ -78,7 +82,7 @@ export function VirtualizedTable<T extends TableRowData>({
     >
       <Table 
         stickyHeader 
-        aria-label="virtualized table"
+        aria-label={ariaLabel ?? 'Tabela de dados'}
         sx={{ 
           minWidth: { xs: totalWidth, md: 'auto' },
         }}
@@ -89,6 +93,8 @@ export function VirtualizedTable<T extends TableRowData>({
               <TableCell
                 key={String(column.field)}
                 style={{ minWidth: column.width }}
+                component="th"
+                scope="col"
                 align={column.headerAlign || column.align || 'left'}
                 sx={{
                   fontWeight: 600,
@@ -136,6 +142,14 @@ export function VirtualizedTable<T extends TableRowData>({
                     const rowId = getVirtualRowKey(virtualRow.index);
                     const isOdd = virtualRow.index % 2 === 1;
 
+                    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+                      if (!onRowClick) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onRowClick(row);
+                      }
+                    };
+
                     return (
                       <Box
                         key={rowId}
@@ -150,7 +164,10 @@ export function VirtualizedTable<T extends TableRowData>({
                       >
                         <Box
                           component="div"
+                          role="row"
+                          tabIndex={onRowClick ? 0 : -1}
                           onClick={() => onRowClick?.(row)}
+                          onKeyDown={handleKeyDown}
                           sx={{
                             display: 'table-row',
                             cursor: onRowClick ? 'pointer' : 'default',
@@ -178,6 +195,8 @@ export function VirtualizedTable<T extends TableRowData>({
                               <Box
                                 key={String(column.field)}
                                 component="div"
+                              role="cell"
+                              aria-colindex={columns.indexOf(column) + 1}
                                 sx={{
                                   display: 'table-cell',
                                   width: column.width,

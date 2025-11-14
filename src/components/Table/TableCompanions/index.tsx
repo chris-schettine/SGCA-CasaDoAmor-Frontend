@@ -239,6 +239,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
           rowHeight={53}
           height={440}
           getRowId={(row) => row.id}
+          ariaLabel="Tabela de acompanhantes"
         />
       )}
       

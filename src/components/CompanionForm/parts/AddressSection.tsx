@@ -3,20 +3,17 @@ import { Grid, TextField } from '@mui/material';
 import { Controller } from 'react-hook-form';
 import MaskedTextField from '../../MaskedTextField';
 import type { CompanionFormInputs, EditCompanionFormInputs } from '../../../schemas/companionSchema';
-import type { Control, UseFormRegister, UseFormWatch, UseFormSetValue, UseFormSetError, UseFormClearErrors, FieldErrors } from 'react-hook-form';
+import type { Control, UseFormRegister, UseFormWatch, FieldErrors } from 'react-hook-form';
 
 interface Props {
   control: Control<CompanionFormInputs | EditCompanionFormInputs>;
   register: UseFormRegister<CompanionFormInputs | EditCompanionFormInputs>;
   errors: FieldErrors<CompanionFormInputs | EditCompanionFormInputs>;
-  setValue: UseFormSetValue<CompanionFormInputs | EditCompanionFormInputs>;
-  setError: UseFormSetError<CompanionFormInputs | EditCompanionFormInputs>;
-  clearErrors: UseFormClearErrors<CompanionFormInputs | EditCompanionFormInputs>;
   watch: UseFormWatch<CompanionFormInputs | EditCompanionFormInputs>;
   onCepSearch: (cep: string) => Promise<void>;
 }
 
-export default function AddressSection({ control, register, errors, setValue: _setValue, setError: _setError, clearErrors: _clearErrors, watch, onCepSearch }: Props) {
+export default function AddressSection({ control, register, errors, watch, onCepSearch }: Props) {
   const logradouroValue = watch('endereco.logradouro');
 
   return (

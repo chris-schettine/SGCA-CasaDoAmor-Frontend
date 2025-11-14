@@ -22,7 +22,7 @@ export default function FocusScope({ children, autoFocus = true }: FocusScopePro
     return () => {
       try {
         (previousActive.current as HTMLElement | null)?.focus?.();
-      } catch (e) {
+      } catch {
         // ignore
       }
     };

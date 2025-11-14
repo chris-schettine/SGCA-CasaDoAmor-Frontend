@@ -51,7 +51,6 @@ export const AuthInitializer = ({ children }: { children: ReactNode }) => {
             const user = (await import('./stores/useAuthStore')).useAuthStore.getState().user;
             if (token && user) break;
             // small delay
-            // eslint-disable-next-line no-await-in-loop
             await new Promise((res) => setTimeout(res, 50));
           }
         }

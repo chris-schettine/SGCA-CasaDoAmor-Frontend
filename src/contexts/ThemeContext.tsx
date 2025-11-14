@@ -5,7 +5,7 @@
  * Tema padrão é sempre 'light'
  */
 
-import React, { createContext, useContext, useState, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback, type ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import type { ThemeMode } from '../design-tokens';
@@ -81,19 +81,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const theme = useMemo(() => createAppTheme(mode), [mode]);
 
   // Salva preferência
-  const setMode = (newMode: ThemeMode) => {
+  const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
     try {
       localStorage.setItem(storageKey, newMode);
     } catch {
       // Ignora erros de localStorage
     }
-  };
+  }, [storageKey]);
 
   // Alterna entre light e dark
-  const toggleMode = () => {
+  const toggleMode = useCallback(() => {
     setMode(mode === 'light' ? 'dark' : 'light');
-  };
+  }, [mode, setMode]);
 
   // Não escuta preferência do sistema - sempre usa light como padrão
   // Usuário pode escolher dark manualmente se desejar
@@ -105,7 +105,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       toggleMode,
       theme,
     }),
-    [mode, theme]
+    [mode, setMode, toggleMode, theme]
   );
 
   return (

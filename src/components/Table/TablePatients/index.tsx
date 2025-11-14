@@ -266,6 +266,7 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
           rowHeight={53}
           height={440}
           getRowId={(row) => row.id}
+          ariaLabel="Tabela de pacientes"
         />
       )}
       
