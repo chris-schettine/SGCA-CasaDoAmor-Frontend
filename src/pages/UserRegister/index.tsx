@@ -20,7 +20,7 @@ import { removeNonNumeric } from '../../utils/formatters';
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
-import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
+import { toastError, toastSuccessCritical, toastWarn } from "../../utils/toast";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
@@ -159,8 +159,13 @@ const UserRegisterPage = () => {
 
   const handleConsentimentoSuccess = () => {
     setOpenConsentimentoDialog(false);
-    toastSuccess('Profissional cadastrado com sucesso!');
-    setTimeout(() => navigate('/users'), 1200);
+    setIsLoadingConsent(false);
+    
+    // Garantir que o toast apareça
+    setTimeout(() => {
+      toastSuccessCritical('Profissional cadastrado com sucesso!');
+      setTimeout(() => navigate('/users'), 5000);
+    }, 200);
   };
 
   /**
@@ -189,13 +194,46 @@ const UserRegisterPage = () => {
 
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackAcceptAll(CONSENT_VERSION);
-      handleConsentimentoSuccess();
+      
+      // Garantir que o toast apareça após sucesso
+      setTimeout(() => {
+        handleConsentimentoSuccess();
+      }, 100);
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
-      toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
-    } finally {
       setIsLoadingConsent(false);
+      
+      // Tratamento de erros mais detalhado
+      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (axiosError.response?.status === 400) {
+          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
+        } else if (axiosError.response?.status === 409) {
+          errorMessage = 'Usuário já existe com este CPF ou email.';
+        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
+          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      
+      try { 
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('consentimento-pending', 'true');
+        }
+      } catch { 
+        void 0; 
+      }
+      
+      // Garantir que o toast de erro apareça
+      setTimeout(() => {
+        toastError(errorMessage);
+      }, 100);
+      
       setPendingUserData(null);
     }
   };
@@ -222,13 +260,46 @@ const UserRegisterPage = () => {
 
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
-      handleConsentimentoSuccess();
+      
+      // Garantir que o toast apareça após sucesso
+      setTimeout(() => {
+        handleConsentimentoSuccess();
+      }, 100);
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
-      toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
-    } finally {
       setIsLoadingConsent(false);
+      
+      // Tratamento de erros mais detalhado
+      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (axiosError.response?.status === 400) {
+          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
+        } else if (axiosError.response?.status === 409) {
+          errorMessage = 'Usuário já existe com este CPF ou email.';
+        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
+          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      
+      try { 
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('consentimento-pending', 'true');
+        }
+      } catch { 
+        void 0; 
+      }
+      
+      // Garantir que o toast de erro apareça
+      setTimeout(() => {
+        toastError(errorMessage);
+      }, 100);
+      
       setPendingUserData(null);
     }
   };
@@ -255,13 +326,46 @@ const UserRegisterPage = () => {
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       const purposesAccepted = Object.keys(choices).filter((k) => choices[k]);
       ConsentAnalytics.trackSavePreferences(CONSENT_VERSION, purposesAccepted);
-      handleConsentimentoSuccess();
+      
+      // Garantir que o toast apareça após sucesso
+      setTimeout(() => {
+        handleConsentimentoSuccess();
+      }, 100);
     } catch (error) {
       console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      try { if (typeof window !== 'undefined') sessionStorage.setItem('consentimento-pending', 'true'); } catch { void 0; }
-      toastError('Erro ao criar usuário ou salvar consentimento. Tente novamente.');
-    } finally {
       setIsLoadingConsent(false);
+      
+      // Tratamento de erros mais detalhado
+      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (axiosError.response?.status === 400) {
+          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
+        } else if (axiosError.response?.status === 409) {
+          errorMessage = 'Usuário já existe com este CPF ou email.';
+        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
+          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      
+      try { 
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('consentimento-pending', 'true');
+        }
+      } catch { 
+        void 0; 
+      }
+      
+      // Garantir que o toast de erro apareça
+      setTimeout(() => {
+        toastError(errorMessage);
+      }, 100);
+      
       setPendingUserData(null);
     }
   };
@@ -287,23 +391,30 @@ const UserRegisterPage = () => {
     if (import.meta.env.DEV) console.debug('[UserRegister] handleConfirmRejection called - attempting to delete created user (if any) and navigate back');
     setOpenConfirmRejectionDialog(false);
     setOpenConsentimentoDialog(false);
+    // Navigate immediately back to users list so the user sees the list right away.
+    // Keep deletion of the created user as a background task (do not block navigation).
+    try {
+      // show warning toast immediately so it appears on the users page
+      toastWarn('Cadastro cancelado. Consentimento necessário para usar o sistema.');
+    } catch (e) {
+      console.error('[UserRegister] Failed to call toastWarn before navigation:', e);
+    }
 
-    // Se já existe um usuário criado, tentar remover o registro criado para não deixar dados órfãos
+    // perform deletion asynchronously without awaiting to avoid blocking UI
     (async () => {
       try {
         if (newUserId) {
-          if (import.meta.env.DEV) console.debug('[UserRegister] Deleting user id', { newUserId });
+          if (import.meta.env.DEV) console.debug('[UserRegister] Deleting user id in background', { newUserId });
           await adminService.deleteUser(newUserId);
-          if (import.meta.env.DEV) console.debug('[UserRegister] User deleted', { newUserId });
+          if (import.meta.env.DEV) console.debug('[UserRegister] User deleted in background', { newUserId });
         }
       } catch (err) {
-        console.error('[UserRegister] Erro ao excluir usuário após recusa de consentimento:', err);
-      } finally {
-        toastWarn('Cadastro cancelado. Consentimento necessário para usar o sistema.');
-        // Aguarda 1.5s e volta para listagem
-        setTimeout(() => navigate('/users'), 1500);
+        console.error('[UserRegister] Erro ao excluir usuário após recusa de consentimento (background):', err);
       }
     })();
+
+    // Immediately navigate back to the users list
+    navigate('/users');
   };
 
   /**

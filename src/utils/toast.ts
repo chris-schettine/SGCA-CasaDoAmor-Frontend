@@ -22,27 +22,33 @@ export const criticalToastOptions: ToastOptions = {
 };
 
 const toastSuccess = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastSuccess]', { message, options, timestamp: Date.now() });
   toast.success(message, { ...defaultToastOptions, ...options });
 };
 
 /** Toast de sucesso para operações críticas (cadastro, exclusão, etc.) */
 const toastSuccessCritical = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastSuccessCritical]', { message, options, timestamp: Date.now() });
   toast.success(message, { ...criticalToastOptions, ...options });
 };
 
 const toastError = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastError]', { message, options, timestamp: Date.now() });
   toast.error(message, { ...defaultToastOptions, ...options });
 };
 
 const toastErrorCritical = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastErrorCritical]', { message, options, timestamp: Date.now() });
   toast.error(message, { ...criticalToastOptions, ...options });
 };
 
 const toastInfo = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastInfo]', { message, options, timestamp: Date.now() });
   toast.info(message, { ...defaultToastOptions, ...options });
 };
 
 const toastWarn = (message: string, options: ToastOptions = {}) => {
+  if (import.meta.env.DEV) console.debug('[toastWarn]', { message, options, timestamp: Date.now() });
   toast.warn(message, { ...defaultToastOptions, ...options });
 };
 
