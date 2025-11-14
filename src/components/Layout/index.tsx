@@ -235,9 +235,7 @@ export default function Layout() {
             <AppBar 
                 position="fixed" 
                 open={open}
-                component="header"
-                role="banner"
-                aria-label="Cabeçalho principal"
+                {...({ component: 'header', role: 'banner', 'aria-label': 'Cabeçalho principal' } as any)}
             >
                  
                  <Toolbar>

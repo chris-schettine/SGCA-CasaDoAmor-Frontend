@@ -56,11 +56,6 @@ export default defineConfig({
     target: 'esnext',
     cssCodeSplit: true,
     // Melhora tree-shaking
-    terserOptions: {
-      compress: {
-        drop_console: false, // Mantém console em dev, pode remover em prod se necessário
-      },
-    },
   },
   server: {
     headers:{

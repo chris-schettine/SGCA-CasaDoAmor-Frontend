@@ -5,7 +5,7 @@
  * Tema padrão é sempre 'light'
  */
 
-import React, { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, type ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import type { ThemeMode } from '../design-tokens';
@@ -60,14 +60,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     if (typeof window === 'undefined') return defaultMode;
     
     try {
-      const saved = localStorage.getItem(storageKey) as ThemeMode;
+      const raw = localStorage.getItem(storageKey);
       // Remove 'brand' se existir no localStorage (migração)
-      if (saved && saved === 'brand') {
+      if (raw === 'brand') {
         localStorage.removeItem(storageKey);
         return defaultMode;
       }
-      if (saved && ['light', 'dark'].includes(saved)) {
-        return saved;
+      if (raw === 'light' || raw === 'dark') {
+        return raw as ThemeMode;
       }
     } catch {
       // Ignora erros de localStorage

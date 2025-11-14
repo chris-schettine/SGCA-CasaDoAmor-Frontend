@@ -34,6 +34,23 @@ declare module '@mui/material/styles' {
       focus: typeof focus;
     };
   }
+
+  // Allow `custom` in createTheme options
+  interface ThemeOptions {
+    custom?: {
+      brandColors?: typeof brandColors;
+      semanticColors?: typeof semanticColors;
+      neutralColors?: typeof neutralColors;
+      typography?: typeof typography;
+      spacing?: typeof spacing;
+      borderRadius?: typeof borderRadius;
+      shadows?: typeof shadows;
+      transitions?: typeof transitions;
+      breakpoints?: typeof breakpoints;
+      touchTargets?: typeof touchTargets;
+      focus?: typeof focus;
+    };
+  }
 }
 
 export type { Theme };

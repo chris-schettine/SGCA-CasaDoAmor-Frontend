@@ -1,16 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
-// TypeScript: Extend Window interface for requestIdleCallback
-declare global {
-  interface Window {
-    requestIdleCallback?: (
-      callback: (deadline: { timeRemaining: () => number; didTimeout: boolean }) => void,
-      options?: { timeout?: number }
-    ) => number;
-    cancelIdleCallback?: (id: number) => void;
-  }
-}
+// NOTE: global `requestIdleCallback` types are declared in `src/types/globals.d.ts`
 
 /**
  * Hook para prefetch inteligente de rotas baseado em hover/intersection

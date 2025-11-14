@@ -3,16 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import RouteTransition from './motion/RouteTransition';
 import { TableSkeleton } from './components/SuspenseWrapper';
 
-// TypeScript: Extend Window interface for requestIdleCallback
-declare global {
-  interface Window {
-    requestIdleCallback?: (
-      callback: (deadline: { timeRemaining: () => number; didTimeout: boolean }) => void,
-      options?: { timeout?: number }
-    ) => number;
-    cancelIdleCallback?: (id: number) => void;
-  }
-}
+// NOTE: global `requestIdleCallback` types are declared in `src/types/globals.d.ts`
 
 // Carregamento dinamico (Lazy Loading) dos componentes de estrutura de rotas
 // Isso ajuda a reduzir o tamanho inicial do bundle da aplicacao
@@ -74,7 +65,7 @@ const preloadRoutes = () => {
   };
 
   // Preload sequencial para não sobrecarregar
-  criticalRoutes.forEach((routeLoader, index) => {
+  criticalRoutes.forEach((routeLoader) => {
     schedulePreload(() => {
       routeLoader().catch(() => {
         // Silently fail - preload é otimização, não crítico

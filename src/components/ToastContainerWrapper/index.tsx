@@ -1,4 +1,4 @@
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, type ToastPosition } from 'react-toastify';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { useMemo } from 'react';
 
@@ -15,9 +15,7 @@ export function ToastContainerWrapper() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   // Configuração responsiva do ToastContainer
-  const toastPosition = useMemo(() => {
-    return 'top-center';
-  }, []);
+  const toastPosition = useMemo<ToastPosition>(() => 'top-center', []);
 
   return (
     <ToastContainer
@@ -33,7 +31,6 @@ export function ToastContainerWrapper() {
       pauseOnFocusLoss
       draggable={!isMobile} // Desabilitar drag no mobile para melhor UX
       rtl={false}
-      enableMultiContainer={false}
       style={{
         // Ajustes para mobile com scroll
         position: 'fixed',
@@ -61,13 +58,7 @@ export function ToastContainerWrapper() {
         display: 'flex',
         alignItems: 'center',
       }}
-      bodyStyle={{
-        margin: 0,
-        padding: 0,
-        display: 'flex',
-        alignItems: 'center',
-        flex: 1,
-      }}
+      
     />
   );
 }

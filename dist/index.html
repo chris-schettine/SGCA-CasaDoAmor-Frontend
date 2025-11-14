@@ -1,20 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="casadoamor.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGCA</title>
-  <script type="module" crossorigin src="/assets/index-D06HX03q.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Sistema de Gerenciamento da Casa do Amor - Plataforma para gestão de pacientes e acompanhantes" />
+  <meta name="theme-color" content="#09244B" />
+  
+  <!-- Performance: Preconnect to external domains -->
+  <link rel="preconnect" href="https://viacep.com.br" crossorigin />
+  <link rel="dns-prefetch" href="https://viacep.com.br" />
+  
+  <!-- Performance: Preload critical resources -->
+  <link rel="preload" href="/assets/main-B4_OOnJ7.tsx" as="script" />
+  
+  <!-- Acessibilidade: Skip to main content link (hidden until focused) -->
+  <style>
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #09244B;
+      color: #FFFFFF;
+      padding: 8px 16px;
+      text-decoration: none;
+      z-index: 10000;
+      border-radius: 0 0 4px 0;
+      font-weight: 600;
+    }
+    .skip-link:focus {
+      top: 0;
+    }
+  </style>
+  
+  <title>SGCA - Sistema de Gerenciamento da Casa do Amor</title>
+  <script type="module" crossorigin src="/assets/index--tMJD8z3.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/react-vendor-DjnJ9H4W.js">
-  <link rel="modulepreload" crossorigin href="/assets/mui-core-DA7PdIj4.js">
-  <link rel="modulepreload" crossorigin href="/assets/patient-pages-D7Smpsqa.js">
-  <link rel="modulepreload" crossorigin href="/assets/user-pages-BlXEgbfV.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-BdE9Ksyn.css">
+  <link rel="modulepreload" crossorigin href="/assets/mui-core-C6pWWQtK.js">
+  <link rel="modulepreload" crossorigin href="/assets/motion-vendor-C7AeqWDU.js">
+  <link rel="modulepreload" crossorigin href="/assets/form-vendor-DsuXZmHJ.js">
+  <link rel="modulepreload" crossorigin href="/assets/query-vendor-8TxwoHh1.js">
+  <link rel="modulepreload" crossorigin href="/assets/patient-pages-DD3vzluh.js">
+  <link rel="modulepreload" crossorigin href="/assets/user-pages-n9r-evoF.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-YVN1uutA.css">
 </head>
 
 <body>
+  <!-- Skip Link para navegação por teclado (WCAG 2.2 AA) -->
+  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+  
   <div id="root"></div>
 </body>
 

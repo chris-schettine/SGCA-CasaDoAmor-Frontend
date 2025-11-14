@@ -9,7 +9,7 @@ import React from 'react';
 import { Box, type BoxProps } from '@mui/material';
 import { useResponsive } from '../../hooks/useResponsive';
 
-export interface PageContainerProps extends Omit<BoxProps, 'sx'> {
+export interface PageContainerProps extends BoxProps {
   /**
    * Se true, remove padding horizontal em mobile
    */
@@ -41,7 +41,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({
   customPadding,
   ...boxProps
 }) => {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  // keep hook for side-effects in case responsive logic later required
+  useResponsive();
 
   const padding = customPadding || {
     xs: fullWidthOnMobile ? 0 : 2,

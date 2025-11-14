@@ -4,7 +4,7 @@
  * Cria temas Material-UI baseados nos design tokens unificados
  */
 
-import { createTheme, type ThemeOptions } from '@mui/material/styles';
+import { createTheme, type ThemeOptions, type PaletteOptions } from '@mui/material/styles';
 import type { ThemeMode } from './index';
 import {
   brandColors,
@@ -25,7 +25,7 @@ import './types'; // Importa tipos para estender Theme
 // FUNÇÃO AUXILIAR: Cria paleta baseada no modo
 // ============================================================================
 
-const createPalette = (mode: ThemeMode) => {
+const createPalette = (mode: ThemeMode): PaletteOptions => {
   const isDark = mode === 'dark';
 
   return {
