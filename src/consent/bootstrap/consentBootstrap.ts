@@ -1,4 +1,5 @@
 import { ConsentStore } from '../store/consentStore';
+import type { ConsentChoice } from '../types/consent.types';
 import { consentimentoService } from '../../api/consentimento.service';
 // NOTE: TTL config not required here; ConsentStore handles TTL logic
 
@@ -42,6 +43,7 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       data?: string;
       metadata?: string;
       uuid?: string;
+      _ts?: string | null;
       [key: string]: unknown;
     };
     let backendArray: BackendRecord[] = [];
@@ -49,10 +51,8 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
     const isCpf = typeof identifier === 'string' && /^[0-9]{11}$/.test(identifier);
 
     if (isCpf) {
-      const resp = await consentimentoService.listarConsentimentosPorCpf(identifier);
-      backendArray = Array.isArray(resp)
-        ? resp
-        : (resp && (resp as { data?: BackendRecord[] }).data && Array.isArray(resp.data) ? resp.data : []);
+      const resp = await consentimentoService.listarConsentimentosPorCpf(identifier).catch(() => null);
+      backendArray = Array.isArray(resp) ? (resp as unknown as BackendRecord[]) : [];
     } else {
       // If we don't have a CPF as identifier, try to read a CPF from sessionStorage
       // (some flows populate cpf or cpfFor2FA). If none exists, skip backend listing.
@@ -62,9 +62,7 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       if (cpfCandidate && /^[0-9]{11}$/.test(cpfCandidate)) {
         if (import.meta.env.DEV) console.debug('[consentBootstrap] using cpf from sessionStorage for backend list', { cpfCandidate });
         const resp = await consentimentoService.listarConsentimentosPorCpf(cpfCandidate).catch(() => null);
-        backendArray = Array.isArray(resp)
-          ? resp
-          : (resp && (resp as { data?: BackendRecord[] }).data && Array.isArray(resp.data) ? resp.data : []);
+        backendArray = Array.isArray(resp) ? (resp as unknown as BackendRecord[]) : [];
       } else {
         if (import.meta.env.DEV) console.debug('[consentBootstrap] no cpf available; skipping backend listado (never call listar by uuid)');
         backendArray = [];
@@ -75,17 +73,17 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
       // Backend may return a history of consent records (accepted/revoked).
       // Find the most recent *accepted* record (concorda === true). If none,
       // treat as no backend consent (user has revoked).
-      const asRecords = backendArray.slice().map((r) => ({
+      const asRecords = backendArray.slice().map((r: BackendRecord) => ({
         ...r,
-        _ts: r.createdAt || r.dataConsentimento || r.data || null,
+        _ts: typeof r.createdAt === 'string' ? r.createdAt : (typeof r.dataConsentimento === 'string' ? r.dataConsentimento : (typeof r.data === 'string' ? r.data : null)),
       }));
 
       if (import.meta.env.DEV) console.debug('[consentBootstrap] backend records mapped for selection', { identifier, count: asRecords.length, preview: asRecords.slice(0,3) });
 
       // Sort by timestamp desc
-      asRecords.sort((a, b) => {
-        const ta = a._ts ? new Date(a._ts).getTime() : 0;
-        const tb = b._ts ? new Date(b._ts).getTime() : 0;
+      asRecords.sort((a: BackendRecord, b: BackendRecord) => {
+        const ta = a._ts ? new Date(String(a._ts)).getTime() : 0;
+        const tb = b._ts ? new Date(String(b._ts)).getTime() : 0;
         return tb - ta;
       });
 
@@ -110,7 +108,7 @@ export async function bootstrapConsent(identifier: string | undefined | null) {
         if (latestAccepted && latestAccepted.metadata) {
           const parsed = JSON.parse(latestAccepted.metadata) as Record<string, unknown>;
           if (parsed && typeof parsed === 'object') {
-            choices = parsed;
+            choices = parsed as ConsentChoice;
           }
         }
       } catch (err) {

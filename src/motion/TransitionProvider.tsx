@@ -22,14 +22,18 @@ export const TransitionProvider: React.FC<React.PropsWithChildren<unknown>> = ({
     if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', handler);
     } else if (typeof mq.addListener === 'function') {
-      // @ts-expect-error - deprecated API fallback
+      // deprecated API fallback
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - older browsers use addListener
       mq.addListener(handler);
     }
     return () => {
       if (typeof mq.removeEventListener === 'function') {
         mq.removeEventListener('change', handler);
       } else if (typeof mq.removeListener === 'function') {
-        // @ts-expect-error - deprecated API fallback
+        // deprecated API fallback
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore - older browsers use removeListener
         mq.removeListener(handler);
       }
     };

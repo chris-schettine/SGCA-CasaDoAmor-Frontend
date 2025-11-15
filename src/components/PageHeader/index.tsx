@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { type ReactNode } from 'react';
 
 export interface PageHeaderProps {
@@ -39,6 +40,11 @@ export const PageHeader = ({
   action,
   searchComponent 
 }: PageHeaderProps) => {
+  const theme = useTheme();
+  const titleColor = theme.palette.mode === 'dark'
+    ? theme.palette.primary.main
+    : theme.custom.brandColors.secondary[500];
+
   return (
     <Box sx={{ mb: { xs: 2, sm: 3 }, width: '100%' }}>
       {/* Título e subtítulo */}
@@ -48,7 +54,7 @@ export const PageHeader = ({
           gutterBottom={!!subtitle}
           sx={{ 
             fontWeight: 700,
-            color: 'primary.main',
+            color: titleColor,
             mb: subtitle ? 1 : 0,
             fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
           }}

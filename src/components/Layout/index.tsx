@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import MuiAppBar from '@mui/material/AppBar';
+import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -84,10 +84,17 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
-})<{
-    open?: boolean;
-}>(({ theme, open }) => ({
-    backgroundColor: theme.custom.brandColors.secondary[500],
+})<MuiAppBarProps & { open?: boolean }>(({
+    theme, open
+  }) => {
+    const isDark = theme.palette.mode === 'dark';
+    const darkBackground = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(27, 42, 80, 0.95) 100%)';
+
+    return {
+    backgroundColor: isDark ? theme.palette.background.paper : theme.custom.brandColors.secondary[500],
+    backgroundImage: isDark ? darkBackground : 'none',
+    color: isDark ? theme.palette.getContrastText(theme.palette.background.paper) : '#FFFFFF',
+    backdropFilter: isDark ? 'blur(6px)' : 'none',
     zIndex: theme.zIndex.drawer + 1,
     boxShadow: 'none',
     transition: theme.transitions.create(['width', 'margin'], {
@@ -106,7 +113,8 @@ const AppBar = styled(MuiAppBar, {
                 : theme.transitions.duration.leavingScreen,
         }),
     },
-}));
+  };
+});
 
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -138,8 +146,9 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     const isRootActive = (location.pathname === '/' && to === '/patients') || (location.pathname === '/profile' && to === '/profile');
     const isCurrentActive = isActive || isRootActive;
     
-    const activeBgColor = tokens.brandColors.primary[500];
+    const activeBgColor = theme.palette.mode === 'dark' ? theme.palette.primary.main : tokens.brandColors.primary[500];
     const activeTextColor = '#FFFFFF';
+    const inactiveColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#000000da';
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
@@ -178,10 +187,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
                         width: 'auto',
                     }}
                 >
-                    <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : '#000000da', fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
+                    <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : inactiveColor, fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
                         <Icon sx={{ fontSize: 'inherit' }} />
                     </ListItemIcon>
-                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : '#000000da', fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
+                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : inactiveColor, fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
                 </ListItemButton>
             </Tooltip> 
         </ListItem>

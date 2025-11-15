@@ -52,6 +52,7 @@ class ConsentimentoService {
   async listarConsentimentosPorCpf(
     cpf: string
   ): Promise<ConsentimentoLGPDResponse[]> {
+    const response = await api.get(`/api/usuarios/${cpf}/consentimentos-lgpd`);
     if (import.meta.env.DEV) {
       try {
         type ResponsePreview = ConsentimentoLGPDResponse | ConsentimentoLGPDResponse[];

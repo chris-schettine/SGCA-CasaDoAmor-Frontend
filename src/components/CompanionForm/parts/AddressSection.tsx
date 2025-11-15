@@ -3,7 +3,7 @@ import { Grid, TextField } from '@mui/material';
 import { Controller } from 'react-hook-form';
 import MaskedTextField from '../../MaskedTextField';
 import type { CompanionFormInputs, EditCompanionFormInputs } from '../../../schemas/companionSchema';
-import type { Control, UseFormRegister, UseFormWatch, FieldErrors } from 'react-hook-form';
+import type { Control, UseFormRegister, UseFormWatch, FieldErrors, UseFormSetValue, UseFormSetError, UseFormClearErrors } from 'react-hook-form';
 
 interface Props {
   control: Control<CompanionFormInputs | EditCompanionFormInputs>;
@@ -11,6 +11,9 @@ interface Props {
   errors: FieldErrors<CompanionFormInputs | EditCompanionFormInputs>;
   watch: UseFormWatch<CompanionFormInputs | EditCompanionFormInputs>;
   onCepSearch: (cep: string) => Promise<void>;
+  setValue?: UseFormSetValue<CompanionFormInputs | EditCompanionFormInputs>;
+  setError?: UseFormSetError<CompanionFormInputs | EditCompanionFormInputs>;
+  clearErrors?: UseFormClearErrors<CompanionFormInputs | EditCompanionFormInputs>;
 }
 
 export default function AddressSection({ control, register, errors, watch, onCepSearch }: Props) {

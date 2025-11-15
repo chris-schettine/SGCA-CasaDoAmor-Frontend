@@ -25,7 +25,7 @@ export const brandColors = {
     200: '#9FB3CD',
     300: '#7A95B9',
     400: '#5477A5',
-    500: '#09244B', // Main brand color
+    500: '#09244B', // Main brand color (light)
     600: '#071C3C',
     700: '#05142D',
     800: '#040C1E',

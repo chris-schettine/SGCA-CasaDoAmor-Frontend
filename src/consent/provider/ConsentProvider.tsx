@@ -19,9 +19,17 @@ import type {
  */
 export const ConsentContext = createContext<ConsentContextValue | null>(null);
 
-interface BackendPayload<T = unknown> {
-  data?: T;
-}
+// Removed unused BackendPayload interface
+
+type ConsentRecord = ConsentChoice & {
+  metadata?: string;
+  createdAt?: string;
+  dataConsentimento?: string;
+  data?: string;
+  concorda?: boolean;
+  uuid?: string;
+  [key: string]: unknown;
+};
 
 interface ConsentProviderProps {
   children: ReactNode;
@@ -396,9 +404,7 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
                 if (import.meta.env.DEV) console.debug('[ConsentProvider] listarConsentimentosPorCpf failed', e);
                 return null;
               });
-              backendArray = Array.isArray(resp)
-                ? resp
-                : (resp && (resp as BackendPayload<ConsentRecord[]>).data && Array.isArray(resp.data) ? resp.data : []);
+              backendArray = Array.isArray(resp) ? (resp as unknown as ConsentRecord[]) : [];
             } else {
               if (import.meta.env.DEV) console.debug('[ConsentProvider] no cpf available to verify pending consent; skipping backend check (never list by uuid)');
             }
@@ -517,7 +523,7 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
         let hasBackendConsent = false;
         
         // Verificar backend se temos CPF (nunca consultar por UUID)
-        if (cpfNormalized && /^[0-9]{11}$/.test(cpfNormalized)) {
+            if (cpfNormalized && /^[0-9]{11}$/.test(cpfNormalized)) {
           try {
             console.log('[ConsentProvider] querying backend for consentimentos', { cpfNormalized });
             const resp = await consentimentoService.listarConsentimentosPorCpf(cpfNormalized).catch((e) => {
@@ -525,11 +531,7 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
               return null;
             });
 
-            const backendArray = Array.isArray(resp)
-              ? resp
-              : (resp && (resp as BackendPayload<ConsentChoice[]>).data && Array.isArray(resp.data)
-                  ? resp.data
-                  : []);
+            const backendArray = Array.isArray(resp) ? (resp as unknown as ConsentRecord[]) : [];
             console.log('[ConsentProvider] backend API response', { cpfNormalized, count: backendArray.length, isEmpty: backendArray.length === 0 });
             
             // Se backend retornou array vazio, não há consentimento = primeira visita
@@ -538,20 +540,20 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
               hasBackendConsent = false;
             } else {
               // Verificar se há algum consentimento aceito (concorda === true)
-              const hasAccepted = backendArray.some((r) => r.concorda === true);
+              const hasAccepted = backendArray.some((r: ConsentRecord) => r.concorda === true);
               console.log('[ConsentProvider] backend has records', { count: backendArray.length, hasAccepted });
               hasBackendConsent = hasAccepted;
               
               // Se há consentimento aceito, tentar criar snapshot local
               if (hasAccepted) {
-                const latestAccepted = backendArray
-                  .filter((r) => r.concorda === true)
-                  .sort((a, b) => {
+                    const latestAccepted = backendArray
+                  .filter((r: ConsentRecord) => r.concorda === true)
+                  .sort((a: ConsentRecord, b: ConsentRecord) => {
                     const ta = (a.createdAt || a.dataConsentimento || a.data)
-                      ? new Date(a.createdAt || a.dataConsentimento || a.data).getTime()
+                      ? new Date(String(a.createdAt || a.dataConsentimento || a.data)).getTime()
                       : 0;
                     const tb = (b.createdAt || b.dataConsentimento || b.data)
-                      ? new Date(b.createdAt || b.dataConsentimento || b.data).getTime()
+                      ? new Date(String(b.createdAt || b.dataConsentimento || b.data)).getTime()
                       : 0;
                     return tb - ta;
                   })[0];
@@ -559,9 +561,9 @@ export function ConsentProvider({ children, forceOpen = false }: ConsentProvider
                 let choices = ConsentStore.getDefaultChoices();
                 try {
                   if (latestAccepted?.metadata) {
-                    const parsed = JSON.parse(latestAccepted.metadata);
+                    const parsed = JSON.parse(latestAccepted.metadata) as Record<string, unknown>;
                     if (parsed && typeof parsed === 'object') {
-                      choices = parsed;
+                      choices = parsed as ConsentChoice;
                     }
                   }
                 } catch (err) {

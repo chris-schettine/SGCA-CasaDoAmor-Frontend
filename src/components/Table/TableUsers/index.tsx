@@ -20,6 +20,7 @@ interface Column {
   label: string;
   minWidth?: number;
   align?: 'center';
+  headerAlign?: 'left' | 'center' | 'right';
   hideOnMobile?: boolean;
   hideOnTablet?: boolean;
 }
@@ -40,11 +41,11 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
 
   // Definir colunas responsivas
   const columns: readonly Column[] = [
-    { id: 'name', label: 'Nome', minWidth: isMobile ? 120 : 170 },
-    { id: 'function', label: 'Função', minWidth: 100, hideOnMobile: false },
-    { id: 'email', label: 'E-mail', minWidth: 170, hideOnTablet: true },
-    { id: 'telephone', label: 'Telefone', minWidth: 100, hideOnMobile: true },
-    { id: 'actions', label: 'Ações', minWidth: isMobile ? 80 : 100, align: 'center' },
+    { id: 'name', label: 'Nome', minWidth: isMobile ? 120 : 170, headerAlign: 'left' },
+    { id: 'function', label: 'Função', minWidth: 100, hideOnMobile: false, headerAlign: 'left' },
+    { id: 'email', label: 'E-mail', minWidth: 170, hideOnTablet: true, headerAlign: 'left' },
+    { id: 'telephone', label: 'Telefone', minWidth: 100, hideOnMobile: true, headerAlign: 'left' },
+    { id: 'actions', label: 'Ações', minWidth: isMobile ? 80 : 100, align: 'center', headerAlign: 'center' },
   ].filter(col => {
     if (isMobile && col.hideOnMobile) return false;
     if (isTablet && col.hideOnTablet) return false;
@@ -178,14 +179,25 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             )}
           </Box>
         ) : (
-          <Table stickyHeader aria-label="sticky table">
+          <Table
+            stickyHeader
+            aria-label="Tabela de usuários"
+            sx={{
+              '& .MuiTableCell-head': {
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                paddingY: 1,
+              },
+            }}
+          >
             <TableHead>
             <TableRow>
               {columns.map((column) => (
                 <TableCell
                   key={column.id}
-                  align={column.align}
+                  align={column.headerAlign ?? column.align}
                   style={{ minWidth: column.minWidth }}
+                  sx={{ textAlign: column.headerAlign ?? column.align ?? 'left' }}
                 >
                   {column.id === 'function' ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -242,10 +254,14 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             ) : (
               displayRows.map((row) => (
                 <TableRow key={row.id} hover>
-                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.nome}</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.tipo}</TableCell>
-                  {!isTablet && <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.email}</TableCell>}
-                  {!isMobile && <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' } }}>{row.telefone}</TableCell>}
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.nome}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.tipo}</TableCell>
+                  {!isTablet && (
+                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.email}</TableCell>
+                  )}
+                  {!isMobile && (
+                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.telefone}</TableCell>
+                  )}
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: isMobile ? 0.25 : 0.5, justifyContent: 'center' }}>
                       <StandardTooltip title="Editar dados do usuário">

@@ -151,7 +151,7 @@ const Login = () => {
         backgroundColor: theme.palette.background.paper, 
         borderRadius: `${tokens.borderRadius.base}px`, 
         boxShadow: theme.palette.mode === 'dark'
-          ? '0 0 20px rgba(0, 0, 0, 0.8)'
+          ? '0 0 0 200px rgba(59, 95, 191, 0.15)'
           : '0 0 14px rgba(0, 0, 0, 0.15)',
         transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
       }}>
