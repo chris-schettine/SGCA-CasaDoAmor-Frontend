@@ -358,7 +358,7 @@ export default function Layout() {
                 }}
             >
                 <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
-                    <Box component="img" src="logo2.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
+                    <Box component="img" src="/logo3.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
                     {open && (
                         <IconButton 
                             color="inherit" 

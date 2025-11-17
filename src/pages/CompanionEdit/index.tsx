@@ -145,7 +145,7 @@ const CompanionEditPage = () => {
       
       await editarAcompanhanteMutation.mutateAsync({ id, dto });
       setOpenSaveDialog(false);
-      toastSuccessCritical("✓ Acompanhante atualizado com sucesso!");
+      toastSuccessCritical("Acompanhante atualizado com sucesso!");
       setTimeout(() => {
         navigate(-1);
       }, 2000);

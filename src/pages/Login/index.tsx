@@ -157,10 +157,14 @@ const Login = () => {
       }}>
         <Box
           component="img"
-          src="logo1.png"
+          src="/logo3.png"
           alt="Logo Casa do Amor"
-          sx={{ width: { xs: "140px", sm: "180px" }, mb: 0.5 }}
-        />
+          sx={{ 
+            width: { xs: "140px", sm: "180px" }, 
+            maxHeight: 100, 
+            objectFit: 'contain'
+          }}
+      />
 
         <Typography 
           variant="h5" 

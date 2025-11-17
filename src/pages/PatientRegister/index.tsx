@@ -197,7 +197,7 @@ const PatientRegisterPage = () => {
 
       const response = await pacienteService.registrarPaciente(paciente); // chamada real com token automático
       setOpenSaveDialog(false);
-      toastSuccessCritical("✓ Paciente cadastrado com sucesso!");
+      toastSuccessCritical("Paciente cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patient/companion/register', { 
           state: { 

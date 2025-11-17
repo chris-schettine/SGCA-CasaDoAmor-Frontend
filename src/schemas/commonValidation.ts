@@ -32,7 +32,7 @@ export const rgSchema = z.string()
 export const phoneSchema = z.string()
   .trim()
   .min(1, "O telefone é obrigatório")
-  .regex(PHONE_REGEX, "Telefone inválido. Use o formato (DD) XXXXX-XXXX");
+  .regex(PHONE_REGEX, "Telefone inválido. Use o formato DD XXXXX-XXXX");
 
 export const cepSchema = z.string()
   .trim()

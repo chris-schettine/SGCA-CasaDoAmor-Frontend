@@ -141,7 +141,7 @@ const CompanionRegisterPage = () => {
       
       await registrarAcompanhanteMutation.mutateAsync(dto);
       setOpenSaveDialog(false);
-      toastSuccessCritical("✓ Acompanhante cadastrado com sucesso!");
+      toastSuccessCritical("Acompanhante cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patients');
       }, 2000);

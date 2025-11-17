@@ -56,7 +56,7 @@ const LandingPage = () => {
                            
                             <Box 
                                 component="img" 
-                                src="/logo1.png" 
+                                src="/logo3.png" 
                                 alt="Logo SGCA"
                                 sx={{ height: 50, width: 'auto' }} 
                             />
