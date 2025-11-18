@@ -22,25 +22,26 @@ const LandingPage = () => {
     const primaryBlue = "#65ACD6";
     const darkBlue = "#0D2E4D";
 
+    // Definição dos cards de funcionalidades
     const features = [
         {
             title: "Gestão de Assistidos",
-            description: "Cadastro detalhado de pacientes e acompanhantes, com histórico médico, social e hospedagem centralizados.",
+            description: "Cadastro completo de pacientes e histórico centralizado.",
             icon: <FavoriteIcon fontSize="large" sx={{ color: primaryBlue }} />
         },
         {
             title: "Segurança & LGPD",
-            description: "Conformidade total com a Lei Geral de Proteção de Dados. Criptografia de ponta e controle de acesso rigoroso.",
+            description: "Conformidade total com a LGPD e criptografia de ponta.",
             icon: <SecurityIcon fontSize="large" sx={{ color: primaryBlue }} />
         },
         {
             title: "Voluntários e Equipe",
-            description: "Organização completa do quadro de funcionários e voluntários, incluindo especialidades e disponibilidade.",
+            description: "Gestão eficiente de escalas e especialidades da equipe.",
             icon: <GroupsIcon fontSize="large" sx={{ color: primaryBlue }} />
         },
         {
             title: "Agenda e Atividades",
-            description: "Controle de consultas médicas, terapias e atividades em grupo para garantir o melhor atendimento.",
+            description: "Controle integrado de consultas e atividades em grupo.",
             icon: <EventNoteIcon fontSize="large" sx={{ color: primaryBlue }} />
         }
     ];
@@ -48,23 +49,22 @@ const LandingPage = () => {
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8F9FA' }}>
             
-           
+            {/* --- NAVBAR --- */}
             <Box sx={{ bgcolor: '#fff', boxShadow: 1, py: 1.5 }}> 
                 <Container maxWidth="lg">
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack direction="row" alignItems="center" gap={2}>
-                           
                             <Box 
                                 component="img" 
                                 src="/logo3.png" 
                                 alt="Logo SGCA"
                                 sx={{ height: 50, width: 'auto' }} 
                             />
-                          
                             <Typography variant="h6" sx={{ color: darkBlue, fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}>
                                 SGCA
                             </Typography>
                         </Stack>
+                        
                         <Button 
                             variant="contained" 
                             startIcon={<LoginIcon />}
@@ -83,12 +83,12 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-         
+            {/* --- HERO SECTION --- */}
             <Box sx={{ 
-              
                 background: `linear-gradient(135deg, ${darkBlue} 0%, #164E78 100%)`, 
                 color: '#fff', 
-                py: { xs: 6, md: 10 }, 
+                pt: { xs: 6, md: 10 }, 
+                pb: { xs: 8, md: 12 },
                 textAlign: 'center', 
                 position: 'relative',
                 overflow: 'hidden'
@@ -96,7 +96,7 @@ const LandingPage = () => {
                 <Container maxWidth="md">
                     
                     <Typography variant="overline" sx={{ color: '#90CAF9', fontWeight: 'bold', letterSpacing: 2 }}>
-                        SISTEMA DE GERENCIAMENTO
+                        SGCA
                     </Typography>
                     
                     <Typography variant="h2" sx={{ 
@@ -107,7 +107,7 @@ const LandingPage = () => {
                         lineHeight: 1.2,
                         color: '#FFFFFF'
                     }}>
-                        Cuidando de quem <Box component="span" sx={{ color: primaryBlue }}>Cuida.</Box>
+                        Sistema de Gerenciamento da  <Box component="span" sx={{ color: primaryBlue }}>Casa do Amor.</Box>
                     </Typography>
                     
                     <Typography variant="h6" sx={{ 
@@ -115,9 +115,10 @@ const LandingPage = () => {
                         fontWeight: 400, 
                         color: '#E0E0E0',
                         mx: 'auto', 
-                        maxWidth: '600px'
+                        maxWidth: '700px',
+                        fontSize: '1.25rem'
                     }}>
-                        A plataforma oficial da Casa do Amor para otimizar operações, garantir a segurança dos dados e focar no acolhimento aos pacientes.
+                        Otimize operações, garanta segurança dos dados e melhore o acolhimento aos pacientes.
                     </Typography>
                     
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
@@ -131,10 +132,11 @@ const LandingPage = () => {
                                 fontWeight: 'bold',
                                 px: 5,
                                 py: 1.5,
-                                fontSize: '1.1rem'
+                                fontSize: '1.1rem',
+                                boxShadow: '0 4px 14px 0 rgba(101, 172, 214, 0.5)'
                             }}
                         >
-                            Entrar no Sistema
+                            Acessar Sistema
                         </Button>
                         
                         <Button 
@@ -154,8 +156,8 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-           
-            <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 }, flexGrow: 1 }}>
+            {/* --- FEATURES SECTION --- */}
+            <Container maxWidth="lg" sx={{ py: 6, flexGrow: 1, mt: -4, position: 'relative', zIndex: 2 }}>
                 <Grid container spacing={3}> 
                     {features.map((feature, index) => (
                         <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
@@ -167,8 +169,9 @@ const LandingPage = () => {
                                 textAlign: 'center',
                                 p: 2,
                                 borderRadius: 3,
-                                boxShadow: '0px 4px 12px rgba(0,0,0,0.05)',
-                                '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s' }
+                                boxShadow: '0px 10px 30px rgba(0,0,0,0.08)',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': { transform: 'translateY(-8px)' }
                             }}>
                                 <Box sx={{ mb: 2, p: 1.5, bgcolor: '#E3F2FD', borderRadius: '50%', color: primaryBlue }}>
                                     {feature.icon}
@@ -177,7 +180,7 @@ const LandingPage = () => {
                                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: darkBlue }}>
                                         {feature.title}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
                                         {feature.description}
                                     </Typography>
                                 </CardContent>
