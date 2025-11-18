@@ -6,7 +6,9 @@ import {
     Grid, 
     Card, 
     CardContent, 
-    Stack
+    Stack,
+    alpha,
+    useTheme
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -18,39 +20,39 @@ import Footer from '../../components/Footer';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const theme = useTheme(); 
 
     const primaryBlue = "#65ACD6";
     const darkBlue = "#0D2E4D";
 
-    // Definição dos cards de funcionalidades
+   
     const features = [
         {
-            title: "Gestão de Assistidos",
-            description: "Cadastro completo de pacientes e histórico centralizado.",
-            icon: <FavoriteIcon fontSize="large" sx={{ color: primaryBlue }} />
+            title: "Cadastro Ágil",
+            description: "Reduza o tempo de admissão em 50% com histórico centralizado.",
+            icon: <FavoriteIcon fontSize="large" />
         },
         {
-            title: "Segurança & LGPD",
-            description: "Conformidade total com a LGPD e criptografia de ponta.",
-            icon: <SecurityIcon fontSize="large" sx={{ color: primaryBlue }} />
+            title: "Dados Blindados",
+            description: "Criptografia de ponta e conformidade total com a LGPD garantida.",
+            icon: <SecurityIcon fontSize="large" />
         },
         {
             title: "Voluntários e Equipe",
-            description: "Gestão eficiente de escalas e especialidades da equipe.",
-            icon: <GroupsIcon fontSize="large" sx={{ color: primaryBlue }} />
+            description: "Equipes otimizadas. Controle total de escalas e especialidades.",
+            icon: <GroupsIcon fontSize="large" />
         },
         {
-            title: "Agenda e Atividades",
-            description: "Controle integrado de consultas e atividades em grupo.",
-            icon: <EventNoteIcon fontSize="large" sx={{ color: primaryBlue }} />
+            title: "Agenda Inteligente",
+            description: "Zero choques de horário e controle integrado de consultas.",
+            icon: <EventNoteIcon fontSize="large" />
         }
     ];
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8F9FA' }}>
-            
-            {/* --- NAVBAR --- */}
-            <Box sx={{ bgcolor: '#fff', boxShadow: 1, py: 1.5 }}> 
+
+            <Box component="nav" sx={{ bgcolor: '#fff', boxShadow: 1, py: 1.5, position: 'sticky', top: 0, zIndex: 1100 }}> 
                 <Container maxWidth="lg">
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack direction="row" alignItems="center" gap={2}>
@@ -66,15 +68,14 @@ const LandingPage = () => {
                         </Stack>
                         
                         <Button 
-                            variant="contained" 
+                            variant="text" 
                             startIcon={<LoginIcon />}
                             onClick={() => navigate('/login')}
+                            aria-label="Acessar área restrita do sistema"
                             sx={{ 
-                                bgcolor: primaryBlue, 
-                                '&:hover': { bgcolor: '#5697c1' },
-                                textTransform: 'none',
-                                fontWeight: 'bold',
-                                borderRadius: 2
+                                fontWeight: 600,
+                                color: darkBlue, 
+                                '&:hover': { bgcolor: alpha(primaryBlue, 0.1) } 
                             }}
                         >
                             Acessar Sistema
@@ -83,33 +84,50 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-            {/* --- HERO SECTION --- */}
+         
             <Box sx={{ 
                 background: `linear-gradient(135deg, ${darkBlue} 0%, #164E78 100%)`, 
                 color: '#fff', 
                 pt: { xs: 6, md: 10 }, 
                 pb: { xs: 8, md: 12 },
+                px: 3, 
                 textAlign: 'center', 
                 position: 'relative',
                 overflow: 'hidden'
             }}>
                 <Container maxWidth="md">
                     
-                    <Typography variant="overline" sx={{ color: '#90CAF9', fontWeight: 'bold', letterSpacing: 2 }}>
-                        SGCA
+                    <Typography 
+                        component="h1" 
+                        variant="h2" 
+                        sx={{ 
+                            fontWeight: 800, 
+                            mt: 1,
+                            mb: 2, 
+                            fontSize: { xs: '2.2rem', md: '3.5rem' },
+                            lineHeight: 1.2,
+                            color: '#FFFFFF'
+                        }}
+                    >
+                        Sistema de Gerenciamento da <Box component="span" sx={{ color: primaryBlue }}>Casa do Amor.</Box>
+                    </Typography>
+
+                   
+                    <Typography 
+                        component="h2" 
+                        variant="h5"  
+                        sx={{ 
+                            fontWeight: 600, 
+                            mb: 1, 
+                            fontSize: { xs: '1.1rem', md: '1.5rem' }, 
+                            lineHeight: 1.2,
+                            color: '#FFFFFF'
+                        }}
+                    >
+                        Gestão humana para quem acolhe com amor.
                     </Typography>
                     
-                    <Typography variant="h2" sx={{ 
-                        fontWeight: 800, 
-                        mt: 1,
-                        mb: 2, 
-                        fontSize: { xs: '2.2rem', md: '3.5rem' },
-                        lineHeight: 1.2,
-                        color: '#FFFFFF'
-                    }}>
-                        Sistema de Gerenciamento da  <Box component="span" sx={{ color: primaryBlue }}>Casa do Amor.</Box>
-                    </Typography>
-                    
+                 
                     <Typography variant="h6" sx={{ 
                         mb: 4, 
                         fontWeight: 400, 
@@ -118,7 +136,7 @@ const LandingPage = () => {
                         maxWidth: '700px',
                         fontSize: '1.25rem'
                     }}>
-                        Otimize operações, garanta segurança dos dados e melhore o acolhimento aos pacientes.
+                        Simplificando a administração para focar no que realmente importa: o bem-estar dos pacientes na Casa do Amor.
                     </Typography>
                     
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
@@ -126,6 +144,7 @@ const LandingPage = () => {
                             variant="contained" 
                             size="large"
                             onClick={() => navigate('/login')}
+                            aria-label="Acessar o sistema agora"
                             sx={{ 
                                 bgcolor: primaryBlue, 
                                 '&:hover': { bgcolor: '#5697c1' },
@@ -142,6 +161,7 @@ const LandingPage = () => {
                         <Button 
                             variant="outlined" 
                             size="large"
+                            aria-label="Saber mais sobre o projeto"
                             sx={{ 
                                 color: '#fff', 
                                 borderColor: 'rgba(255,255,255,0.5)',
@@ -156,28 +176,36 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-            {/* --- FEATURES SECTION --- */}
+           
             <Container maxWidth="lg" sx={{ py: 6, flexGrow: 1, mt: -4, position: 'relative', zIndex: 2 }}>
                 <Grid container spacing={3}> 
                     {features.map((feature, index) => (
                         <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
-                            <Card sx={{ 
-                                height: '100%', 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                alignItems: 'center', 
-                                textAlign: 'center',
-                                p: 2,
-                                borderRadius: 3,
-                                boxShadow: '0px 10px 30px rgba(0,0,0,0.08)',
-                                transition: 'transform 0.3s ease-in-out',
-                                '&:hover': { transform: 'translateY(-8px)' }
-                            }}>
-                                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#E3F2FD', borderRadius: '50%', color: primaryBlue }}>
+                            <Card 
+                                component="article" 
+                                sx={{ 
+                                    height: '100%', 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center', 
+                                    textAlign: 'center',
+                                    p: 3, 
+                                    borderRadius: 3,
+                                    boxShadow: '0px 8px 25px rgba(0, 0, 0, 0.1)', 
+                                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, 
+                                    transition: 'all 0.3s ease-in-out',
+                                    '&:hover': { 
+                                        transform: 'translateY(-8px)', 
+                                        boxShadow: '0px 15px 35px rgba(0, 0, 0, 0.2)', 
+                                        borderColor: alpha(primaryBlue, 0.5) 
+                                    }
+                                }}
+                            >
+                                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#E3F2FD', borderRadius: '50%', color: primaryBlue }} role="img" aria-label={`Ícone de ${feature.title}`}>
                                     {feature.icon}
                                 </Box>
                                 <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-                                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: darkBlue }}>
+                                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700, color: darkBlue }}>
                                         {feature.title}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
