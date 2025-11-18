@@ -74,7 +74,7 @@ const Footer = () => {
                 color: theme.palette.mode === 'dark'
                   ? theme.palette.text.primary
                   : "#FFFFFF",
-                py: 6, 
+                py: { xs: 4, md: 6 }, 
                 px: 3,
                 mt: 'auto',
                 width: '100%',
@@ -89,13 +89,18 @@ const Footer = () => {
             >
                
                 <Grid size={{ xs: 12, md: 5 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' } }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-start', 
+                        textAlign: 'left' 
+                    }}>
                         <Box 
                             component="img"
                             src="/casadoamor.png" 
                             alt="Logo Casa do Amor"
                             sx={{ 
-                                height: 60, 
+                                height: { xs: 50, md: 60 }, 
                                 width: 'auto', 
                                 mb: 2,
                                 filter: 'brightness(0) invert(1)' 
@@ -112,7 +117,7 @@ const Footer = () => {
                             SGCA — Casa do Amor
                         </Typography>
                         
-                        <Typography variant="body2" sx={{ opacity: 0.5, maxWidth: '300px', textAlign: { xs: 'center', md: 'left' }, mb: 3 }}>
+                        <Typography variant="body2" sx={{ opacity: 0.5, maxWidth: '300px', mb: 3 }}>
                             Sistema de Gerenciamento para apoio e acolhimento de pacientes em tratamento.
                         </Typography>
 
@@ -123,10 +128,14 @@ const Footer = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 7 }}>
-                    <Grid container spacing={4} justifyContent={{ xs: 'center', md: 'flex-end' }}>
+                    <Grid 
+                        container 
+                        spacing={4} 
+                        justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
+                    >
                         
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                            <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
+                            <Stack alignItems="flex-start">
                                 <FooterTitle>SGCA</FooterTitle>
                                 <FooterLink href="/about">Documentação</FooterLink>
                                 <FooterLink href="/patients">Home</FooterLink>
@@ -173,7 +182,7 @@ const Footer = () => {
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                            <Stack alignItems={{ xs: 'center', md: 'flex-start' }}>
+                            <Stack alignItems="flex-start">
                                 <FooterTitle>Contato</FooterTitle>
                                 <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />} external>
                                     Instagram
