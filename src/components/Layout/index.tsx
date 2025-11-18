@@ -58,19 +58,21 @@ const closedMixin = (theme: Theme): CSSObject => ({
 const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })<{
     open?: boolean;
 }>(({ theme, open }) => ({
-        width: drawerWidth,
-        flexShrink: 0,
-        boxSizing: 'border-box',
-        ...(open && {
-            ...openedMixin(theme),
-            '& .MuiDrawer-paper': openedMixin(theme),
-        }),
-        ...(!open && {
-            ...closedMixin(theme),
-            '& .MuiDrawer-paper': closedMixin(theme),
-        }),
-    }));
-
+    width: drawerWidth,
+    flexShrink: 0,
+    boxSizing: 'border-box',
+    // Ajuste importante: removemos position fixed/absolute implícitos se houver, 
+    // mas mantemos o mixin padrão.
+    whiteSpace: 'nowrap',
+    ...(open && {
+        ...openedMixin(theme),
+        '& .MuiDrawer-paper': openedMixin(theme),
+    }),
+    ...(!open && {
+        ...closedMixin(theme),
+        '& .MuiDrawer-paper': closedMixin(theme),
+    }),
+}));
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     open?: boolean;
@@ -79,41 +81,38 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     minWidth: 0,
     display: 'flex', 
     flexDirection: 'column',
-   
 }));
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
-})<MuiAppBarProps & { open?: boolean }>(({
-    theme, open
-  }) => {
+})<MuiAppBarProps & { open?: boolean }>(({ theme, open }) => {
     const isDark = theme.palette.mode === 'dark';
     const darkBackground = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(27, 42, 80, 0.95) 100%)';
 
     return {
-    backgroundColor: isDark ? theme.palette.background.paper : theme.custom.brandColors.secondary[500],
-    backgroundImage: isDark ? darkBackground : 'none',
-    color: isDark ? theme.palette.getContrastText(theme.palette.background.paper) : '#FFFFFF',
-    backdropFilter: isDark ? 'blur(6px)' : 'none',
-    zIndex: theme.zIndex.drawer + 1,
-    boxShadow: 'none',
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    width: '100%',
-    marginLeft: 0,
-    [theme.breakpoints.up('md')]: {
-        width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${closedDrawerWidth}px)`,
-        marginLeft: open ? drawerWidth : closedDrawerWidth,
+        backgroundColor: isDark ? theme.palette.background.paper : theme.custom.brandColors.secondary[500],
+        backgroundImage: isDark ? darkBackground : 'none',
+        color: isDark ? theme.palette.getContrastText(theme.palette.background.paper) : '#FFFFFF',
+        backdropFilter: isDark ? 'blur(6px)' : 'none',
+        zIndex: theme.zIndex.drawer + 1,
+        boxShadow: 'none',
         transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
-            duration: open 
-                ? theme.transitions.duration.enteringScreen 
-                : theme.transitions.duration.leavingScreen,
+            duration: theme.transitions.duration.leavingScreen,
         }),
-    },
-  };
+        width: '100%',
+        marginLeft: 0,
+        [theme.breakpoints.up('md')]: {
+            width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${closedDrawerWidth}px)`,
+            marginLeft: open ? drawerWidth : closedDrawerWidth,
+            transition: theme.transitions.create(['width', 'margin'], {
+                easing: theme.transitions.easing.sharp,
+                duration: open 
+                    ? theme.transitions.duration.enteringScreen 
+                    : theme.transitions.duration.leavingScreen,
+            }),
+        },
+    };
 });
 
 const DrawerHeader = styled('div')(({ theme }) => ({
@@ -123,7 +122,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
 }));
-
 
 interface NavItemProps {
     to: string;
@@ -239,8 +237,11 @@ export default function Layout() {
     ];
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        // MUDANÇA 1: Flex Direction Column para permitir o footer abaixo de tudo
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <CssBaseline />
+            
+            {/* Header Fixo */}
             <AppBar 
                 position="fixed" 
                 open={open}
@@ -248,7 +249,6 @@ export default function Layout() {
                 role="banner"
                 aria-label="Cabeçalho principal"
             >
-                 
                  <Toolbar>
                     <IconButton
                         color="inherit"
@@ -335,90 +335,95 @@ export default function Layout() {
                 </List>
             </SwipeableDrawer>
 
-            <StyledDrawer
-                variant="permanent"
-                open={open}
-                sx={{ display: { xs: 'none', md: 'block' } }}
-                PaperProps={{ 
-                    component: 'nav',
-                    'aria-label': 'Navegação principal',
-                    sx: { 
-                        backgroundColor: (theme) => theme.palette.mode === 'dark'
-                          ? theme.palette.background.paper
-                          : theme.custom.brandColors.light[500], 
-                        boxShadow: 'none', 
-                        border: 'none', 
-                        width: open ? drawerWidth : closedDrawerWidth, 
-                        transition: theme => theme.transitions.create('width', { 
-                            easing: theme.transitions.easing.sharp, 
-                            duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen 
-                        }), 
-                        overflowX: 'hidden' 
-                    } 
-                }}
-            >
-                <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
-                    <Box component="img" src="/logo3.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
-                    {open && (
-                        <IconButton 
-                            color="inherit" 
-                            aria-label="fechar drawer" 
-                            onClick={handleDrawerToggle} 
-                            sx={{ 
-                                color: theme.palette.mode === 'dark' 
-                                    ? theme.palette.text.primary 
-                                    : '#000000DA', 
-                                flexShrink: 0 
-                            }}
-                        >
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    )}
-                </DrawerHeader>
-                <List sx={{ padding: '0px' }}>
-                    <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
-                    {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={open} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
-                </List>
-            </StyledDrawer>
-
-            
-            <Main open={open} sx={{ height: '100vh', overflow: 'hidden', p: 0, m: 0 }}>
-               
-                <DrawerHeader />
-
-              
-                <Box 
-                    component="main"
-                    id="main-content"
-                    role="main"
-                    aria-label="Conteúdo principal"
-                    sx={{ 
-                        flexGrow: 1, 
-                        overflowY: 'auto', 
-                        display: 'flex',
-                        flexDirection: 'column',
-                        width: '100%',
+            {/* MUDANÇA 2: Wrapper Intermediário (Row) para Sidebar e Conteúdo */}
+            <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', width: '100%' }}>
+                
+                <StyledDrawer
+                    variant="permanent"
+                    open={open}
+                    sx={{ display: { xs: 'none', md: 'block' } }}
+                    PaperProps={{ 
+                        component: 'nav',
+                        'aria-label': 'Navegação principal',
+                        sx: { 
+                            backgroundColor: (theme) => theme.palette.mode === 'dark'
+                            ? theme.palette.background.paper
+                            : theme.custom.brandColors.light[500], 
+                            boxShadow: 'none', 
+                            border: 'none',
+                            // Importante: A altura será controlada pelo flex container pai
+                            position: 'relative', 
+                            width: open ? drawerWidth : closedDrawerWidth, 
+                            transition: theme => theme.transitions.create('width', { 
+                                easing: theme.transitions.easing.sharp, 
+                                duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen 
+                            }), 
+                            overflowX: 'hidden',
+                            height: '100%'
+                        } 
                     }}
                 >
-                    
-                    
-                    <Box component="div" sx={{ 
-                        flexGrow: 1, 
-                        p: 3, 
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}> 
-                        <Outlet />
-                    </Box>
+                    <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
+                        <Box component="img" src="/logo3.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
+                        {open && (
+                            <IconButton 
+                                color="inherit" 
+                                aria-label="fechar drawer" 
+                                onClick={handleDrawerToggle} 
+                                sx={{ 
+                                    color: theme.palette.mode === 'dark' 
+                                        ? theme.palette.text.primary 
+                                        : '#000000DA', 
+                                    flexShrink: 0 
+                                }}
+                            >
+                                <ChevronLeftIcon />
+                            </IconButton>
+                        )}
+                    </DrawerHeader>
+                    <List sx={{ padding: '0px' }}>
+                        <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
+                        {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={open} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
+                    </List>
+                </StyledDrawer>
 
-                    
-                    <Box component="footer" sx={{ width: '100%', mt: 'auto', flexShrink: 0 }}>
-                        <Footer />
+                {/* Conteúdo Principal - Agora ocupa apenas o espaço restante dentro do wrapper */}
+                <Main open={open} sx={{ height: '100%', overflow: 'hidden', p: 0, m: 0 }}>
+                
+                    <DrawerHeader />
+
+                    <Box 
+                        component="main"
+                        id="main-content"
+                        role="main"
+                        aria-label="Conteúdo principal"
+                        sx={{ 
+                            flexGrow: 1, 
+                            overflowY: 'auto', 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            width: '100%',
+                            height: '100%' 
+                        }}
+                    >
+                        <Box component="div" sx={{ 
+                            flexGrow: 1, 
+                            p: 3, 
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}> 
+                            <Outlet />
+                        </Box>
                     </Box>
-                    
-                </Box>
-            </Main>
+                </Main>
+
+            </Box>
+
+            {/* MUDANÇA 3: Footer agora é irmão do Wrapper, ocupando 100% da largura */}
+            <Box component="footer" sx={{ width: '100%', mt: 'auto', flexShrink: 0, zIndex: (theme) => theme.zIndex.drawer + 2 }}>
+                <Footer />
+            </Box>
 
             <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} />
         </Box>

@@ -19,23 +19,19 @@ const FooterLink = ({ children, href, icon, external }: { children: React.ReactN
             alignItems: 'center',
             gap: 1,
             opacity: 0.7,
-            fontSize: '0.9rem',
-            marginBottom: 1,
+            fontSize: '0.85rem', // Leve redução na fonte
+            marginBottom: 0.5,    // Reduzi margem entre links
             transition: 'opacity 0.2s, color 0.2s',
             '@media (prefers-reduced-motion: reduce)': {
                 transition: 'none',
-                '&:hover': {
-                    transform: 'none',
-                },
+                '&:hover': { transform: 'none' },
             },
             '&:hover': {
                 opacity: 1,
                 color: (theme) => theme.custom.brandColors.secondary[500],
             },
             '@media (min-width: 600px)': {
-                '&:hover': {
-                    transform: 'translateX(5px)',
-                },
+                '&:hover': { transform: 'translateX(3px)' }, // Movimento mais sutil
             },
         }}
     >
@@ -46,11 +42,13 @@ const FooterLink = ({ children, href, icon, external }: { children: React.ReactN
 
 const FooterTitle = ({ children }: { children: React.ReactNode }) => (
     <Typography
-        variant="subtitle1"
+        variant="subtitle2" // Mudei de subtitle1 para 2 (levemente menor)
         sx={{
             fontWeight: 'bold',
-            mb: 2,
+            mb: 1.5, // Reduzi de 2 para 1.5
             color: '#FFFFFF',
+            textTransform: 'uppercase', // Ajuda na hierarquia visual em tamanho menor
+            fontSize: '0.9rem'
         }}
     >
         {children}
@@ -74,7 +72,7 @@ const Footer = () => {
                 color: theme.palette.mode === 'dark'
                   ? theme.palette.text.primary
                   : "#FFFFFF",
-                py: { xs: 4, md: 6 }, 
+                py: 3, // ALTERAÇÃO PRINCIPAL: Reduzido de {xs:4, md:6} para 3
                 px: 3,
                 mt: 'auto',
                 width: '100%',
@@ -84,11 +82,13 @@ const Footer = () => {
         >
             <Grid 
                 container 
-                spacing={4} 
+                spacing={2} // ALTERAÇÃO: Reduzido espaçamento geral de 4 para 2
                 sx={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}
+                alignItems="flex-start" // Alinha tudo ao topo
             >
                
-                <Grid size={{ xs: 12, md: 5 }}>
+                {/* Coluna da Esquerda (Logo e Info) */}
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Box sx={{ 
                         display: 'flex', 
                         flexDirection: 'column', 
@@ -100,41 +100,43 @@ const Footer = () => {
                             src="/casadoamor.png" 
                             alt="Logo Casa do Amor"
                             sx={{ 
-                                height: { xs: 50, md: 60 }, 
+                                height: 40, // Reduzido para ficar mais compacto
                                 width: 'auto', 
-                                mb: 2,
+                                mb: 1.5,
                                 filter: 'brightness(0) invert(1)' 
                             }}
                         />
                         <Typography 
-                            variant="h6" 
+                            variant="subtitle1" 
                             sx={{ 
                                 fontWeight: 'bold', 
                                 color: '#FFFFFF', 
-                                mb: 1 
+                                mb: 0.5,
+                                lineHeight: 1.2
                             }}
                         >
                             SGCA — Casa do Amor
                         </Typography>
                         
-                        <Typography variant="body2" sx={{ opacity: 0.5, maxWidth: '300px', mb: 3 }}>
-                            Sistema de Gerenciamento para apoio e acolhimento de pacientes em tratamento.
+                        <Typography variant="body2" sx={{ opacity: 0.5, maxWidth: '300px', mb: 2, fontSize: '0.85rem' }}>
+                            Apoio e acolhimento de pacientes em tratamento.
                         </Typography>
 
-                        <Typography variant="caption" sx={{ opacity: 0.4 }}>
+                        <Typography variant="caption" sx={{ opacity: 0.4, fontSize: '0.75rem' }}>
                             © {currentYear} — Todos os direitos reservados.
                         </Typography>
                     </Box>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 7 }}>
+                {/* Coluna da Direita (Links) */}
+                <Grid size={{ xs: 12, md: 8 }}>
                     <Grid 
                         container 
-                        spacing={4} 
+                        spacing={2} 
                         justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
                     >
                         
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
                             <Stack alignItems="flex-start">
                                 <FooterTitle>SGCA</FooterTitle>
                                 <FooterLink href="/about">Documentação</FooterLink>
@@ -142,24 +144,15 @@ const Footer = () => {
                             </Stack>
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
                             <Stack alignItems="flex-start">
                                 <FooterTitle>Privacidade</FooterTitle>
                                 <Box 
                                     sx={{ 
-                                        mb: 1,
+                                        mb: 0.5,
                                         display: 'flex',
                                         justifyContent: 'flex-start',
-                                        width: '100%',
-                                        '& > *': {
-                                            opacity: 0.7,
-                                            fontSize: '0.9rem',
-                                            transition: '0.2s',
-                                            '&:hover': {
-                                                opacity: 1,
-                                                color: (theme) => theme.custom.brandColors.secondary[500],
-                                            }
-                                        }
+                                        width: '100%'
                                     }}
                                 >
                                     <ConsentManageLink
@@ -170,27 +163,32 @@ const Footer = () => {
                                             textAlign: 'left',
                                             color: 'inherit',
                                             opacity: 0.7,
-                                            fontSize: '0.9rem',
-                                            marginBottom: 1,
+                                            fontSize: '0.85rem',
+                                            marginBottom: 0.5,
                                             alignItems: 'center',
                                             gap: 1,
+                                            textDecoration: 'none',
+                                            '&:hover': {
+                                                opacity: 1,
+                                                color: (theme) => theme.custom.brandColors.secondary[500],
+                                            }
                                         }}
                                     />
                                 </Box>
-                                <FooterLink href="/privacy-policy">Política de Privacidade</FooterLink>
+                                <FooterLink href="/privacy-policy">Política</FooterLink>
                             </Stack>
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid size={{ xs: 12, sm: 4, md: 3 }}>
                             <Stack alignItems="flex-start">
                                 <FooterTitle>Contato</FooterTitle>
-                                <FooterLink href="https://instagram.com" icon={<InstagramIcon fontSize="small" />} external>
+                                <FooterLink href="https://instagram.com" icon={<InstagramIcon sx={{ fontSize: 18 }} />} external>
                                     Instagram
                                 </FooterLink>
-                                <FooterLink href="mailto:202210325@uesb.edu.br" icon={<EmailIcon fontSize="small" />}>
+                                <FooterLink href="mailto:202210325@uesb.edu.br" icon={<EmailIcon sx={{ fontSize: 18 }} />}>
                                     Email
                                 </FooterLink>
-                                <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon fontSize="small" />} external>
+                                <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon sx={{ fontSize: 18 }} />} external>
                                     WhatsApp
                                 </FooterLink>
                             </Stack>
