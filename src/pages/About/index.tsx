@@ -41,7 +41,7 @@ const stringToColor = (str: string) => {
 const developers = [
     { name: "Christian Rocha", role: "Scrum Master", github: "https://github.com/chris-schettine", linkedin: "#", photo: "" },
     { name: "Cauê Rodrigues", role: "Testes", github: "https://github.com/CauAguiar", linkedin: "#", photo: "caue.jpeg" },
-    { name: "Edson Araujo", role: "Backend", github: "https://github.com/edsonaraujobr", linkedin: "#", photo: "" },
+    { name: "Edson Araujo", role: "Backend", github: "https://github.com/edsonaraujobr", linkedin: "https://www.linkedin.com/in/edsonaraujobr/", photo: "edson.jpeg" },
     { name: "João Henrique", role: "Backend", github: "https://github.com/henriksson666", linkedin: "#", photo: "" },
     { name: "Luís Eduardo", role: "Frontend", github: "https://github.com/Aleff0", linkedin: "#", photo: "" },
     { name: "Matheus Lopes", role: "Frontend", github: "https://github.com/teteulopes", linkedin: "#", photo: "matheus.jpeg" },
