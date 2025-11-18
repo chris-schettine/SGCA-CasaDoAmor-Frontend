@@ -13,14 +13,15 @@ import {
     Card,
     CardContent
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom'; // Import necessário para navegação
 import DescriptionIcon from '@mui/icons-material/Description';
 import CodeIcon from '@mui/icons-material/Code';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Ícone de voltar
 import Footer from '../../components/Footer';
 
+// Dados da equipe (Mantidos conforme seu arquivo)
 const developers = [
     { name: "Christian Rocha", role: "Scrum Master", github: "https://github.com/chris-schettine", linkedin: "#", photo: "" },
     { name: "Cauê Rodrigues", role: "Testes", github: "https://github.com/CauAguiar", linkedin: "#", photo: "caue.jpeg" },
@@ -32,14 +33,16 @@ const developers = [
 ];
 
 const AboutPage = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate(); // Hook para fazer o botão voltar funcionar
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8F9FA' }}>
             
+            {/* HEADER REFORMULADO COM BOTÃO VOLTAR E LOGO */}
             <Box sx={{ bgcolor: '#fff', py: 2, boxShadow: 1 }}>
                 <Container maxWidth="lg">
                     <Stack direction="row" alignItems="center" spacing={2}>
+                        {/* Botão Voltar */}
                         <IconButton 
                             onClick={() => navigate('/')} 
                             aria-label="voltar para o início"
@@ -48,7 +51,10 @@ const AboutPage = () => {
                             <ArrowBackIcon />
                         </IconButton>
 
+                        {/* Divisor Vertical */}
                         <Divider orientation="vertical" flexItem sx={{ height: 24, alignSelf: 'center' }} />
+
+                        {/* Logo Pequena */}
                         <Box 
                             component="img" 
                             src="/logo3.png" 
@@ -56,6 +62,7 @@ const AboutPage = () => {
                             sx={{ height: 32, width: 'auto' }} 
                         />
 
+                        {/* Título */}
                         <Typography variant="h6" color="primary" fontWeight="bold">
                             Sobre o Projeto
                         </Typography>
@@ -67,6 +74,7 @@ const AboutPage = () => {
                 
                 <Grid container spacing={6}>
                     
+                    {/* SEÇÃO: Texto Principal */}
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" fontWeight="bold" gutterBottom color="#0D2E4D">
                             Tecnologia a favor do acolhimento
@@ -96,6 +104,7 @@ const AboutPage = () => {
                         </Box>
                     </Grid>
 
+                    {/* SEÇÃO: Coluna Lateral Downloads */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Paper elevation={0} sx={{ p: 3, borderRadius: 4, bgcolor: '#fff', border: '1px solid #e0e0e0' }}>
                             <Stack spacing={2}>
@@ -153,6 +162,7 @@ const AboutPage = () => {
 
                 <Divider sx={{ my: 8 }} />
 
+                {/* SEÇÃO: Quem faz acontecer */}
                 <Box>
                     <Typography variant="h4" fontWeight="bold" align="center" color="#0D2E4D" gutterBottom>
                         Quem faz acontecer
