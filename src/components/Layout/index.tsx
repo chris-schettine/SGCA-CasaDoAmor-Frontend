@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -27,15 +27,16 @@ import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
+import ConsentimentoLGPDCheck from '../ConsentimentoLGPDCheck';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
-import { useConsent } from '../../consent/hooks/useConsent';
-import { useDesignTokens } from '../../design-tokens/utils';
 import Footer from '../Footer';
-import ThemeToggle from '../ThemeToggle';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
+
+const activeBgColor = '#09244B';
+const activeTextColor = '#FFFFFF';
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -55,9 +56,8 @@ const closedMixin = (theme: Theme): CSSObject => ({
     width: closedDrawerWidth,
 });
 
-const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })<{
-    open?: boolean;
-}>(({ theme, open }) => ({
+const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+    ({ theme, open }: any) => ({
         width: drawerWidth,
         flexShrink: 0,
         boxSizing: 'border-box',
@@ -69,32 +69,30 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'ope
             ...closedMixin(theme),
             '& .MuiDrawer-paper': closedMixin(theme),
         }),
-    }));
+    }),
+);
 
-
+// MUDANÇA PRINCIPAL AQUI: minWidth e display flex corrigidos
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     open?: boolean;
-}>(() => ({
+}>(({ theme }) => ({
     flexGrow: 1,
-    minWidth: 0,
-    display: 'flex', 
+    minWidth: 0, // Impede que o flex-child estoure o pai
+    display: 'flex',
     flexDirection: 'column',
-   
+    transition: theme.transitions.create(['margin', 'width'], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+    }),
+    // Removido marginLeft dinâmico pois o Layout usa flexbox para se ajustar
 }));
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
-})<MuiAppBarProps & { open?: boolean }>(({
-    theme, open
-  }) => {
-    const isDark = theme.palette.mode === 'dark';
-    const darkBackground = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(27, 42, 80, 0.95) 100%)';
-
-    return {
-    backgroundColor: isDark ? theme.palette.background.paper : theme.custom.brandColors.secondary[500],
-    backgroundImage: isDark ? darkBackground : 'none',
-    color: isDark ? theme.palette.getContrastText(theme.palette.background.paper) : '#FFFFFF',
-    backdropFilter: isDark ? 'blur(6px)' : 'none',
+})<{
+    open?: boolean;
+}>(({ theme, open }) => ({
+    backgroundColor: "#65ACD6",
     zIndex: theme.zIndex.drawer + 1,
     boxShadow: 'none',
     transition: theme.transitions.create(['width', 'margin'], {
@@ -113,8 +111,7 @@ const AppBar = styled(MuiAppBar, {
                 : theme.transitions.duration.leavingScreen,
         }),
     },
-  };
-});
+}));
 
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -123,7 +120,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
 }));
-
 
 interface NavItemProps {
     to: string;
@@ -140,15 +136,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     const location = useLocation();
     const theme = useTheme();
     const navigate = useNavigate();
-    const tokens = useDesignTokens();
     
     const isActive = location.pathname.startsWith(to) && to !== '/';
     const isRootActive = (location.pathname === '/' && to === '/patients') || (location.pathname === '/profile' && to === '/profile');
     const isCurrentActive = isActive || isRootActive;
-    
-    const activeBgColor = theme.palette.mode === 'dark' ? theme.palette.primary.main : tokens.brandColors.primary[500];
-    const activeTextColor = '#FFFFFF';
-    const inactiveColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#000000da';
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
@@ -187,10 +178,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
                         width: 'auto',
                     }}
                 >
-                    <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : inactiveColor, fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
+                    <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : '#000000da', fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
                         <Icon sx={{ fontSize: 'inherit' }} />
                     </ListItemIcon>
-                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : inactiveColor, fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
+                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : '#000000da', fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
                 </ListItemButton>
             </Tooltip> 
         </ListItem>
@@ -223,12 +214,11 @@ export default function Layout() {
         { key: 'k', ctrl: true, handler: () => setShortcutsHelpOpen(true), description: 'Exibir ajuda de atalhos' },
         { key: 'Escape', handler: () => setShortcutsHelpOpen(false), description: 'Fechar diálogos' },
         { key: 'p', ctrl: true, handler: () => navigate('/patients'), description: 'Ir para Pacientes' },
-        { key: 'u', ctrl: true, handler: () => navigate('/users'), description: 'Ir para Usuários Autorizados' },
+        { key: 'u', ctrl: true, handler: () => navigate('/users'), description: 'Ir para Profissionais' },
         { key: 'm', ctrl: true, handler: () => navigate('/my-profile'), description: 'Ir para Meu Perfil' },
     ], [navigate]);
 
-    const { dialogOpen } = useConsent();
-    useKeyboardShortcuts(shortcuts, !dialogOpen);
+    useKeyboardShortcuts(shortcuts);
     const { user } = useAuth();
     const navItems = [
         { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 
@@ -241,14 +231,7 @@ export default function Layout() {
     return (
         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <CssBaseline />
-            <AppBar 
-                position="fixed" 
-                open={open}
-                component="header"
-                role="banner"
-                aria-label="Cabeçalho principal"
-            >
-                 
+            <AppBar position="fixed" open={open}>
                  <Toolbar>
                     <IconButton
                         color="inherit"
@@ -266,7 +249,6 @@ export default function Layout() {
                         SGCA
                     </Typography>
                     <Box sx={{ flexGrow: 1 }} />
-                    <ThemeToggle />
                     <Tooltip title="Atalhos de teclado (?)">
                         <IconButton color="inherit" onClick={() => setShortcutsHelpOpen(true)} aria-label="atalhos de teclado" sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <KeyboardIcon fontSize="small" />
@@ -292,38 +274,10 @@ export default function Layout() {
                 onOpen={handleDrawerToggle}
                 disableBackdropTransition
                 disableScrollLock
-                ModalProps={{ 
-                    keepMounted: true,
-                    role: 'navigation',
-                    'aria-label': 'Menu de navegação móvel'
-                }}
-                sx={{ 
-                    display: { xs: 'block', md: 'none' }, 
-                    '& .MuiDrawer-paper': { 
-                        width: drawerWidth, 
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? theme.palette.background.paper 
-                          : theme.custom.brandColors.light[500], 
-                        boxShadow: 'none', 
-                        border: 'none', 
-                        zIndex: (theme) => theme.zIndex.drawer + 2 
-                    }, 
-                    '& .MuiBackdrop-root': { 
-                        zIndex: (theme) => theme.zIndex.drawer + 1, 
-                        backgroundColor: theme.palette.mode === 'dark'
-                          ? 'rgba(0, 0, 0, 0.7)'
-                          : 'rgba(0, 0, 0, 0.5)' 
-                    } 
-                }}
+                ModalProps={{ keepMounted: true }}
+                sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth, backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', zIndex: (theme) => theme.zIndex.drawer + 2 }, '& .MuiBackdrop-root': { zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
             >
-                <DrawerHeader sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'flex-end', 
-                    alignItems: 'center', 
-                    padding: theme.spacing(1, 2), 
-                    minHeight: '56px', 
-                    backgroundColor: theme.custom.brandColors.secondary[500] 
-                }}>
+                <DrawerHeader sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: theme.spacing(1, 2), minHeight: '56px', backgroundColor: '#65ACD6' }}>
                     <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600, color: '#FFFFFF', fontSize: '1rem' }}>Menu</Typography>
                     <IconButton color="inherit" aria-label="fechar menu" onClick={handleDrawerToggle} sx={{ color: '#FFFFFF', flexShrink: 0, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}>
                         <ChevronLeftIcon />
@@ -339,41 +293,11 @@ export default function Layout() {
                 variant="permanent"
                 open={open}
                 sx={{ display: { xs: 'none', md: 'block' } }}
-                PaperProps={{ 
-                    component: 'nav',
-                    'aria-label': 'Navegação principal',
-                    sx: { 
-                        backgroundColor: (theme) => theme.palette.mode === 'dark'
-                          ? theme.palette.background.paper
-                          : theme.custom.brandColors.light[500], 
-                        boxShadow: 'none', 
-                        border: 'none', 
-                        width: open ? drawerWidth : closedDrawerWidth, 
-                        transition: theme => theme.transitions.create('width', { 
-                            easing: theme.transitions.easing.sharp, 
-                            duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen 
-                        }), 
-                        overflowX: 'hidden' 
-                    } 
-                }}
+                PaperProps={{ sx: { backgroundColor: "#C5E4F2", boxShadow: 'none', border: 'none', width: open ? drawerWidth : closedDrawerWidth, transition: theme => theme.transitions.create('width', { easing: theme.transitions.easing.sharp, duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen }), overflowX: 'hidden' } }}
             >
                 <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
-                    <Box component="img" src="/logo3.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
-                    {open && (
-                        <IconButton 
-                            color="inherit" 
-                            aria-label="fechar drawer" 
-                            onClick={handleDrawerToggle} 
-                            sx={{ 
-                                color: theme.palette.mode === 'dark' 
-                                    ? theme.palette.text.primary 
-                                    : '#000000DA', 
-                                flexShrink: 0 
-                            }}
-                        >
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    )}
+                    <Box component="img" src="logo2.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
+                    {open && (<IconButton color="inherit" aria-label="fechar drawer" onClick={handleDrawerToggle} sx={{ color: '#000000DA', flexShrink: 0 }}><ChevronLeftIcon /></IconButton>)}
                 </DrawerHeader>
                 <List sx={{ padding: '0px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
@@ -381,26 +305,23 @@ export default function Layout() {
                 </List>
             </StyledDrawer>
 
-            
+            {/* MUDANÇA: Main com propriedades de segurança */}
             <Main open={open} sx={{ height: '100vh', overflow: 'hidden', p: 0, m: 0 }}>
-               
+                
                 <DrawerHeader />
 
-              
                 <Box 
-                    component="main"
-                    id="main-content"
-                    role="main"
-                    aria-label="Conteúdo principal"
+                    component="div"
                     sx={{ 
                         flexGrow: 1, 
                         overflowY: 'auto', 
+                        overflowX: 'hidden', // Garante que não vaze horizontalmente
                         display: 'flex',
                         flexDirection: 'column',
                         width: '100%',
+                        position: 'relative'
                     }}
                 >
-                    
                     
                     <Box component="div" sx={{ 
                         flexGrow: 1, 
@@ -412,7 +333,6 @@ export default function Layout() {
                         <Outlet />
                     </Box>
 
-                    
                     <Box component="footer" sx={{ width: '100%', mt: 'auto', flexShrink: 0 }}>
                         <Footer />
                     </Box>
@@ -420,6 +340,7 @@ export default function Layout() {
                 </Box>
             </Main>
 
+            <ConsentimentoLGPDCheck />
             <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} />
         </Box>
     );
