@@ -61,8 +61,6 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'ope
     width: drawerWidth,
     flexShrink: 0,
     boxSizing: 'border-box',
-    // Ajuste importante: removemos position fixed/absolute implícitos se houver, 
-    // mas mantemos o mixin padrão.
     whiteSpace: 'nowrap',
     ...(open && {
         ...openedMixin(theme),
@@ -237,11 +235,9 @@ export default function Layout() {
     ];
 
     return (
-        // MUDANÇA 1: Flex Direction Column para permitir o footer abaixo de tudo
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <CssBaseline />
-            
-            {/* Header Fixo */}
             <AppBar 
                 position="fixed" 
                 open={open}
@@ -330,12 +326,12 @@ export default function Layout() {
                     </IconButton>
                 </DrawerHeader>
                 <List sx={{ padding: '8px 0', paddingBottom: '16px' }}>
-                    <Divider sx={{ maxWidth: '90%', margin: '0 auto 8px' }} />
+                    <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
                     {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={true} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
                 </List>
             </SwipeableDrawer>
 
-            {/* MUDANÇA 2: Wrapper Intermediário (Row) para Sidebar e Conteúdo */}
+
             <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', width: '100%' }}>
                 
                 <StyledDrawer
@@ -351,7 +347,7 @@ export default function Layout() {
                             : theme.custom.brandColors.light[500], 
                             boxShadow: 'none', 
                             border: 'none',
-                            // Importante: A altura será controlada pelo flex container pai
+
                             position: 'relative', 
                             width: open ? drawerWidth : closedDrawerWidth, 
                             transition: theme => theme.transitions.create('width', { 
@@ -387,7 +383,6 @@ export default function Layout() {
                     </List>
                 </StyledDrawer>
 
-                {/* Conteúdo Principal - Agora ocupa apenas o espaço restante dentro do wrapper */}
                 <Main open={open} sx={{ height: '100%', overflow: 'hidden', p: 0, m: 0 }}>
                 
                     <DrawerHeader />
@@ -420,7 +415,6 @@ export default function Layout() {
 
             </Box>
 
-            {/* MUDANÇA 3: Footer agora é irmão do Wrapper, ocupando 100% da largura */}
             <Box component="footer" sx={{ width: '100%', mt: 'auto', flexShrink: 0, zIndex: (theme) => theme.zIndex.drawer + 2 }}>
                 <Footer />
             </Box>
