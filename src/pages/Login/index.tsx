@@ -1,4 +1,4 @@
-import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography, useTheme } from "@mui/material";
+import { Box, TextField, Button, Typography, useTheme, alpha, Link as MuiLink, IconButton, InputAdornment, Container, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { isAxiosError } from 'axios';
 import Visibility from '@mui/icons-material/Visibility';
@@ -7,13 +7,24 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
 import { Link as RouterLink } from 'react-router-dom'; 
-import { Link as MuiLink } from '@mui/material';
 import { toastError, toastSuccess } from "../../utils/toast";
 import { AnimatedPageScale } from "../../components/AnimatedPage";
 import { useDesignTokens } from "../../design-tokens/utils";
 import type { AuthSessionResponse } from "../../api/auth.dto";
 import type { LoginResponse } from "../../api/auth.dto";
 import type { UserType } from "../../contexts/AuthContext";
+
+
+const formatCpf = (value: string) => {
+    const cleanedValue = value.replace(/\D/g, '').substring(0, 11);
+    
+    if (cleanedValue.length <= 3) return cleanedValue;
+    if (cleanedValue.length <= 6) return `${cleanedValue.substring(0, 3)}.${cleanedValue.substring(3)}`;
+    if (cleanedValue.length <= 9) return `${cleanedValue.substring(0, 3)}.${cleanedValue.substring(3, 6)}.${cleanedValue.substring(6)}`;
+    return `${cleanedValue.substring(0, 3)}.${cleanedValue.substring(3, 6)}.${cleanedValue.substring(6, 9)}-${cleanedValue.substring(9, 11)}`;
+};
+
+
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
@@ -31,9 +42,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [cpfError, setCpfError] = useState('');
+  const [loading, setLoading] = useState(false); 
 
-  // ✅ Redireciona para dashboard se já autenticado (evita mostrar tela de login)
-  // PublicRoute também faz isso, mas este é um fallback adicional
   useEffect(() => {
     if (isAuthenticated) {
       const redirectTo = locationState?.from?.pathname || '/patients';
@@ -41,21 +51,21 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, locationState]);
 
-  
-  // Mostrar e não mostrar senha
+
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
 
   
-  const handlerCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const onlyDigits = value.replace(/[^0-9]/g, '');
 
-    setCpf(onlyDigits.slice(0, 11));
+  const handlerCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formattedValue = formatCpf(rawValue);
+    const onlyDigits = rawValue.replace(/\D/g, '');
+
+    setCpf(formattedValue);
     
-    // Validação em tempo real do CPF
     if (onlyDigits.length > 0 && onlyDigits.length < 11) {
       setCpfError('CPF deve ter 11 dígitos');
     } else {
@@ -64,11 +74,20 @@ const Login = () => {
   }
 
 
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true); 
+    
+    const rawCpf = cpf.replace(/\D/g, ''); 
+    
+    if (rawCpf.length !== 11) {
+        setCpfError('CPF deve ter 11 dígitos');
+        setLoading(false);
+        return;
+    }
+
     try {
-      const response: LoginResponse = await authService.login(cpf, password);
+      const response: LoginResponse = await authService.login(rawCpf, password);
       const { token } = response;
       const baseUser: UserType | undefined = response.user;
 
@@ -80,10 +99,8 @@ const Login = () => {
         tipoUsuario: response.tipoUsuario ?? baseUser?.tipoUsuario ?? response.tipo,
       };
 
-      // ✅ Salvar token ANTES de chamar /auth/me
       login(token, finalUser);
 
-      // Aguardar sincronização do localStorage (persist middleware)
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       try {
@@ -99,7 +116,7 @@ const Login = () => {
             : raw.roles ?? raw.user?.roles ?? finalUser.roles,
           tipoUsuario: raw.tipo ?? raw.tipoUsuario ?? raw.user?.tipoUsuario ?? finalUser.tipoUsuario,
         };
-        // Atualizar com dados completos do /auth/me
+
         login(token, normalizedUser);
       } catch (err) {
         console.warn('[Login] Falha ao obter /auth/me após login - usando user retornado pelo login', err);
@@ -107,9 +124,6 @@ const Login = () => {
 
       toastSuccess('Login realizado com sucesso!');
       
-      // ✅ Redireciona imediatamente após login bem-sucedido
-      // Usa locationState.from se disponível (tentativa de acesso a rota protegida)
-      // Caso contrário, vai para dashboard principal (/patients)
       const redirectTo = locationState?.from?.pathname || '/patients';
       navigate(redirectTo, { replace: true });
     } catch (error: unknown) {
@@ -123,6 +137,8 @@ const Login = () => {
       } else {
         toastError('Erro desconhecido');
       }
+    } finally {
+        setLoading(false); 
     }
   };
   return (
@@ -134,10 +150,9 @@ const Login = () => {
         minHeight: "100vh", 
         m: 0, 
         p: { xs: 2, sm: 3 }, 
-        backgroundColor: theme.palette.mode === 'dark' 
-          ? theme.palette.background.default 
-          : tokens.brandColors.secondary[500],
+        background: `linear-gradient(135deg, ${tokens.brandColors.primary[500]} 0%, ${alpha(tokens.brandColors.secondary[500], 0.7)} 100%)`,
         transition: 'background-color 0.3s ease',
+        flexDirection: 'column', 
       }}>
       <Container sx={{ 
         display: "flex", 
@@ -152,7 +167,8 @@ const Login = () => {
         borderRadius: `${tokens.borderRadius.base}px`, 
         boxShadow: theme.palette.mode === 'dark'
           ? '0 0 0 200px rgba(59, 95, 191, 0.15)'
-          : '0 0 14px rgba(0, 0, 0, 0.15)',
+          : '0 12px 40px rgba(0, 0, 0, 0.2)',
+        borderTop: `4px solid ${tokens.brandColors.primary[500]}`, 
         transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
       }}>
         <Box
@@ -162,7 +178,9 @@ const Login = () => {
           sx={{ 
             width: { xs: "140px", sm: "180px" }, 
             maxHeight: 100, 
-            objectFit: 'contain'
+            objectFit: 'contain',
+
+            marginBottom: theme.spacing(1) 
           }}
       />
 
@@ -170,10 +188,12 @@ const Login = () => {
           variant="h5" 
           component="h1" 
           sx={{ 
-            fontWeight: 'bold', 
-            mt: 1,
+            fontWeight: 700, 
+            mt: 0.5, 
+            mb: 1.5, 
             fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            textAlign: 'center'
+            textAlign: 'center',
+            color: theme.palette.text.primary, 
           }}
         >
           Sistema de Gerenciamento da Casa do Amor
@@ -206,23 +226,24 @@ const Login = () => {
           <TextField
             label="CPF"
             variant="outlined"
-            value={cpf}
+            value={cpf} 
             onChange={handlerCpfChange}
             fullWidth
+            required
+            type="tel" 
+            autoComplete="username" 
+            error={!!cpfError}
+            helperText={cpfError || "Formato: 000.000.000-00"} 
+            inputProps={{ 
+              maxLength: 14, 
+              'aria-label': 'Digite seu CPF com 11 dígitos'
+            }}
+
             sx={{ 
               "& .MuiInputBase-root": {
                 height: { xs: 48, sm: 54 },
                 borderRadius: 2,
               }
-            }}
-            required
-            type="tel"
-            autoComplete="username" 
-            error={!!cpfError}
-            helperText={cpfError || "Digite apenas números"}
-            inputProps={{ 
-              maxLength: 11,
-              'aria-label': 'Digite seu CPF com 11 dígitos'
             }}
           />
 
@@ -234,32 +255,30 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
+            inputProps={{
+              'aria-label': 'Digite sua senha'
+            }}
             sx={{ 
               "& .MuiInputBase-root": {
                 height: { xs: 48, sm: 54 },
                 borderRadius: 2,
               }
             }}
-            autoComplete="current-password"
-            inputProps={{
-              'aria-label': 'Digite sua senha'
-            }}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                      size="small"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }
+            InputProps={{ 
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
 
@@ -272,9 +291,9 @@ const Login = () => {
               py: { xs: 1.25, sm: 1.5 }, 
               px: 3,
               fontWeight: 600, 
-              textTransform: "none", // Remove uppercase para evitar sobreposição
+              textTransform: "none", 
               fontSize: { xs: '0.9375rem', sm: '1rem' },
-              minHeight: { xs: '44px', sm: '48px' }, // WCAG 2.2 touch target
+              minHeight: { xs: '44px', sm: '48px' },
               letterSpacing: '0.02em',
               '&:focus-visible': {
                 outline: `${tokens.focus.outlineWidth}px solid ${tokens.brandColors.primary[500]}`,
@@ -282,12 +301,16 @@ const Login = () => {
               },
               '&:hover': {
                 backgroundColor: tokens.brandColors.primary[600],
+                transform: 'translateY(-2px)',
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
               },
             }}
             type="submit"
             aria-label="Fazer login no sistema"
+            disabled={loading} 
           >
-            Entrar
+
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
           </Button>
         </Box>
         
@@ -298,13 +321,52 @@ const Login = () => {
             to="/forgot-password" 
             variant="body2"
             underline="hover"
-            sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}
+            sx={{ 
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                color: tokens.brandColors.primary[500], 
+                fontWeight: 500,
+                padding: '8px 0', 
+                display: 'inline-block' 
+            }}
           >
             Esqueci minha senha
           </MuiLink>
         </Box>
       </Container>
     
+      <Box sx={{ 
+        mt: 4, 
+        textAlign: 'center', 
+        color: alpha(theme.palette.common.white, 0.7),
+        position: 'absolute',
+        bottom: 10,
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px'
+      }}>
+        {/* IMPLEMENTAÇÃO: Segurança (Link de Privacidade) */}
+        <MuiLink
+            component={RouterLink}
+            to="/privacy-policy" 
+            variant="caption"
+            underline="hover"
+            sx={{ 
+                color: 'inherit',
+                fontWeight: 500,
+                fontSize: '0.75rem',
+                padding: '4px 8px',
+                display: 'inline-block'
+            }}
+          >
+            Política de Privacidade
+          </MuiLink>
+        <Typography variant="caption">
+            © {new Date().getFullYear()} Sistema de Gerenciamento da Casa do Amor | UESB
+        </Typography>
+      </Box>
+
       </Box>
     </AnimatedPageScale>
   )
