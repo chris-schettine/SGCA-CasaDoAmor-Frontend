@@ -333,7 +333,7 @@ const AboutPage = () => {
                     </Typography>
                     <Typography variant="body2" color={theme.palette.text.primary} sx={{ maxWidth: '800px', mx: 'auto', fontStyle: 'italic' }}>
                         "O projeto do SGCA avança hoje graças às contribuições de muitas mãos.
-                        Agradecemos especialmente à turma do semestre anterior pelo trabalho seminal que iniciou essa jornada.
+                        Agradecemos especialmente à turma do semestre anterior (2024.2) pelo trabalho seminal que iniciou essa jornada.
                         Honramos esse legado inicial ao dar continuidade aos esforços em prol da Casa do Amor,
                         reforçando que cada etapa é vital para o todo."
                     </Typography>
