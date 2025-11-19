@@ -67,7 +67,7 @@ export const brandColors = {
     200: '#142C46',
     300: '#11253C',
     400: '#0E1E32',
-    500: '#0D2E4D', // Main dark
+    500: '#396880', // Main dark - updated to a lighter tone for better contrast
     600: '#0A253D',
     700: '#081C2D',
     800: '#05131D',

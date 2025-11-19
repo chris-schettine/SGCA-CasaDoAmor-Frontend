@@ -24,7 +24,7 @@ import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
-import { styled, useTheme, type Theme } from '@mui/material/styles';
+import { styled, useTheme, type Theme, alpha } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
 import { useAuth } from '../../hooks/useAuth';
@@ -143,8 +143,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     const isCurrentActive = isActive || isRootActive;
     
     const activeBgColor = theme.palette.mode === 'dark' ? theme.palette.primary.main : tokens.brandColors.primary[500];
-    const activeTextColor = '#FFFFFF';
-    const inactiveColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#000000da';
+    const activeTextColor = theme.palette.common.white;
+    const inactiveColor = theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.85) : alpha(theme.palette.text.primary, 0.85);
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
@@ -320,8 +320,8 @@ export default function Layout() {
                     minHeight: '56px', 
                     backgroundColor: theme.custom.brandColors.secondary[500] 
                 }}>
-                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600, color: '#FFFFFF', fontSize: '1rem' }}>Menu</Typography>
-                    <IconButton color="inherit" aria-label="fechar menu" onClick={handleDrawerToggle} sx={{ color: '#FFFFFF', flexShrink: 0, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600, color: theme.palette.common.white, fontSize: '1rem' }}>Menu</Typography>
+                    <IconButton color="inherit" aria-label="fechar menu" onClick={handleDrawerToggle} sx={{ color: theme.palette.common.white, flexShrink: 0, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: alpha(theme.palette.common.white, 0.1) } }}>
                         <ChevronLeftIcon />
                     </IconButton>
                 </DrawerHeader>
@@ -360,7 +360,36 @@ export default function Layout() {
                     }}
                 >
                     <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
-                        <Box component="img" src="/logo3.png" alt="Icone Casa do Amor" onClick={() => navigate('/patients')} sx={{ width: open ? "120px" : "80px", height: "auto", objectFit: 'contain', flexShrink: 0, display: { xs: 'none', sm: 'block' }, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', padding: '8px 12px', borderRadius: '4px', transition: 'all 150ms ease-in-out', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' } }} />
+                        {/* Use footer logo in dark theme to match footer visual identity */}
+                        {(() => {
+                            const logoSrc = theme.palette.mode === 'dark' ? '/casadoamor.png' : '/logo3.png';
+                            const logoFilter = theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : undefined;
+                            return (
+                                <Box
+                                    component="img"
+                                    src={logoSrc}
+                                    alt="Icone Casa do Amor"
+                                    onClick={() => navigate('/patients')}
+                                    sx={{
+                                        width: open ? "120px" : "80px",
+                                        height: "auto",
+                                        objectFit: 'contain',
+                                        flexShrink: 0,
+                                        display: { xs: 'none', sm: 'block' },
+                                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
+                                        cursor: 'pointer',
+                                        userSelect: 'none',
+                                        WebkitTapHighlightColor: 'transparent',
+                                        padding: '8px 12px',
+                                        borderRadius: '4px',
+                                        transition: 'all 150ms ease-in-out',
+                                        '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+                                        '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' },
+                                        filter: logoFilter
+                                    }}
+                                />
+                            );
+                        })()}
                         {open && (
                             <IconButton 
                                 color="inherit" 

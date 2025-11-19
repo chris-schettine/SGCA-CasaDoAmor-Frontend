@@ -38,7 +38,7 @@ const CompanionInformation = () => {
       ]} />
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography component="h1" sx={{ fontSize: "24px", color: "#000", fontWeight: 600, m: 0 }}>
+        <Typography component="h1" sx={{ fontSize: "24px", color: 'text.primary', fontWeight: 600, m: 0 }}>
           {acompanhante.dadoPessoal?.nome}
         </Typography>
         <Button

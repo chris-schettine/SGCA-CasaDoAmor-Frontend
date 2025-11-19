@@ -51,12 +51,12 @@ const developers = [
 const AboutPage = () => {
     const navigate = useNavigate(); 
     const theme = useTheme();
-    const darkBlue = "#0D2E4D"; 
+    const darkBlue = theme.custom.brandColors.secondary[500];
 
     return (
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8F9FA' }}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
 
-            <Box sx={{ bgcolor: '#fff', py: 2, boxShadow: 1 }}>
+            <Box sx={{ bgcolor: theme.palette.background.paper, py: 2, boxShadow: 1 }}>
                 <Container maxWidth="lg">
                     <Stack direction="row" alignItems="center" spacing={2}>
                         <IconButton 
@@ -133,7 +133,7 @@ const AboutPage = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Paper elevation={4} sx={{ p: 3, borderRadius: 4, bgcolor: '#fff', border: '1px solid #e0e0e0' }}>
+                        <Paper elevation={4} sx={{ p: 3, borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                             <Stack spacing={2}>
                                 <Typography variant="h6" fontWeight="bold" color={darkBlue}>
                                     Documentação Técnica
@@ -213,18 +213,18 @@ const AboutPage = () => {
                         {developers.map((dev, index) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}> 
                                 <Card sx={{ 
-                                    height: '100%', 
-                                    textAlign: 'center', 
-                                    borderRadius: 3,
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                    border: '1px solid transparent',
-                                    transition: '0.3s',
-                                    '&:hover': { 
-                                        transform: 'translateY(-8px)', 
-                                        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                                        borderColor: theme.palette.primary.main 
-                                    }
-                                }}>
+                                            height: '100%', 
+                                            textAlign: 'center', 
+                                            borderRadius: 3,
+                                            boxShadow: theme.custom.shadows.md,
+                                            border: '1px solid transparent',
+                                            transition: '0.3s',
+                                            '&:hover': { 
+                                                transform: 'translateY(-8px)', 
+                                                boxShadow: theme.custom.shadows.xl,
+                                                borderColor: theme.palette.primary.main 
+                                            }
+                                        }}>
                                     <CardContent sx={{ pt: 4 }}>
                                         <Avatar 
                                             title={dev.name} 

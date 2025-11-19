@@ -1,4 +1,4 @@
-import { Box, Button, Container, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Container, TextField, Typography, CircularProgress, useTheme, Paper, Stack } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -7,24 +7,7 @@ import { toastError, toastSuccess } from "../../utils/toast";
 import { isAxiosError } from "axios";
 
 
-const BoxStyles = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100vh',
-  backgroundColor: '#f5f5f5',
-};
-
-const ContainerFormStyles = {
-  backgroundColor: 'white',
-  padding: '2rem',
-  borderRadius: '8px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.5rem',
-  width: { xs: '90%', sm: '400px' },
-};
+// Styles moved into the component to use theme tokens
 
 // Hook p n=...)
 function useQuery() {
@@ -33,6 +16,7 @@ function useQuery() {
 
 const ActivateAccountPage = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const query = useQuery();
   
   const [token, setToken] = useState<string | null>(null);
@@ -99,11 +83,40 @@ const ActivateAccountPage = () => {
   };
 
   return (
-    <Box sx={BoxStyles}>
-      <Container sx={ContainerFormStyles} component="form" onSubmit={handleSubmit}>
-        <Typography variant="h5" component="h1" sx={{ textAlign: 'center' }}>
-          Ativar Conta e Definir Senha
-        </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        px: 2,
+        py: 8,
+        bgcolor: theme.palette.background.default,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            p: { xs: 3, sm: 5 },
+            borderRadius: 2,
+            boxShadow: theme.custom.shadows.md,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            width: '100%',
+            bgcolor: theme.palette.background.paper,
+          }}
+        >
+          <Stack alignItems="center" spacing={1}>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 700, textAlign: 'center' }}>
+              Ativar Conta
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              Crie sua senha e ative seu acesso ao sistema da Casa do Amor.
+            </Typography>
+          </Stack>
 
         <TextField
           label="Email"
@@ -125,7 +138,7 @@ const ActivateAccountPage = () => {
           required
         />
         
-        <Box>
+        <Box sx={{ position: 'relative' }}>
           <TextField
             label="Nova Senha"
             variant="outlined"
@@ -148,14 +161,27 @@ const ActivateAccountPage = () => {
           required
         />
 
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isLoading || !token}
-          fullWidth
-        >
-          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Ativar Conta"}
-        </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading || !token}
+            fullWidth
+            sx={{ mt: 1, py: 1.25 }}
+          >
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : "Ativar Conta"}
+          </Button>
+
+          <Box sx={{ mt: 1, textAlign: 'center' }}>
+            <Button
+              variant="text"
+              onClick={() => navigate('/login')}
+              size="small"
+              sx={{ color: theme.palette.text.secondary }}
+            >
+              Já tem conta? Fazer login
+            </Button>
+          </Box>
+        </Paper>
       </Container>
     </Box>
   );

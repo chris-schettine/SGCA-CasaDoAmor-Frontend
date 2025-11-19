@@ -1,1 +1,0 @@
-const o=async n=>{const e=n.replace(/\D/g,"");if(e.length!==8)return null;try{const r=await fetch(`https://viacep.com.br/ws/${e}/json/`);if(!r.ok)return console.error("Erro ao buscar CEP:",r.statusText),null;const t=await r.json();return t.erro?null:t}catch(r){return console.error("Erro na requisição da API ViaCEP:",r),null}};export{o as fetchAddressByCep};

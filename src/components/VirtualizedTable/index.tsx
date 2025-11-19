@@ -171,10 +171,10 @@ export function VirtualizedTable<T extends TableRowData>({
                           sx={{
                             display: 'table-row',
                             cursor: onRowClick ? 'pointer' : 'default',
-                            backgroundColor: isOdd ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                            backgroundColor: isOdd ? (theme) => theme.palette.action.hover : 'transparent',
                             transition: 'background-color 0.15s ease',
                             '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                              backgroundColor: (theme) => theme.palette.action.selected,
                             },
                           }}
                         >

@@ -203,7 +203,12 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box component="span" sx={{ fontWeight: 600 }}>{column.label}</Box>
                       <StandardTooltip title="Filtrar por função">
-                        <IconButton size="small" onClick={handleOpenFilter} aria-label="filtrar-funcao">
+                        <IconButton
+                          size="small"
+                          onClick={handleOpenFilter}
+                          aria-label="filtrar-funcao"
+                          sx={{ color: theme.palette.mode === 'light' ? theme.palette.common.white : undefined }}
+                        >
                           <FilterListIcon fontSize="small" />
                         </IconButton>
                       </StandardTooltip>

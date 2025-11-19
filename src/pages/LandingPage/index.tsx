@@ -22,8 +22,13 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const theme = useTheme(); 
 
-    const primaryBlue = "#65ACD6";
-    const darkBlue = "#0D2E4D";
+    const primaryBlue = theme.palette.secondary.main;
+    // Use a branded blue for the landing page header and text
+    const darkBlue = theme.custom.brandColors.secondary[500];
+
+    // Darker gradient colors for the landing background
+    const bgStartColor = theme.custom.brandColors.secondary[700];
+    const bgEndColor = theme.custom.brandColors.dark[600];
 
    
     const features = [
@@ -50,9 +55,9 @@ const LandingPage = () => {
     ];
 
     return (
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F8F9FA' }}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
 
-            <Box component="nav" sx={{ bgcolor: '#fff', boxShadow: 1, py: 1.5, position: 'sticky', top: 0, zIndex: 1100 }}> 
+            <Box component="nav" sx={{ bgcolor: theme.palette.background.paper, boxShadow: 1, py: 1.5, position: 'sticky', top: 0, zIndex: 1100 }}> 
                 <Container maxWidth="lg">
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack direction="row" alignItems="center" gap={2}>
@@ -75,7 +80,7 @@ const LandingPage = () => {
                             sx={{ 
                                 fontWeight: 600,
                                 color: darkBlue, 
-                                '&:hover': { bgcolor: alpha(primaryBlue, 0.1) } 
+                                '&:hover': { bgcolor: alpha(primaryBlue, 0.08) } 
                             }}
                         >
                             Acessar Sistema
@@ -85,9 +90,9 @@ const LandingPage = () => {
             </Box>
 
          
-            <Box sx={{ 
-                background: `linear-gradient(135deg, ${darkBlue} 0%, #164E78 100%)`, 
-                color: '#fff', 
+                <Box sx={{ 
+                background: `linear-gradient(135deg, ${bgStartColor} 0%, ${alpha(bgEndColor, 0.95)} 100%)`, 
+                color: theme.palette.common.white, 
                 pt: { xs: 6, md: 10 }, 
                 pb: { xs: 8, md: 12 },
                 px: 3, 
@@ -106,7 +111,7 @@ const LandingPage = () => {
                             mb: 2, 
                             fontSize: { xs: '2.2rem', md: '3.5rem' },
                             lineHeight: 1.2,
-                            color: '#FFFFFF'
+                            color: theme.palette.common.white
                         }}
                     >
                         Sistema de Gerenciamento da <Box component="span" sx={{ color: primaryBlue }}>Casa do Amor.</Box>
@@ -121,7 +126,7 @@ const LandingPage = () => {
                             mb: 1, 
                             fontSize: { xs: '1.1rem', md: '1.5rem' }, 
                             lineHeight: 1.2,
-                            color: '#FFFFFF'
+                            color: theme.palette.common.white
                         }}
                     >
                         Gestão humana para quem acolhe com amor.
@@ -131,7 +136,7 @@ const LandingPage = () => {
                     <Typography variant="h6" sx={{ 
                         mb: 4, 
                         fontWeight: 400, 
-                        color: '#E0E0E0',
+                            color: theme.custom.neutralColors[300],
                         mx: 'auto', 
                         maxWidth: '700px',
                         fontSize: '1.25rem'
@@ -147,12 +152,12 @@ const LandingPage = () => {
                             aria-label="Acessar o sistema agora"
                             sx={{ 
                                 bgcolor: primaryBlue, 
-                                '&:hover': { bgcolor: '#5697c1' },
+                                '&:hover': { bgcolor: theme.palette.secondary.dark },
                                 fontWeight: 'bold',
                                 px: 5,
                                 py: 1.5,
                                 fontSize: '1.1rem',
-                                boxShadow: '0 4px 14px 0 rgba(101, 172, 214, 0.5)'
+                                boxShadow: `0 4px 14px 0 ${alpha(theme.palette.secondary.main, 0.5)}`
                             }}
                         >
                             Acessar Sistema
@@ -163,9 +168,9 @@ const LandingPage = () => {
                             size="large"
                             aria-label="Saber mais sobre o projeto"
                             sx={{ 
-                                color: '#fff', 
-                                borderColor: 'rgba(255,255,255,0.5)',
-                                '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' },
+                                color: theme.palette.common.white, 
+                                borderColor: alpha(theme.palette.common.white, 0.5),
+                                '&:hover': { borderColor: theme.palette.common.white, bgcolor: alpha(theme.palette.common.white, 0.08) },
                                 px: 4
                             }}
                             onClick={() => navigate('/about')} 
@@ -191,17 +196,17 @@ const LandingPage = () => {
                                     textAlign: 'center',
                                     p: 3, 
                                     borderRadius: 3,
-                                    boxShadow: '0px 8px 25px rgba(0, 0, 0, 0.1)', 
+                                    boxShadow: theme.custom.shadows.xl,
                                     border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, 
                                     transition: 'all 0.3s ease-in-out',
                                     '&:hover': { 
                                         transform: 'translateY(-8px)', 
-                                        boxShadow: '0px 15px 35px rgba(0, 0, 0, 0.2)', 
+                                        boxShadow: theme.custom.shadows['xl'] || '0px 15px 35px rgba(0, 0, 0, 0.2)', 
                                         borderColor: alpha(primaryBlue, 0.5) 
                                     }
                                 }}
                             >
-                                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#E3F2FD', borderRadius: '50%', color: primaryBlue }} role="img" aria-label={`Ícone de ${feature.title}`}>
+                                <Box sx={{ mb: 2, p: 1.5, bgcolor: theme.custom.brandColors.secondary[50], borderRadius: '50%', color: primaryBlue }} role="img" aria-label={`Ícone de ${feature.title}`}>
                                     {feature.icon}
                                 </Box>
                                 <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>

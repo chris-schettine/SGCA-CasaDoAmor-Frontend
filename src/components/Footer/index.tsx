@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Link, Grid, Stack, useTheme } from '@mui/material';
+import { Box, Typography, Link, Grid, Stack, useTheme, alpha } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import EmailIcon from '@mui/icons-material/Email';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
@@ -46,7 +46,7 @@ const FooterTitle = ({ children }: { children: React.ReactNode }) => (
         sx={{
             fontWeight: 'bold',
             mb: 1.5, // Reduzi de 2 para 1.5
-            color: '#FFFFFF',
+            color: 'inherit',
             textTransform: 'uppercase', // Ajuda na hierarquia visual em tamanho menor
             fontSize: '0.9rem'
         }}
@@ -66,18 +66,18 @@ const Footer = () => {
             role="contentinfo"
             aria-label="Rodapé do site"
             sx={{
-                backgroundColor: theme.palette.mode === 'dark'
-                  ? theme.palette.background.default
-                  : tokens.brandColors.dark[500], 
-                color: theme.palette.mode === 'dark'
-                  ? theme.palette.text.primary
-                  : "#FFFFFF",
+                        backgroundColor: theme.palette.mode === 'dark'
+                                    ? theme.palette.background.default
+                                    : tokens.brandColors.primary[500], 
+                                color: theme.palette.mode === 'dark'
+                                    ? theme.palette.text.primary
+                                    : theme.palette.getContrastText(tokens.brandColors.primary[500]),
                 py: 3, // ALTERAÇÃO PRINCIPAL: Reduzido de {xs:4, md:6} para 3
                 px: 3,
                 mt: 'auto',
                 width: '100%',
                 zIndex: 1,
-                borderTop: '1px solid rgba(255,255,255,0.05)'
+                borderTop: `1px solid ${alpha(theme.palette.common.white, 0.05)}`
             }}
         >
             <Grid 
@@ -110,7 +110,7 @@ const Footer = () => {
                             variant="subtitle1" 
                             sx={{ 
                                 fontWeight: 'bold', 
-                                color: '#FFFFFF', 
+                                color: 'inherit', 
                                 mb: 0.5,
                                 lineHeight: 1.2
                             }}

@@ -140,7 +140,7 @@ const PatientInformation = () => {
       ]} />
       {patient && (
         <>
-          <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: "#000", fontWeight: 600, m: 0 }}>
+          <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: 'text.primary', fontWeight: 600, m: 0 }}>
             {patient.dadoPessoal?.nome}
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: '8px', sm: '12px' } }}>
@@ -341,7 +341,7 @@ const PatientInformation = () => {
         </>
       )}
 
-      <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: "#000", fontWeight: 600, m: 0, mt: 3 }}>
+      <Typography component="h1" sx={{ fontSize: { xs: "20px", sm: "24px" }, color: 'text.primary', fontWeight: 600, m: 0, mt: 3 }}>
         Prontuários
       </Typography>
       <Box sx={{ 
