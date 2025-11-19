@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Box, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Box, useMediaQuery, useTheme, lighten } from '@mui/material';
 import { isAxiosError } from 'axios';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
@@ -18,6 +18,11 @@ const SessionsPage = () => {
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Increase lightness for success chip backgrounds in light mode so text remains legible and green feels softer
+  const successBg = theme.palette.mode === 'light' ? lighten(theme.palette.success.main, 0.6) : theme.palette.success.main;
+  const primaryBg = theme.palette.mode === 'light' ? lighten(theme.palette.primary.main, 0.34) : theme.palette.primary.main;
+  const revokeBg = theme.palette.mode === 'light' ? lighten(theme.palette.error.main, 0.42) : theme.palette.error.main;
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -85,20 +90,46 @@ const SessionsPage = () => {
                   label: 'Status', 
                   value: (
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {s.ativo ? <Chip label="Ativo" color="success" size="small" /> : <Chip label="Inativo" size="small" />}
-                      {s.atual && <Chip label="Atual" color="primary" size="small" />}
+                      {s.ativo ? (
+                        <Chip
+                          label="Ativo"
+                          size="small"
+                          sx={{
+                            backgroundColor: successBg,
+                            color: theme.palette.getContrastText(successBg),
+                          }}
+                        />
+                      ) : (
+                        <Chip label="Inativo" size="small" />
+                      )}
+                      {s.atual && (
+                        <Chip
+                          label="Atual"
+                          size="small"
+                          sx={{
+                            backgroundColor: primaryBg,
+                            color: theme.palette.getContrastText(primaryBg),
+                          }}
+                        />
+                      )}
                     </Box>
                   )
                 },
               ]}
               actions={
                 <Button 
-                  variant="outlined" 
+                  variant="contained" 
                   color="error" 
                   size="small" 
                   onClick={() => handleRevokeClick(s.id)} 
                   disabled={s.atual}
                   fullWidth
+                  sx={{
+                    backgroundColor: revokeBg,
+                    color: theme.palette.getContrastText(revokeBg),
+                    '&:hover': { backgroundColor: theme.palette.error.main },
+                    '&.Mui-disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled }
+                  }}
                 >
                   Revogar
                 </Button>
@@ -133,10 +164,29 @@ const SessionsPage = () => {
                   <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.userAgent || '-'}</TableCell>
                   <TableCell>{formatISOToLocalDateTime(s.criadoEm) || s.criadoEm}</TableCell>
                   <TableCell>{formatISOToLocalDateTime(s.expiraEm) || s.expiraEm}</TableCell>
-                  <TableCell>{s.ativo ? <Chip label="Sim" color="success" size="small" /> : <Chip label="Não" size="small" />}</TableCell>
-                  <TableCell>{s.atual ? <Chip label="Sim" color="primary" size="small" /> : <Chip label="Não" size="small" />}</TableCell>
                   <TableCell>
-                    <Button variant="outlined" color="error" size="small" onClick={() => handleRevokeClick(s.id)} sx={{ mr: 1 }} disabled={s.atual}>
+                    {s.ativo ? (
+                      <Chip label="Sim" size="small" sx={{ backgroundColor: successBg, color: theme.palette.getContrastText(successBg) }} />
+                    ) : (
+                      <Chip label="Não" size="small" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {s.atual ? (
+                      <Chip label="Sim" size="small" sx={{ backgroundColor: primaryBg, color: theme.palette.getContrastText(primaryBg) }} />
+                    ) : (
+                      <Chip label="Não" size="small" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      size="small"
+                      onClick={() => handleRevokeClick(s.id)}
+                      sx={{ mr: 1, backgroundColor: revokeBg, color: theme.palette.getContrastText(revokeBg), '&:hover': { backgroundColor: theme.palette.error.main }, '&.Mui-disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled } }}
+                      disabled={s.atual}
+                    >
                       Revogar
                     </Button>
                   </TableCell>
