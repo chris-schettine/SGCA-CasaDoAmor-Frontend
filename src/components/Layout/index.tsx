@@ -348,7 +348,7 @@ export default function Layout() {
 
             <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', width: '100%' }}>
                 
-                <StyledDrawer
+            <StyledDrawer
                     variant="permanent"
                     open={open}
                     sx={{ display: { xs: 'none', md: 'block' } }}
@@ -366,45 +366,61 @@ export default function Layout() {
                             width: open ? drawerWidth : closedDrawerWidth, 
                             transition: theme => theme.transitions.create('width', { 
                                 easing: theme.transitions.easing.sharp, 
-                                duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen 
+                                duration: theme.transitions.duration.leavingScreen 
                             }), 
                             overflowX: 'hidden',
                             height: '100%'
                         } 
                     }}
                 >
-                    <DrawerHeader sx={{ display: 'flex', justifyContent: open ? 'space-between' : 'center', alignItems: 'center', padding: theme.spacing(0, open ? 2 : 1), minHeight: '64px' }}>
-                        {/* Use footer logo in dark theme to match footer visual identity */}
-                        {(() => {
-                            const logoSrc = theme.palette.mode === 'dark' ? '/casadoamor.png' : '/logo3.png';
-                            const logoFilter = theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : undefined;
-                            return (
-                                <Box
-                                    component="img"
-                                    src={logoSrc}
-                                    alt="Icone Casa do Amor"
-                                    onClick={() => navigate('/patients')}
-                                    sx={{
-                                        width: open ? "120px" : "80px",
-                                        height: "auto",
-                                        objectFit: 'contain',
-                                        flexShrink: 0,
-                                        display: { xs: 'none', sm: 'block' },
-                                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
-                                        cursor: 'pointer',
-                                        userSelect: 'none',
-                                        WebkitTapHighlightColor: 'transparent',
-                                        padding: '8px 12px',
-                                        borderRadius: '4px',
-                                        transition: 'all 150ms ease-in-out',
-                                        '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-                                        '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' },
-                                        filter: logoFilter
-                                    }}
-                                />
-                            );
-                        })()}
-                        {open && (
+                    {/* Alteração na linha 430: Simplificamos o justifyContent para flex-start */}
+                    <DrawerHeader sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'flex-start', 
+                        alignItems: 'center', 
+                        // CORREÇÃO: Padding condicional no DrawerHeader. 
+                        // É zero quando fechado (open=false), para usar os 80px completos.
+                        padding: theme.spacing(0, open ? 1 : 0), 
+                        minHeight: '64px' 
+                    }}>
+                        {/* WRAPPER PARA CENTRALIZAÇÃO */}
+                        <Box sx={{ 
+                            flexGrow: 1, 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            alignItems: 'center',
+                            minWidth: open ? 'auto' : closedDrawerWidth, 
+                            padding: theme.spacing(0, open ? 2 : 0) // Padding condicional (corrigido)
+                        }}>
+                            {/* Logo Image Component */}
+                            {(() => {
+                                const logoSrc = theme.palette.mode === 'dark' ? '/casadoamor.png' : '/logo3.png';
+                                const logoFilter = theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : undefined;
+                                return (
+                                    <Box
+                                        component="img"
+                                        src={logoSrc}
+                                        alt="Icone Casa do Amor"
+                                        onClick={() => navigate('/patients')}
+                                        sx={{
+                                            width: open ? "120px" : "60px", // Reduzido de 80px para 60px
+                                            height: "auto",
+                                            objectFit: 'contain',
+                                            flexShrink: 0,
+                                            display: { xs: 'none', sm: 'block' },
+                                            cursor: 'pointer',
+                                            transition: 'all 150ms ease-in-out',
+                                            WebkitTapHighlightColor: 'transparent',
+                                            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+                                            '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' },
+                                            filter: logoFilter
+                                        }}
+                                    />
+                                );
+                            })()}
+                        </Box>
+
+                        {open && ( // Botão de fechar 
                             <IconButton 
                                 color="inherit" 
                                 aria-label="fechar drawer" 
@@ -413,7 +429,8 @@ export default function Layout() {
                                     color: theme.palette.mode === 'dark' 
                                         ? theme.palette.text.primary 
                                         : '#000000DA', 
-                                    flexShrink: 0 
+                                    flexShrink: 0,
+                                    marginRight: theme.spacing(1) // Adiciona margem direita
                                 }}
                             >
                                 <ChevronLeftIcon />
