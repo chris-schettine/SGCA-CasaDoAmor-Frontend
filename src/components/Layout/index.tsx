@@ -373,26 +373,25 @@ export default function Layout() {
                         } 
                     }}
                 >
-                    {/* Alteração na linha 430: Simplificamos o justifyContent para flex-start */}
+                   
                     <DrawerHeader sx={{ 
                         display: 'flex', 
                         justifyContent: 'flex-start', 
                         alignItems: 'center', 
-                        // CORREÇÃO: Padding condicional no DrawerHeader. 
-                        // É zero quando fechado (open=false), para usar os 80px completos.
+                    
                         padding: theme.spacing(0, open ? 1 : 0), 
                         minHeight: '64px' 
                     }}>
-                        {/* WRAPPER PARA CENTRALIZAÇÃO */}
+                        
                         <Box sx={{ 
                             flexGrow: 1, 
                             display: 'flex', 
                             justifyContent: 'center', 
                             alignItems: 'center',
                             minWidth: open ? 'auto' : closedDrawerWidth, 
-                            padding: theme.spacing(0, open ? 2 : 0) // Padding condicional (corrigido)
+                            padding: theme.spacing(0, open ? 2 : 0) 
                         }}>
-                            {/* Logo Image Component */}
+                         
                             {(() => {
                                 const logoSrc = theme.palette.mode === 'dark' ? '/casadoamor.png' : '/logo3.png';
                                 const logoFilter = theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : undefined;
@@ -403,7 +402,7 @@ export default function Layout() {
                                         alt="Icone Casa do Amor"
                                         onClick={() => navigate('/patients')}
                                         sx={{
-                                            width: open ? "120px" : "60px", // Reduzido de 80px para 60px
+                                            width: open ? "120px" : "60px", 
                                             height: "auto",
                                             objectFit: 'contain',
                                             flexShrink: 0,
@@ -420,7 +419,7 @@ export default function Layout() {
                             })()}
                         </Box>
 
-                        {open && ( // Botão de fechar 
+                        {open && ( 
                             <IconButton 
                                 color="inherit" 
                                 aria-label="fechar drawer" 
@@ -430,7 +429,7 @@ export default function Layout() {
                                         ? theme.palette.text.primary 
                                         : '#000000DA', 
                                     flexShrink: 0,
-                                    marginRight: theme.spacing(1) // Adiciona margem direita
+                                    marginRight: theme.spacing(1)
                                 }}
                             >
                                 <ChevronLeftIcon />
