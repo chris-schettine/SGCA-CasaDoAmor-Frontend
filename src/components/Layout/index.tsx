@@ -262,7 +262,18 @@ export default function Layout() {
                         SGCA
                     </Typography>
                     <Box sx={{ flexGrow: 1 }} />
-                    <ThemeToggle />
+                    {/* CORREÇÃO ROBUSTA: Forçando cor branca em todos os elementos internos do ThemeToggle */}
+                    <Box 
+                        sx={{ 
+                            color: theme.palette.common.white, 
+                            '& *': { 
+                                color: 'inherit',
+                                fill: 'currentColor', 
+                            },
+                        }} 
+                    >
+                        <ThemeToggle />
+                    </Box>
                     <Tooltip title="Atalhos de teclado (?)">
                         <IconButton color="inherit" onClick={() => setShortcutsHelpOpen(true)} aria-label="atalhos de teclado" sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
                             <KeyboardIcon fontSize="small" />
