@@ -393,8 +393,7 @@ export default function Layout() {
                         }}>
                          
                             {(() => {
-                                const logoSrc = theme.palette.mode === 'dark' ? '/casadoamor.png' : '/logo3.png';
-                                const logoFilter = theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : undefined;
+                                const logoSrc = theme.palette.mode === 'dark' ? '/logo3branco.png' : '/logo3.png';
                                 return (
                                     <Box
                                         component="img"
@@ -412,7 +411,6 @@ export default function Layout() {
                                             WebkitTapHighlightColor: 'transparent',
                                             '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
                                             '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' },
-                                            filter: logoFilter
                                         }}
                                     />
                                 );

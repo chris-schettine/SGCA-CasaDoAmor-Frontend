@@ -97,7 +97,7 @@ const Footer = () => {
                     }}>
                         <Box 
                             component="img"
-                            src="/casadoamor.png" 
+                            src="/logo3branco.png" 
                             alt="Logo Casa do Amor"
                             sx={{ 
                                 height: 40, // Reduzido para ficar mais compacto
@@ -168,10 +168,14 @@ const Footer = () => {
                                             alignItems: 'center',
                                             gap: 1,
                                             textDecoration: 'none',
+                                            transition: 'opacity 0.2s, color 0.2s, transform 0.2s', 
                                             '&:hover': {
                                                 opacity: 1,
                                                 color: (theme) => theme.custom.brandColors.secondary[500],
-                                            }
+                                            },
+                                            '@media (min-width: 600px)': {
+                                                '&:hover': { transform: 'translateX(3px)' },
+                                            },
                                         }}
                                     />
                                 </Box>
