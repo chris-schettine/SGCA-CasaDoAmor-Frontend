@@ -92,8 +92,8 @@ const PatientDetailsForm = (
 
       {/* Condição de chegada */}
       <Grid size={{ xs: 12 }}>
-        <FormControl component="fieldset" error={!!errors.condicaoChegada}>
-          <FormLabel component="legend">Condição de chegada</FormLabel>
+        <FormControl component="fieldset" error={!!errors.condicaoChegada} required>
+          <FormLabel component="legend" required>Condição de chegada</FormLabel>
           <Controller
             name="condicaoChegada"
             control={control}
@@ -151,9 +151,16 @@ const PatientDetailsForm = (
           placeholder="Descreva a sonda vesical"
           {...register("seForOutra")}
           error={!!errors.seForOutra}
-          helperText={errors.seForOutra?.message || 'Descreva a sonda vesical quando selecionada a opção "Outra".'}
+          helperText={
+            errors.seForOutra?.message ||
+            (tipoSondaVesicalValue === 'OUTRA'
+              ? 'Obrigatório quando selecionar "Outra".'
+              : 'Descreva a sonda vesical quando selecionar "Outra".')
+          }
+          required={tipoSondaVesicalValue === 'OUTRA'}
           disabled={tipoSondaVesicalValue !== 'OUTRA'}
             slotProps={{
+            inputLabel: { required: tipoSondaVesicalValue === 'OUTRA' },
             formHelperText: {
               sx: {
                 maxHeight: '0.4em',

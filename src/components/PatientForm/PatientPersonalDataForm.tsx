@@ -41,6 +41,9 @@ const PatientPersonalDataForm = (
   const cidadeValue = watch("cidade");
   const estadoValue = watch("estado");
   const complementoValue = watch("complemento");
+  const naturalidadeValue = watch("naturalidade");
+  const nomeMaeValue = watch("nomeMae");
+  const profissaoValue = watch("profissao");
 
   const { fields: contatosFields, append, remove } = useFieldArray<PatientFormInputs, "contatosDeEmergencia">({
     control,
@@ -199,8 +202,10 @@ const PatientPersonalDataForm = (
             error={!!errors.naturalidade}
             helperText={errors.naturalidade?.message}
             slotProps={{
+              inputLabel: { shrink: !!naturalidadeValue, required: true },
               formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
             }}
+            required
           />
         </Grid>
 
@@ -222,6 +227,8 @@ const PatientPersonalDataForm = (
                 mask="00.000.000-0"
                 lazy={true}
                 disabled={isDisabled('rg')}
+                InputLabelProps={{ required: true }}
+                required
               />
             )}
           />
@@ -239,8 +246,10 @@ const PatientPersonalDataForm = (
             error={!!errors.nomeMae}
             helperText={errors.nomeMae?.message}
             slotProps={{
+              inputLabel: { shrink: !!nomeMaeValue, required: true },
               formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
+            required
           />
         </Grid>
 
@@ -256,8 +265,10 @@ const PatientPersonalDataForm = (
             error={!!errors.profissao}
             helperText={errors.profissao?.message}
             slotProps={{
+              inputLabel: { shrink: !!profissaoValue, required: true },
               formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
+            required
           />
         </Grid>
 
@@ -293,17 +304,19 @@ const PatientPersonalDataForm = (
             label="E-mail"
             variant="outlined"
             fullWidth
-            placeholder="email@exemplo.com"
-            {...register("email")}
-            error={!!errors.email}
-            helperText={errors.email?.message || 'Opcional'}
-            slotProps={{
-              formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-          <Controller
+          placeholder="email@exemplo.com"
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors.email?.message || 'Informe um e-mail válido para contato.'}
+          required
+          slotProps={{
+            inputLabel: { required: true },
+            formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
+          }}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+        <Controller
             name="estadoCivil"
             control={control}
             render={({ field }) => (
@@ -391,50 +404,53 @@ const PatientPersonalDataForm = (
             label="Bairro"
             variant="outlined"
             fullWidth
-            placeholder="Bairro"
-            {...register("bairro")}
-            error={!!errors.bairro}
-            helperText={errors.bairro?.message}
-            disabled={isCepLoading}
-            InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
-            slotProps={{
-              inputLabel: { shrink: !!bairroValue },
-              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            id="cidade"
+          placeholder="Bairro"
+          {...register("bairro")}
+          error={!!errors.bairro}
+          helperText={errors.bairro?.message}
+          disabled={isCepLoading}
+          InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
+          slotProps={{
+            inputLabel: { shrink: !!bairroValue, required: true },
+            formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
+          }}
+          required
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <TextField
+          id="cidade"
             label="Cidade"
             variant="outlined"
             fullWidth
-            placeholder="Cidade"
-            {...register("cidade")}
-            error={!!errors.cidade}
-            helperText={errors.cidade?.message}
-            slotProps={{
-              inputLabel: { shrink: !!cidadeValue },
-              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            id="estado"
+          placeholder="Cidade"
+          {...register("cidade")}
+          error={!!errors.cidade}
+          helperText={errors.cidade?.message}
+          slotProps={{
+            inputLabel: { shrink: !!cidadeValue, required: true },
+            formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
+          }}
+          required
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <TextField
+          id="estado"
             label="Estado"
             variant="outlined"
             fullWidth
-            placeholder="Estado"
-            {...register("estado")}
-            error={!!errors.estado}
-            helperText={errors.estado?.message}
-            slotProps={{
-              inputLabel: { shrink: !!estadoValue },
-              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
-            }}
-          />
-        </Grid>
+          placeholder="Estado"
+          {...register("estado")}
+          error={!!errors.estado}
+          helperText={errors.estado?.message}
+          slotProps={{
+            inputLabel: { shrink: !!estadoValue, required: true },
+            formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
+          }}
+          required
+        />
+      </Grid>
 
         {/* OITAVA LINHA: Número e Complemento */}
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>

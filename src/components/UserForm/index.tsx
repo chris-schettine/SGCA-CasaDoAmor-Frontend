@@ -156,12 +156,13 @@ const UserForm = (
 
               return (
                 <>
-                  <FormControl fullWidth error={!!errors.tipo}>
-                    <InputLabel id="tipo-profissional-label">Tipo de Profissional</InputLabel>
+                  <FormControl fullWidth error={!!errors.tipo} required>
+                    <InputLabel id="tipo-profissional-label" required>Tipo de Profissional</InputLabel>
                     <Select
                       labelId="tipo-profissional-label"
                       id="tipo"
                       label="Tipo de Profissional"
+                      required
                       value={field.value ?? ''}
                       onChange={handleTipoChange}
                       onBlur={field.onBlur}
@@ -185,12 +186,12 @@ const UserForm = (
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                           <Box sx={{ position: 'relative' }}>
-                            <TextField 
-                              id="registro" 
-                              label={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  Registro
-                                  <StandardTooltip title="Número de registro profissional (ex: CRM para médicos, COREN para enfermeiros)">
+                          <TextField 
+                            id="registro" 
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                Registro
+                                <StandardTooltip title="Número de registro profissional (ex: CRM para médicos, COREN para enfermeiros)">
                                     <InfoIcon sx={{ fontSize: 16, color: 'action.active' }} />
                                   </StandardTooltip>
                                 </Box>
@@ -201,7 +202,8 @@ const UserForm = (
                               {...register('registro')} 
                               error={!!errors.registro} 
                               helperText={errors.registro?.message} 
-                              InputLabelProps={{ shrink: !!watch('registro') }} 
+                              InputLabelProps={{ shrink: !!watch('registro'), required: showRegistro }} 
+                              required={showRegistro}
                               disabled={!!disabledFields?.registro} 
                             />
                           </Box>
@@ -256,13 +258,14 @@ const UserForm = (
             control={control}
             defaultValue={[]} 
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.perfisIds}>
-                <InputLabel id="perfil-label">Perfil de Acesso *</InputLabel>
+              <FormControl fullWidth error={!!errors.perfisIds} required>
+                <InputLabel id="perfil-label" required>Perfil de Acesso</InputLabel>
                 <Select
                   labelId="perfil-label"
                   id="perfisIds"
-                  label="Perfil de Acesso *"
+                  label="Perfil de Acesso"
                   value={(field.value && field.value.length > 0) ? field.value[0] : ''}
+                  required
                   onChange={(e) => {
                     const selectedId = e.target.value;
                     // Sempre mantém como array com um único elemento
@@ -283,7 +286,7 @@ const UserForm = (
           />
         </Grid>
 
-        {/* SEGUNDA LINHA: Email e Telefone (Sem alterações) */}
+        {/* SEGUNDA LINHA: Email e Telefone */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <TextField
             id="email"
@@ -294,7 +297,8 @@ const UserForm = (
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
-            InputLabelProps={{ shrink: !!watch('email') }}
+            InputLabelProps={{ shrink: !!watch('email'), required: true }}
+            required
             slotProps={{
               formHelperText: {
                 sx: {
@@ -309,22 +313,24 @@ const UserForm = (
           <Controller
             name="telefone"
             control={control}
-            render={({ field }) => (
-              <MaskedTextField
-                {...field}
-                id="telefone"
-                label="Telefone"
-                variant="outlined"
-                fullWidth
-                placeholder="00 00000-0000"
-                error={!!errors.telefone}
-                helperText={errors.telefone?.message}
-                mask="00 00000-0000"
-                lazy={true}
+                render={({ field }) => (
+                  <MaskedTextField
+                    {...field}
+                    id="telefone"
+                    label="Telefone"
+                    variant="outlined"
+                    fullWidth
+                    placeholder="00 00000-0000"
+                    error={!!errors.telefone}
+                    helperText={errors.telefone?.message}
+                    mask="00 00000-0000"
+                    lazy={true}
+                    InputLabelProps={{ required: true }}
+                    required
+                  />
+                )}
               />
-            )}
-          />
-        </Grid>
+            </Grid>
 
         {/* Reordered: Nome completo above CPF per user request */}
         <Grid size={{ xs: 12, md: 8 }}>
@@ -338,7 +344,8 @@ const UserForm = (
             disabled={!!disabledFields?.nomeUsuario}
             error={!!errors.nomeUsuario}
             helperText={errors.nomeUsuario?.message}
-            InputLabelProps={{ shrink: !!watch('nomeUsuario') }}
+            InputLabelProps={{ shrink: !!watch('nomeUsuario'), required: true }}
+            required
             slotProps={{
               formHelperText: {
                 sx: {
@@ -367,6 +374,8 @@ const UserForm = (
                 mask="000.000.000-00"
                 lazy={true}
                 disabled={!!disabledFields?.cpfUsuario}
+                InputLabelProps={{ required: true }}
+                required
               />
             )}
           />
@@ -436,6 +445,8 @@ const UserForm = (
                 helperText={errors.cep?.message}
                 mask="00000-000"
                 lazy={true}
+                InputLabelProps={{ required: true }}
+                required
               />
             )}
           />
@@ -450,7 +461,8 @@ const UserForm = (
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
-            InputLabelProps={{ shrink: !!watch('endereco') }}
+            InputLabelProps={{ shrink: !!watch('endereco'), required: true }}
+            required
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -463,7 +475,8 @@ const UserForm = (
             {...register("bairro")}
             error={!!errors.bairro}
             helperText={errors.bairro?.message}
-            InputLabelProps={{ shrink: !!watch('bairro') }}
+            InputLabelProps={{ shrink: !!watch('bairro'), required: true }}
+            required
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -476,7 +489,8 @@ const UserForm = (
             {...register("cidade")}
             error={!!errors.cidade}
             helperText={errors.cidade?.message}
-            InputLabelProps={{ shrink: !!watch('cidade') }}
+            InputLabelProps={{ shrink: !!watch('cidade'), required: true }}
+            required
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
@@ -489,7 +503,8 @@ const UserForm = (
             {...register("estado")}
             error={!!errors.estado}
             helperText={errors.estado?.message}
-            InputLabelProps={{ shrink: !!watch('estado') }}
+            InputLabelProps={{ shrink: !!watch('estado'), required: true }}
+            required
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
@@ -502,7 +517,8 @@ const UserForm = (
             {...register("numero")}
             error={!!errors.numero}
             helperText={errors.numero?.message}
-            InputLabelProps={{ shrink: !!watch('numero') }}
+            InputLabelProps={{ shrink: !!watch('numero'), required: true }}
+            required
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 6 }}>
@@ -525,12 +541,13 @@ const UserForm = (
             name="sexo"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.sexo}>
-                <InputLabel id="sexo-label">Sexo</InputLabel>
+              <FormControl fullWidth error={!!errors.sexo} required>
+                <InputLabel id="sexo-label" required>Sexo</InputLabel>
                 <Select
                   labelId="sexo-label"
                   id="sexo"
                   label="Sexo"
+                  required
                   value={field.value ?? ''}
                   onChange={(event: SelectChangeEvent<UserFormInputs['sexo']>) => field.onChange(event.target.value as UserFormInputs['sexo'])}
                   onBlur={field.onBlur}
