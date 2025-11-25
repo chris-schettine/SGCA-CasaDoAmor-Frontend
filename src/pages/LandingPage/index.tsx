@@ -23,7 +23,6 @@ const LandingPage = () => {
     const theme = useTheme(); 
 
     const primaryBlue = theme.palette.primary.main;
-    const accent = theme.palette.secondary.main;
 
     const heroStart = theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.main;
     const heroMid = theme.palette.mode === 'dark' ? theme.palette.secondary.dark : theme.palette.secondary.main;
