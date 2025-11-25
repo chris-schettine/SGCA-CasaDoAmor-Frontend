@@ -1,4 +1,3 @@
-
 export interface DadoPessoalInputDTO {
   nome: string;
   dataNascimento: string;
@@ -8,6 +7,7 @@ export interface DadoPessoalInputDTO {
   nomeMae?: string;
   profissao?: string;
   telefone: string;
+  sexo: string; 
   estadoCivil?: 'SOLTEIRO' | 'CASADO' | 'DIVORCIADO' | 'VIUVO' | 'SEPARADO' | 'UNIAO_ESTAVEL';
 }
 
@@ -60,10 +60,9 @@ export interface DadoSocialInputDTO {
 
 export interface RegistrarPacienteDTO {
   dadoPessoal: DadoPessoalInputDTO;
-  // backend espera um array de dados clínicos
-  dadoClinico: DadoClinicoInputDTO; // backend espera um único dado clínico no create
+  dadoClinico: DadoClinicoInputDTO; 
   endereco: EnderecoInputDTO;
-  email: string; // backend exige email no create
+  email: string; 
   contatosDeEmergencia?: ContatoEmergenciaDTO[];
   informacaoHospitalar?: InformacaoHospitalarDTO;
   dadoSocial?: DadoSocialInputDTO;
@@ -73,12 +72,13 @@ export interface DadoPessoalDTO {
   id?: string;
   nome: string;
   nomeMae?: string | null;
-  dataNascimento: string; // ISO date
+  dataNascimento: string; 
   cpf?: string | null;
   rg?: string | null;
   naturalidade?: string | null;
   profissao?: string | null;
   telefone?: string | null;
+  sexo?: string | null; 
   estadoCivil?: 'SOLTEIRO' | 'CASADO' | 'DIVORCIADO' | 'VIUVO' | 'SEPARADO' | 'UNIAO_ESTAVEL' | null;
 }
 
@@ -140,6 +140,7 @@ export interface EditarDadoPessoalInputDTO {
   nomeMae?: string;
   profissao?: string;
   telefone?: string;
+  sexo?: string; 
   estadoCivil?: 'SOLTEIRO' | 'CASADO' | 'DIVORCIADO' | 'VIUVO' | 'SEPARADO' | 'UNIAO_ESTAVEL';
 }
 
@@ -160,8 +161,6 @@ export interface EditarPacienteDTO {
   informacaoHospitalar?: InformacaoHospitalarDTO;
   email?: string | null;
 }
-
-// Nota: edições de contatos e dados clínicos usam endpoints específicos no backend.
 
 export interface PaginatedResponseDTOPacienteDTO {
   nodes: PacienteDTO[];

@@ -13,6 +13,12 @@ export const patientSchema = z.object({
   cpfPaciente: cpfSchema,
   dataNascimento: dateSchema,
   idade: z.string().trim(),
+  
+  // ADICIONADO: Campo Sexo obrigatório
+  sexo: z.enum(["MASCULINO", "FEMININO", "NAO_INFORMADO"], {
+    errorMap: () => ({ message: "Selecione o sexo do paciente." }),
+  }),
+
   naturalidade: requiredString,
   rg: rgSchema,
   nomeMae: requiredString,
@@ -53,6 +59,7 @@ export const patientSchema = z.object({
     errorMap: () => ({ message: "Selecione sobre o uso de sonda." }),
   }),
   seForOutra: z.string().trim().optional().transform(e => e === "" ? undefined : e),
+  
   // Campos clínicos adicionais
   tipoSondaNasal: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
@@ -75,20 +82,20 @@ export const patientSchema = z.object({
   tipoSanguineo: z.enum(["A_POSITIVO","A_NEGATIVO","B_POSITIVO","B_NEGATIVO","AB_POSITIVO","AB_NEGATIVO","O_POSITIVO","O_NEGATIVO"], {
     errorMap: () => ({ message: "Selecione o tipo sanguíneo do paciente." }),
   }),
-  // Contatos de emergência — array de objetos (opcional), mas quando presentes cada campo é obrigatório
+  
   contatosDeEmergencia: z.array(z.object({
     nome: requiredString,
     email: z.string().email("E-mail inválido").min(1, "O e-mail do contato é obrigatório"),
     telefone: phoneSchema,
   })).optional(),
-  // Informação hospitalar
+  
   informacaoHospitalar: z.object({
     nomeHospitalReferencia: z.string().trim().optional(),
     medicoResponsavel: z.string().trim().optional(),
     setorAla: z.string().trim().optional(),
     dataInternacao: dateSchema.optional(),
   }).optional(),
-  // Dado social
+  
   dadoSocial: z.object({
     rendaFamiliar: z.number().nonnegative().optional(),
     composicaoFamiliar: z.string().trim().optional(),
@@ -103,7 +110,6 @@ export const patientSchema = z.object({
     data.tipoSondaVesical = undefined;
   }
 
-  // Validação condicional para tratamento OUTRO
   if (data.tratamento === 'OUTRO' && (!data.tratamentoOutroDescricao || data.tratamentoOutroDescricao.trim() === '')) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -112,7 +118,6 @@ export const patientSchema = z.object({
     });
   }
 
-  // Validação condicional para descrição de sonda quando tipo vesical é OUTRA
   if (data.tipoSondaVesical === 'OUTRA' && (!data.seForOutra || data.seForOutra.trim() === '')) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -121,7 +126,6 @@ export const patientSchema = z.object({
     });
   }
 
-  // Se o paciente usa sonda, deve haver pelo menos um tipo de sonda informado
   if (data.usoSonda === 'sim') {
     const hasNasal = !!data.tipoSondaNasal;
     const hasCirurgica = !!data.tipoSondaCirurgica;
@@ -134,10 +138,6 @@ export const patientSchema = z.object({
       });
     }
   }
-
-  // Se contatosDeEmergencia estiver presente, já garantimos acima min(1) — nada extra aqui
-
 });
 
-// --- Exporta o tipo TypeScript inferido a partir do schema ---
 export type PatientFormInputs = z.infer<typeof patientSchema>;
