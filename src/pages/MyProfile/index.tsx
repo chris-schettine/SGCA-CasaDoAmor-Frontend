@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react';
-import ThemeProvider from '../../contexts/ThemeContext';
 import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { isAxiosError } from 'axios';
@@ -375,9 +374,8 @@ const MyProfilePage = () => {
   if (loading) return <LoadingState message="Carregando perfil..." />;
 
   return (
-    <ThemeProvider>
-      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
-        <Box sx={{ padding: 3 }}>
+    <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+      <Box sx={{ padding: 3 }}>
       <PageHeader title="Meu Perfil" subtitle="Visualize e edite suas informações pessoais" />
 
       <form onSubmit={handleSubmit(onSaveProfile)}>
@@ -580,7 +578,6 @@ const MyProfilePage = () => {
       </Box>
         </Box>
       </Box>
-    </ThemeProvider>
   );
 };
 

@@ -20,7 +20,6 @@ import {
   useTheme,
   Chip,
 } from '@mui/material';
-import ThemeProvider from '../../contexts/ThemeContext';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
@@ -385,10 +384,6 @@ export const AuditLogContent = () => {
   );
 };
 
-export const AuditLogPage = () => (
-  <ThemeProvider defaultMode="light">
-    <AuditLogContent />
-  </ThemeProvider>
-);
+export const AuditLogPage = () => <AuditLogContent />;
 
 export default AuditLogPage;
