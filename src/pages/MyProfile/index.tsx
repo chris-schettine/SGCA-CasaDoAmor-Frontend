@@ -20,26 +20,6 @@ import { cepSchema, phoneSchema, requiredString } from '../../schemas/commonVali
 
 type SexoOption = 'MASCULINO' | 'FEMININO';
 
-interface MyProfileFormData {
-  nome: string;
-  cpf: string;
-  sexo: SexoOption | '';
-  email: string;
-  telefone: string;
-  cep: string;
-  endereco: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-  registro: string;
-  rqe: string;
-  numero: string;
-  complemento: string;
-  estadoCivil: string;
-  dataNascimento: string;
-  naturalidade: string;
-}
-
 const myProfileSchema = z.object({
   email: z.string().trim().min(1, 'O e-mail é obrigatório').email('Digite um e-mail válido'),
   telefone: phoneSchema,
@@ -57,8 +37,10 @@ const myProfileSchema = z.object({
   cpf: z.string().trim().optional(),
   registro: z.string().trim().optional(),
   rqe: z.string().trim().optional(),
-  sexo: z.string().trim().optional(),
+  sexo: z.union([z.enum(['MASCULINO', 'FEMININO']), z.literal('')]).optional(),
 });
+
+type MyProfileFormData = z.infer<typeof myProfileSchema>;
 
 interface PasswordFormInputs {
   senhaAtual: string;
@@ -569,7 +551,6 @@ const MyProfilePage = () => {
               placeholder="Endereço"
               autoComplete="address-line1"
               {...register('endereco')}
-              InputLabelProps={{ shrink: !!watch('endereco') }}
               error={!!errors.endereco}
               helperText={errors.endereco?.message}
               required
@@ -585,7 +566,6 @@ const MyProfilePage = () => {
               placeholder="Bairro"
               autoComplete="address-level3"
               {...register('bairro')}
-              InputLabelProps={{ shrink: !!watch('bairro') }}
               error={!!errors.bairro}
               helperText={errors.bairro?.message}
               required
@@ -601,7 +581,6 @@ const MyProfilePage = () => {
               placeholder="Cidade"
               autoComplete="address-level2"
               {...register('cidade')}
-              InputLabelProps={{ shrink: !!watch('cidade') }}
               error={!!errors.cidade}
               helperText={errors.cidade?.message}
               required
@@ -617,7 +596,6 @@ const MyProfilePage = () => {
               placeholder="Estado"
               autoComplete="address-level1"
               {...register('estado')}
-              InputLabelProps={{ shrink: !!watch('estado') }}
               error={!!errors.estado}
               helperText={errors.estado?.message}
               required
@@ -633,7 +611,6 @@ const MyProfilePage = () => {
               placeholder="Número"
               autoComplete="off"
               {...register('numero')}
-              InputLabelProps={{ shrink: !!watch('numero') }}
               error={!!errors.numero}
               helperText={errors.numero?.message}
               required
