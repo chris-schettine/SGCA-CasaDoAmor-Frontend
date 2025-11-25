@@ -11,8 +11,16 @@ export default function LoadingBackdrop({ message = 'Carregando...' }: LoadingBa
 
   return (
     <Backdrop
-      sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+      sx={(theme) => ({
+        color: '#fff',
+        zIndex: theme.zIndex.drawer + 1,
+        // Make the overlay darker so white text meets color-contrast requirements
+        backgroundColor: 'rgba(0,0,0,0.9)'
+      })}
       open={true}
+      role="status"
+      aria-live="polite"
+      aria-label={message}
     >
       <Box 
         sx={{ 
@@ -28,8 +36,10 @@ export default function LoadingBackdrop({ message = 'Carregando...' }: LoadingBa
           component="p" 
           sx={{ 
             color: '#fff',
+            WebkitTextFillColor: '#fff',
             fontWeight: 500,
-            textAlign: 'center'
+            textAlign: 'center',
+            opacity: 1,
           }}
         >
           {message}

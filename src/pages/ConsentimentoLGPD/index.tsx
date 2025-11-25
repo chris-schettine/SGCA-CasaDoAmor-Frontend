@@ -19,6 +19,7 @@ import {
   Alert,
 } from '@mui/material';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
+import ThemeProvider from '../../contexts/ThemeContext';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -96,7 +97,9 @@ const ConsentimentoLGPDPage = () => {
   }
 
   return (
-    <Box
+    <ThemeProvider>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box
       sx={{
         width: { xs: '100%', sm: '95%', md: '90%' },
         margin: '0 auto',
@@ -228,6 +231,8 @@ const ConsentimentoLGPDPage = () => {
         </DialogContent>
       </Dialog>
     </Box>
+    </Box>
+    </ThemeProvider>
   );
 };
 

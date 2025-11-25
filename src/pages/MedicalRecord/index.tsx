@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
+import ThemeProvider from '../../contexts/ThemeContext';
 import CustomCheckbox from "../../components/CustomCheckbox";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import PageHeader from "../../components/PageHeader";
@@ -34,7 +35,9 @@ const MedicalRecordPage = () => {
   }
 
   return (
-    <Box sx={{ 
+    <ThemeProvider>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box sx={{ 
       display: "flex", 
       justifyContent: "center", 
       flexDirection: "column", 
@@ -57,7 +60,7 @@ const MedicalRecordPage = () => {
         subtitle="Fatores de risco e condições clínicas"
       />
 
-      <Typography component="h4" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Lesão de pele:
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -75,7 +78,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h4" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Flebite
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -93,7 +96,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h4" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Queda
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -111,7 +114,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h4" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         SAE - Sistema de assistência de enfermagem
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -128,7 +131,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h4" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Histórico de saúde e doença
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -151,8 +154,10 @@ const MedicalRecordPage = () => {
           <CustomCheckbox label="Doenças infectocontagiosas" />
         </Box>
       
+        </Box>
       </Box>
-    </Box>
+      </Box>
+    </ThemeProvider>
   );
 };
 

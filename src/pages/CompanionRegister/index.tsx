@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { companionSchema, type CompanionFormInputs, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
+import ThemeProvider from '../../contexts/ThemeContext';
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useRegistrarAcompanhante } from "../../hooks/useAcompanhantes";
 import Breadcrumbs from "../../components/Breadcrumbs";
@@ -161,7 +162,9 @@ const CompanionRegisterPage = () => {
   const handleConfirmSave = handleSubmit(handleSaveCompanion, onError);
 
   return (
-    <Box sx={{ 
+    <ThemeProvider>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box sx={{ 
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -249,7 +252,9 @@ const CompanionRegisterPage = () => {
         confirmButtonText="Sim, Não Cadastrar"
         cancelButtonText="Voltar e Cadastrar"
       />
-    </Box>
+      </Box>
+      </Box>
+    </ThemeProvider>
   )
 }
 

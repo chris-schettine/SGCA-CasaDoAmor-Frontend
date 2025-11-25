@@ -33,7 +33,7 @@ const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: KeyboardShortcutsHe
   const hoverBg = isDark ? 'rgba(148, 163, 184, 0.12)' : '#f5f5f5';
   const keyBg = isDark ? 'rgba(15, 23, 42, 0.7)' : '#f5f5f5';
   const keyBorder = isDark ? 'rgba(148, 163, 184, 0.5)' : '#ccc';
-  const keyColor = isDark ? theme.palette.text.primary : 'inherit';
+  const keyColor = theme.palette.text.primary;
 
   return (
     <Dialog
@@ -62,7 +62,7 @@ const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: KeyboardShortcutsHe
         </IconButton>
       </DialogTitle>
       
-      <DialogContent dividers>
+      <DialogContent dividers tabIndex={0}>
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
             {isMac

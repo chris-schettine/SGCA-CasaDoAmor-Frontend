@@ -183,10 +183,21 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             stickyHeader
             aria-label="Tabela de usuários"
             sx={{
+              '& thead th': {
+                backgroundColor: `${theme.palette.primary.main} !important`,
+                color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+                WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+                opacity: 1,
+              },
               '& .MuiTableCell-head': {
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
                 paddingY: 1,
+              },
+              '& tbody td': {
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
               },
             }}
           >

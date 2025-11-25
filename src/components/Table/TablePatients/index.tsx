@@ -16,6 +16,14 @@ import type { PacienteDTO } from "../../../api/paciente.dto";
 
 interface TablePatientsProps {
   searchText?: string;
+  /**
+   * Permite injetar estados controlados em stories/tests sem chamar a API real.
+   */
+  mockState?: {
+    isLoading?: boolean;
+    error?: Error | null;
+    data?: { nodes: PacienteDTO[]; totalCount: number };
+  };
 }
 
 type PatientRow = {
@@ -33,7 +41,7 @@ type PatientRow = {
 
 type PatientColumn = Column<PatientRow> & { hidden?: boolean };
 
-const TablePatients = ({ searchText }: TablePatientsProps) => {
+const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -42,13 +50,19 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // 🚀 TanStack Query - substitui useState + useEffect
-  const { data, isLoading, error } = usePatients(rowsPerPage, page * rowsPerPage, searchText);
+  const queryResult = !mockState
+    ? usePatients(rowsPerPage, page * rowsPerPage, searchText)
+    : { data: undefined, isLoading: false, error: null };
+
+  const resolvedData = mockState?.data ?? queryResult.data;
+  const resolvedLoading = mockState?.isLoading ?? queryResult.isLoading;
+  const resolvedError = mockState?.error ?? (queryResult.error as Error | null | undefined);
 
   const patients: PacienteDTO[] = useMemo(
-    () => data?.nodes ?? [],
-    [data?.nodes]
+    () => resolvedData?.nodes ?? [],
+    [resolvedData?.nodes]
   );
-  const totalCount = data?.totalCount ?? 0;
+  const totalCount = resolvedData?.totalCount ?? 0;
 
   const delay = 1000;
 
@@ -188,15 +202,15 @@ const TablePatients = ({ searchText }: TablePatientsProps) => {
     navigate(`/patient/report/${id}`, { state: { patient: patientData } });
   }
 
-  if (isLoading) {
+  if (resolvedLoading) {
     return <PatientListSkeleton />;
   }
 
-  if (error) {
+  if (resolvedError) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
         <Typography color="error" variant="h6">
-          {error instanceof Error ? error.message : 'Erro ao carregar pacientes'}
+          {resolvedError instanceof Error ? resolvedError.message : 'Erro ao carregar pacientes'}
         </Typography>
       </Box>
     );

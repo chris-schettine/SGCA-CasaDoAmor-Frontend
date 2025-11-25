@@ -99,6 +99,7 @@ export function ToastContainerWrapper() {
           variant="contained" 
           size="small"
           color="warning"
+          sx={{ color: theme.palette.warning.contrastText }}
           onClick={() => {
             console.log('[TEST] Toast sem nenhuma opção');
             toast('Toast básico sem opções!');

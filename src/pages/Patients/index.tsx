@@ -8,12 +8,14 @@ import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
 import { AnimatedPage } from "../../components/AnimatedPage";
 import SearchBar from "../../components/SearchBar";
+import { useTheme } from "@mui/material/styles";
 
 const LazyTablePatients = React.lazy(() => import('../../components/Table/TablePatients'));
 
 const Patients = () => {
   const [searchText, setSearchText] = useState('');
   const [exporting, setExporting] = useState(false);
+  const theme = useTheme();
 
   const handleExport = async () => {
     try {
@@ -84,6 +86,11 @@ const Patients = () => {
         startIcon={<FileDownloadIcon />}
         onClick={handleExport}
         disabled={exporting}
+        sx={{
+          color: theme.palette.text.primary,
+          borderColor: theme.palette.text.primary,
+          '&:hover': { borderColor: theme.palette.text.primary, backgroundColor: theme.palette.action.hover },
+        }}
       >
         {exporting ? 'Exportando...' : 'Exportar'}
       </Button>
@@ -91,6 +98,13 @@ const Patients = () => {
         component={Link}
         to="/patient/register"
         variant="contained"
+        sx={{
+          backgroundColor: `${theme.palette.primary.main} !important`,
+          color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+          WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+          fontWeight: 600,
+          '&:hover': { backgroundColor: `${theme.palette.primary.dark} !important` },
+        }}
       >
         Adicionar
       </Button>

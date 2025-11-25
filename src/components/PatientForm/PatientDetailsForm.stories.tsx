@@ -9,79 +9,53 @@ const meta: Meta<typeof PatientDetailsForm> = {
   title: 'Components/PatientForm/PatientDetailsForm',
   component: PatientDetailsForm,
   decorators: [
-    (Story) => {
-      const {
-        register,
-        formState: { errors },
-        control,
-        watch,
-      } = useForm<PatientFormInputs>({
-        resolver: zodResolver(patientSchema),
-        defaultValues: {
-          condicaoChegada: 'nenhum',
-          usoSonda: 'nao',
-          seForOutra: '',
-          usoCurativo: 'nao',
-          usoOxigenoterapia: 'nao',
-          tratamento: '',
-          diagnostico: '',
-        },
-      });
-
-      return (
-        <Grid container spacing={2}>
-          <Story
-            args={{
-              register,
-              errors,
-              control,
-              watch,
-            }}
-          />
-        </Grid>
-      );
-    },
+    (Story) => (
+      <Grid container spacing={2}>
+        <Story />
+      </Grid>
+    ),
   ],
 };
 
 export default meta;
 type Story = StoryObj<typeof PatientDetailsForm>;
 
-export const Default: Story = {};
+const BaseDetailsForm = ({ defaultValues }: { defaultValues?: Partial<PatientFormInputs> }) => {
+  const {
+    register,
+    formState: { errors },
+    control,
+    watch,
+  } = useForm<PatientFormInputs>({
+    resolver: zodResolver(patientSchema),
+    defaultValues,
+  });
+
+  return (
+    <Grid container spacing={2}>
+      <PatientDetailsForm register={register} errors={errors} control={control} watch={watch} />
+    </Grid>
+  );
+};
+
+export const Default: Story = {
+  render: () => <BaseDetailsForm />,
+};
 
 export const WithData: Story = {
-  decorators: [
-    (Story) => {
-      const {
-        register,
-        formState: { errors },
-        control,
-        watch,
-      } = useForm<PatientFormInputs>({
-        resolver: zodResolver(patientSchema),
-        defaultValues: {
+  render: () => {
+    return (
+      <BaseDetailsForm
+        defaultValues={{
           condicaoChegada: 'cadeira_rodas',
           usoSonda: 'outra',
           seForOutra: 'Sonda nasogástrica',
           usoCurativo: 'sim',
           usoOxigenoterapia: 'sim',
-          tratamento: 'Fisioterapia respiratória',
+          tratamento: 'OUTRO',
           diagnostico: 'Insuficiência respiratória',
-        },
-      });
-
-      return (
-        <Grid container spacing={2}>
-          <Story
-            args={{
-              register,
-              errors,
-              control,
-              watch,
-            }}
-          />
-        </Grid>
-      );
-    },
-  ],
+        }}
+      />
+    );
+  },
 };

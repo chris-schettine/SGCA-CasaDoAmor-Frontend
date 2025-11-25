@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import ThemeProvider from '../../contexts/ThemeContext';
 import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { isAxiosError } from 'axios';
@@ -374,7 +375,9 @@ const MyProfilePage = () => {
   if (loading) return <LoadingState message="Carregando perfil..." />;
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <ThemeProvider>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box sx={{ padding: 3 }}>
       <PageHeader title="Meu Perfil" subtitle="Visualize e edite suas informações pessoais" />
 
       <form onSubmit={handleSubmit(onSaveProfile)}>
@@ -535,7 +538,7 @@ const MyProfilePage = () => {
       </form>
 
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h6">Alterar senha</Typography>
+        <Typography variant="h2">Alterar senha</Typography>
   <form onSubmit={handleSubmitPw(onChangePassword)}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ xs: 12, md: 4 }}>
@@ -575,7 +578,9 @@ const MyProfilePage = () => {
           </Grid>
         </form>
       </Box>
-    </Box>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 };
 

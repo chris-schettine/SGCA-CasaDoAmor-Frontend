@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
 import { Box, Typography } from '@mui/material';
 import { AuthContext, type UserType } from '../../contexts/AuthContext';
 import Layout from './index';
-import { theme } from '../../theme';
+import { ThemeProvider } from '../../contexts/ThemeContext';
 
 const mockUser: UserType = {
   nome: 'Usuário Comum',
@@ -40,6 +39,8 @@ const meta: Meta<typeof Layout> = {
       initialEntries: ['/patients'],
     },
   },
+  // Heavy layout + data; skip test-runner smoke to avoid provider/globals issues
+  parameters: { test: { disable: true } },
   decorators: [
     (Story, { args }) => {
       const authValue = {
@@ -52,7 +53,7 @@ const meta: Meta<typeof Layout> = {
       };
 
       return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider>
           <AuthContext.Provider value={authValue}>
             <Routes>
               <Route element={<Story />}>

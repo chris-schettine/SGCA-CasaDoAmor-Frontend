@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Grid, FormControlLabel, RadioGroup, Radio, TextField, MenuItem } from "@mui/material";
+import { FormControl, FormLabel, Grid, FormControlLabel, RadioGroup, Radio, TextField, MenuItem, useTheme } from "@mui/material";
 import type { PatientFormInputs } from "../../schemas/patientSchema";
 import { type UseFormRegister, type FieldErrors, Controller, type Control, type UseFormWatch } from "react-hook-form";
 import MaskedTextField from '../MaskedTextField';
@@ -19,6 +19,7 @@ const PatientDetailsForm = (
     watch,
   }: PatientHealthDetailsFormProps
 ) => {
+  const theme = useTheme();
   const usoSondaValue = watch("usoSonda");
   const tipoSondaVesicalValue = watch('tipoSondaVesical');
   const tratamentoValue = watch('tratamento');
@@ -40,6 +41,7 @@ const PatientDetailsForm = (
           multiline
           rows={3}
           {...register("diagnostico")}
+          FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
           error={!!errors.diagnostico}
           helperText={errors.diagnostico?.message || 'Diagnóstico médico principal do paciente.'}
         />
@@ -60,6 +62,7 @@ const PatientDetailsForm = (
               select
               error={!!errors.tratamento}
               helperText={errors.tratamento?.message || 'Tipo de tratamento em curso (opcional).'}
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             >
               <MenuItem value="">Selecione...</MenuItem>
               <MenuItem value={"RADIOTERAPIA"}>Radioterapia</MenuItem>
@@ -82,6 +85,7 @@ const PatientDetailsForm = (
             {...register('tratamentoOutroDescricao' as const)}
             error={!!errors.tratamentoOutroDescricao}
             helperText={errors.tratamentoOutroDescricao?.message || 'Obrigatório quando "Outro" for selecionado.'}
+            FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
           />
         </Grid>
       )}
@@ -149,11 +153,12 @@ const PatientDetailsForm = (
           error={!!errors.seForOutra}
           helperText={errors.seForOutra?.message || 'Descreva a sonda vesical quando selecionada a opção "Outra".'}
           disabled={tipoSondaVesicalValue !== 'OUTRA'}
-          slotProps={{
+            slotProps={{
             formHelperText: {
               sx: {
                 maxHeight: '0.4em',
                 margin: '0 0.2em',
+                color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important`
               },
             },
           }}
@@ -224,6 +229,7 @@ const PatientDetailsForm = (
                 errors.tipoSondaNasal?.message || 
                 (usoSondaValue === 'sim' ? 'Selecione se utilizar (opcional).' : 'Habilitado somente se usar sonda.')
               }
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             >
               <MenuItem value="">Nenhum</MenuItem>
               <MenuItem value={"SNG"}>SNG</MenuItem>
@@ -252,6 +258,7 @@ const PatientDetailsForm = (
                 errors.tipoSondaCirurgica?.message || 
                 (usoSondaValue === 'sim' ? 'Selecione se utilizar (opcional).' : 'Habilitado somente se usar sonda.')
               }
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             >
               <MenuItem value="">Nenhum</MenuItem>
               <MenuItem value={"G"}>G</MenuItem>
@@ -280,6 +287,7 @@ const PatientDetailsForm = (
                 errors.tipoSondaVesical?.message || 
                 (usoSondaValue === 'sim' ? 'Selecione o tipo ou "Não".' : 'Habilitado somente se usar sonda.')
               }
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             >
               <MenuItem value="">Selecione...</MenuItem>
               <MenuItem value={"NAO"}>Não</MenuItem>
@@ -305,6 +313,7 @@ const PatientDetailsForm = (
               select
               error={!!errors.tipoSanguineo}
               helperText={errors.tipoSanguineo?.message || 'Selecione o tipo sanguíneo do paciente.'}
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             >
               <MenuItem value="">Selecione...</MenuItem>
               <MenuItem value={"A_POSITIVO"}>A+</MenuItem>
@@ -365,6 +374,7 @@ const PatientDetailsForm = (
               placeholder="00/00/0000"
               mask="00/00/0000"
               helperText={errors.informacaoHospitalar?.dataInternacao?.message || 'Formato DD/MM/AAAA (opcional)'}
+              FormHelperTextProps={{ sx: { color: `${theme.palette.getContrastText(theme.palette.background.paper)} !important` } }}
             />
           )}
         />

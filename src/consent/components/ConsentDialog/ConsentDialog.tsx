@@ -205,15 +205,35 @@ export function ConsentDialog({
           pb: 3,
           // solid header color (no gradient) as requested
           backgroundColor: ConsentColors.primary.main,
-          color: 'white',
+          color: ConsentColors.primary.contrast,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.75, fontSize: '1rem' }}>
+            <Typography
+              variant="subtitle1"
+              component="h2"
+              sx={{
+                fontWeight: 700,
+                mb: 0.75,
+                fontSize: '1rem',
+                color: ConsentColors.primary.contrast,
+                WebkitTextFillColor: ConsentColors.primary.contrast,
+                opacity: 1,
+              }}
+            >
               {CONSENT_LABELS.dialogTitle}
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.95, fontSize: '0.9rem', lineHeight: 1.6 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                opacity: 0.95,
+                fontSize: '0.9rem',
+                lineHeight: 1.6,
+                color: ConsentColors.primary.contrast,
+                WebkitTextFillColor: ConsentColors.primary.contrast,
+              }}
+            >
               {CONSENT_LABELS.dialogDescription}
             </Typography>
           </Box>
@@ -240,8 +260,10 @@ export function ConsentDialog({
             sx={{
               mt: 1.5,
               backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
+              color: ConsentColors.primary.contrast,
+              WebkitTextFillColor: ConsentColors.primary.contrast,
               fontSize: '0.75rem',
+              opacity: 1,
             }}
           />
         )}
@@ -340,13 +362,13 @@ export function ConsentDialog({
         {!showPreferences && (
           <Stack spacing={1.5} sx={{ width: '100%' }}>
             {/* Botão: Aceitar Todos */}
-            <Button
+              <Button
               onClick={handleAcceptAll}
               variant="contained"
               color="primary"
               disabled={isLoading}
               fullWidth
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon aria-hidden="true" />}
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-label="Salvando - aceitando todos" /> : <CheckCircleIcon aria-hidden="true" />}
               sx={{
                 height: 48,
                 fontWeight: 600,
@@ -371,7 +393,7 @@ export function ConsentDialog({
               color="primary"
               disabled={isLoading}
               fullWidth
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <BlockIcon aria-hidden="true" />}
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-label="Salvando - apenas essenciais" /> : <BlockIcon aria-hidden="true" />}
               sx={{
                 height: 48,
                 fontWeight: 600,
@@ -414,7 +436,8 @@ export function ConsentDialog({
               variant="outlined"
               disabled={isLoading}
               fullWidth
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <CancelIcon aria-hidden="true" />}
+              // The button label communicates the saving state, hide the visual spinner from AT
+              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-hidden /> : <CancelIcon aria-hidden="true" />}
               sx={{
                 height: 44,
                 fontWeight: 600,

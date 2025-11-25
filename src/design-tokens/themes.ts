@@ -58,7 +58,8 @@ const createPalette = (mode: ThemeMode): PaletteOptions => {
       main: isDark ? semanticColors.warning.dark : semanticColors.warning.light,
       light: isDark ? '#ffb84d' : semanticColors.warning.dark,
       dark: isDark ? semanticColors.warning.light : semanticColors.warning.light,
-      contrastText: '#FFFFFF',
+      // In light mode white contrast on orange can fail at small sizes — prefer black contrast in light theme
+      contrastText: isDark ? '#FFFFFF' : '#000000',
     },
     info: {
       main: isDark ? semanticColors.info.dark : semanticColors.info.light,
@@ -181,6 +182,16 @@ const baseThemeOptions: ThemeOptions = {
     borderRadius: borderRadius.base,
   },
   components: {
+    MuiTypography: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+          WebkitTextFillColor: theme.palette.text.primary,
+          textShadow: 'none',
+          mixBlendMode: 'normal',
+        }),
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -201,7 +212,6 @@ const baseThemeOptions: ThemeOptions = {
           },
         }),
         contained: ({ theme }) => ({
-          color: theme.palette.getContrastText(theme.palette.primary.main),
           '&:hover': {
             boxShadow: theme.palette.mode === 'dark' ? 'none' : shadows.sm,
           },
@@ -263,9 +273,30 @@ const baseThemeOptions: ThemeOptions = {
                 : undefined,
           },
           '& .MuiInputLabel-root': {
-            color: theme.palette.text.secondary,
+            // Use primary text color for labels to ensure small label
+            // text maintains WCAG contrast thresholds across themes.
+            color: theme.palette.text.primary,
           },
           '& .MuiInputBase-input': {
+            color: theme.palette.text.primary,
+          },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+          WebkitTextFillColor: theme.palette.text.primary,
+        }),
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+          '&.Mui-disabled': {
+            // Ensure disabled helper text remains readable for small text
             color: theme.palette.text.primary,
           },
         }),
@@ -471,4 +502,3 @@ export const darkTheme = createAppTheme('dark');
 
 // Exporta tema padrão (light)
 export const theme = lightTheme;
-

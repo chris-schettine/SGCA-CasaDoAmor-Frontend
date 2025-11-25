@@ -27,7 +27,7 @@ export default function EmptyState({
         py: 8,
         px: 3,
         textAlign: 'center',
-        color: 'text.secondary',
+        color: 'text.primary',
       }}
     >
       <Box
@@ -41,7 +41,7 @@ export default function EmptyState({
       
       <Typography 
         variant="h6" 
-        component="h3" 
+        component="h2" 
         sx={{ 
           mb: 1,
           color: 'text.primary',
@@ -57,6 +57,7 @@ export default function EmptyState({
           sx={{ 
             mb: 3,
             maxWidth: 400,
+            color: 'text.primary',
           }}
         >
           {description}
@@ -70,6 +71,12 @@ export default function EmptyState({
           sx={{
             textTransform: 'none',
             px: 3,
+            backgroundColor: (theme) => `${theme.palette.primary.main} !important`,
+            color: (theme) => `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+            WebkitTextFillColor: (theme) => `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+            '&:hover': {
+              backgroundColor: (theme) => `${theme.palette.primary.dark} !important`,
+            },
           }}
         >
           {actionLabel}

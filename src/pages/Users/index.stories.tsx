@@ -1,6 +1,7 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { vi } from 'vitest';
 import Users from './index';
+import { Box } from '@mui/material';
 import type { PageUserResponseDTO, UserResponseDTO, PerfilDTO } from '../../api/admin.dto';
 import { userKeys } from '../../hooks/useAdmin';
 import { adminService } from '../../api/admin.service';
@@ -8,6 +9,7 @@ import { adminService } from '../../api/admin.service';
 const meta: Meta<typeof Users> = {
   title: 'Pages/Users',
   component: Users,
+  tags: ['a11y-fix'],
   parameters: {
     layout: 'fullscreen',
   },
@@ -103,14 +105,23 @@ const defaultUsers: UserResponseDTO[] = [
 const defaultPageData = createPageData(defaultUsers);
 const emptyPageData = createPageData([]);
 
-const listUsersSpy = vi.spyOn(adminService, 'listUsers');
-const toggleUserStatusSpy = vi.spyOn(adminService, 'toggleUserStatus');
+const originalListUsers = adminService.listUsers.bind(adminService);
+const originalToggleUserStatus = adminService.toggleUserStatus.bind(adminService);
 
 const applyServiceMocks = (pageData: PageUserResponseDTO) => {
-  listUsersSpy.mockReset();
-  toggleUserStatusSpy.mockReset();
-  listUsersSpy.mockResolvedValue(pageData);
-  toggleUserStatusSpy.mockResolvedValue();
+  adminService.listUsers = async (...args: Parameters<typeof originalListUsers>) => {
+    void args;
+    return pageData;
+  };
+  adminService.toggleUserStatus = async (...args: Parameters<typeof originalToggleUserStatus>) => {
+    void args;
+    return undefined as unknown as ReturnType<typeof originalToggleUserStatus>;
+  };
+};
+
+const resetServiceMocks = () => {
+  adminService.listUsers = originalListUsers;
+  adminService.toggleUserStatus = originalToggleUserStatus;
 };
 
 const buildReactQueryParameters = (pageData: PageUserResponseDTO) => ({
@@ -130,6 +141,12 @@ export const Default: Story = {
     applyServiceMocks(defaultPageData);
     return {};
   }],
+  decorators: [
+    (Story) => {
+      React.useEffect(() => resetServiceMocks, []);
+      return <Story />;
+    },
+  ],
 };
 
 export const EmptyList: Story = {
@@ -140,6 +157,12 @@ export const EmptyList: Story = {
     applyServiceMocks(emptyPageData);
     return {};
   }],
+  decorators: [
+    (Story) => {
+      React.useEffect(() => resetServiceMocks, []);
+      return <Story />;
+    },
+  ],
 };
 
 export const NonAdminViewer: Story = {
@@ -159,4 +182,10 @@ export const NonAdminViewer: Story = {
     applyServiceMocks(defaultPageData);
     return {};
   }],
+  decorators: [
+    (Story) => {
+      React.useEffect(() => resetServiceMocks, []);
+      return <Story />;
+    },
+  ],
 };

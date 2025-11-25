@@ -40,7 +40,9 @@ export const theme = createTheme({
       main: '#ed6c02', // Material Orange
       light: '#ff9800',
       dark: '#e65100',
-      contrastText: '#FFFFFF',
+      // Use a darker contrast text for warning to meet WCAG contrast thresholds
+      // (white on #ed6c02 fails at small font sizes, so prefer black contrast)
+      contrastText: '#000000',
     },
     info: {
       main: '#0288d1', // Material Light Blue
@@ -210,6 +212,14 @@ export const theme = createTheme({
           },
         },
       },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          // Ensure helper text has sufficient contrast (small text requires stronger contrast)
+          color: 'rgba(0,0,0,0.87)'
+        }
+      }
     },
     MuiTableCell: {
       styleOverrides: {

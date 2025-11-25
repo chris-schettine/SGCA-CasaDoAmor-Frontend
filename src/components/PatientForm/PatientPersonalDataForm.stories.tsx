@@ -9,77 +9,58 @@ const meta: Meta<typeof PatientPersonalDataForm> = {
   title: 'Components/PatientForm/PatientPersonalDataForm',
   component: PatientPersonalDataForm,
   decorators: [
-    (Story) => {
-      const {
-        register,
-        formState: { errors },
-        watch,
-        setValue,
-        control,
-      } = useForm<PatientFormInputs>({
-        resolver: zodResolver(patientSchema),
-        defaultValues: {
-          nomeCompletoPaciente: '',
-          cpfPaciente: '',
-          dataNascimento: '',
-          idade: '',
-          naturalidade: '',
-          rg: '',
-          nomeMae: '',
-          profissao: '',
-          telefone: '',
-          cep: '',
-          endereco: '',
-          bairro: '',
-          cidade: '',
-          estado: '',
-          numero: '',
-          complemento: '',
-        },
-      });
-
-      const handleCepSearch = async (cep: string) => {
-        console.log('Searching for CEP:', cep);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      };
-
-      return (
-        <Grid container spacing={2}>
-          <Story
-            args={{
-              register,
-              errors,
-              watch,
-              setValue,
-              control,
-              handleCepSearch,
-              isCepLoading: false,
-            }}
-          />
-        </Grid>
-      );
-    },
+    (Story) => (
+      <Grid container spacing={2}>
+        <Story />
+      </Grid>
+    ),
   ],
 };
 
 export default meta;
 type Story = StoryObj<typeof PatientPersonalDataForm>;
 
-export const Default: Story = {};
+const BaseForm = ({ defaultValues }: { defaultValues?: Partial<PatientFormInputs> }) => {
+  const {
+    register,
+    formState: { errors },
+    watch,
+    setValue,
+    control,
+  } = useForm<PatientFormInputs>({
+    resolver: zodResolver(patientSchema),
+    defaultValues,
+  });
+
+  const handleCepSearch = async (cep: string) => {
+    console.log('Searching for CEP:', cep);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  };
+
+  return (
+    <Grid container spacing={2}>
+      <PatientPersonalDataForm
+        register={register}
+        errors={errors}
+        watch={watch}
+        setValue={setValue}
+        control={control}
+        handleCepSearch={handleCepSearch}
+        isCepLoading={false}
+      />
+    </Grid>
+  );
+};
+
+export const Default: Story = {
+  render: () => <BaseForm />,
+};
 
 export const WithData: Story = {
-  decorators: [
-    (Story) => {
-      const {
-        register,
-        formState: { errors },
-        watch,
-        setValue,
-        control,
-      } = useForm<PatientFormInputs>({
-        resolver: zodResolver(patientSchema),
-        defaultValues: {
+  render: () => {
+    return (
+      <BaseForm
+        defaultValues={{
           nomeCompletoPaciente: 'Fulano de Tal',
           cpfPaciente: '123.456.789-00',
           dataNascimento: '01/01/1990',
@@ -88,7 +69,7 @@ export const WithData: Story = {
           rg: '12.345.678-9',
           nomeMae: 'Ciclana de Tal',
           profissao: 'Engenheiro',
-          telefone: '11 99999-9999',
+          telefone: '11 99999 9999',
           cep: '12345-678',
           endereco: 'Rua dos Bobos',
           bairro: 'Centro',
@@ -96,29 +77,8 @@ export const WithData: Story = {
           estado: 'SP',
           numero: '0',
           complemento: 'Apto 123',
-        },
-      });
-
-      const handleCepSearch = async (cep: string) => {
-        console.log('Searching for CEP:', cep);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      };
-
-      return (
-        <Grid container spacing={2}>
-          <Story
-            args={{
-              register,
-              errors,
-              watch,
-              setValue,
-              control,
-              handleCepSearch,
-              isCepLoading: false,
-            }}
-          />
-        </Grid>
-      );
-    },
-  ],
+        }}
+      />
+    );
+  },
 };

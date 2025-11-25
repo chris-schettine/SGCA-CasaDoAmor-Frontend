@@ -1,0 +1,6 @@
+<script>
+  // test-runner and interaction utilities sometimes reference a small helper object
+  // named __test in the page context. Make sure it's defined early so page.evaluate
+  // calls don't throw ReferenceError during test-runner runs.
+  window.__test = window.__test || (function(){});
+</script>

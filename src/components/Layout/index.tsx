@@ -62,6 +62,10 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'ope
     flexShrink: 0,
     boxSizing: 'border-box',
     whiteSpace: 'nowrap',
+    '& .MuiDrawer-paper': {
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+    },
     ...(open && {
         ...openedMixin(theme),
         '& .MuiDrawer-paper': openedMixin(theme),
@@ -143,7 +147,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     const isCurrentActive = isActive || isRootActive;
     
     const activeBgColor = theme.palette.mode === 'dark' ? theme.palette.primary.main : tokens.brandColors.primary[500];
-    const activeTextColor = theme.palette.common.white;
+    const activeTextColor = theme.palette.getContrastText(activeBgColor);
     const inactiveColor = theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.85) : alpha(theme.palette.text.primary, 0.85);
     
     const handleNavigation = (event: React.MouseEvent) => {
@@ -175,18 +179,32 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
                         py: 1.5,
                         borderRadius: '8px',
                         backgroundColor: isCurrentActive ? activeBgColor : 'transparent',
-                        '&:hover': { backgroundColor: isCurrentActive ? activeBgColor : 'rgba(0, 0, 0, 0.08)' },
-                        '&:active': { backgroundColor: isCurrentActive ? 'rgba(9, 36, 75, 0.9)' : 'rgba(0, 0, 0, 0.15)', transform: 'scale(0.98)' },
-                        transition: theme => theme.transitions.create(['background-color', 'transform'], { duration: 150 }),
+                        color: isCurrentActive ? activeTextColor : inactiveColor,
+                        '&:hover': { backgroundColor: isCurrentActive ? activeBgColor : theme.palette.action.hover },
+                        '&:active': { backgroundColor: isCurrentActive ? alpha(activeBgColor, 0.9) : theme.palette.action.selected, transform: 'scale(0.98)' },
+                        transition: (theme) => theme.transitions.create(['background-color', 'transform'], { duration: 150 }),
                         WebkitTapHighlightColor: 'transparent',
                         margin: '4px 8px',
                         width: 'auto',
+                        '& .MuiListItemText-primary': {
+                            color: isCurrentActive ? activeTextColor : inactiveColor,
+                            WebkitTextFillColor: isCurrentActive ? activeTextColor : inactiveColor,
+                            fontWeight: isCurrentActive ? 700 : 600,
+                            fontSize: { xs: '1rem', md: '0.938rem' },
+                        },
+                        '& .MuiSvgIcon-root': {
+                            color: isCurrentActive ? activeTextColor : inactiveColor,
+                        },
                     }}
                 >
                     <ListItemIcon sx={{ minWidth: 0, mr: open ? 3 : 0, justifyContent: 'center', color: isCurrentActive ? activeTextColor : inactiveColor, fontSize: { xs: '1.5rem', md: '1.25rem' } }}>
                         <Icon sx={{ fontSize: 'inherit' }} />
                     </ListItemIcon>
-                    <ListItemText primary={primary} sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }} slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : inactiveColor, fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }} />
+                    <ListItemText
+                      primary={primary}
+                      sx={{ opacity: open ? 1 : 0, width: '100%', textAlign: 'left', transition: theme => theme.transitions.create('opacity'), overflow: 'hidden' }}
+                      slotProps={{ primary: { sx: { color: isCurrentActive ? activeTextColor : inactiveColor, WebkitTextFillColor: isCurrentActive ? activeTextColor : inactiveColor, fontWeight: isCurrentActive ? 700 : 600, fontSize: { xs: '1rem', md: '0.938rem' } } } }}
+                    />
                 </ListItemButton>
             </Tooltip> 
         </ListItem>
@@ -425,7 +443,7 @@ export default function Layout() {
                                 sx={{ 
                                     color: theme.palette.mode === 'dark' 
                                         ? theme.palette.text.primary 
-                                        : '#000000DA', 
+                                        : theme.palette.text.primary, 
                                     flexShrink: 0,
                                     marginRight: theme.spacing(1)
                                 }}

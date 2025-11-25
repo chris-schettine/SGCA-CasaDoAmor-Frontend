@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { expect, userEvent, within } from 'storybook/test';
 import StandardTable, { type Column, type Action, type StandardTableProps } from './index';
 
 type PatientRow = {
@@ -17,23 +18,33 @@ const columns: Column<PatientRow>[] = [
   { id: 'status', label: 'Status', minWidth: 100 },
 ];
 
+let viewCalled = false;
+let editCalled = false;
+let deleteCalled = false;
+
 const actions: Action<PatientRow>[] = [
   {
     icon: <VisibilityIcon fontSize="small" />,
     tooltip: 'Visualizar',
-    onClick: (row) => alert(`Visualizar ${row.name}`),
+    onClick: () => {
+      viewCalled = true;
+    },
   },
   {
     icon: <EditIcon fontSize="small" />,
     tooltip: 'Editar',
     color: 'secondary',
-    onClick: (row) => alert(`Editar ${row.name}`),
+    onClick: () => {
+      editCalled = true;
+    },
   },
   {
     icon: <DeleteIcon fontSize="small" />,
     tooltip: 'Remover',
     color: 'error',
-    onClick: (row) => alert(`Remover ${row.name}`),
+    onClick: () => {
+      deleteCalled = true;
+    },
   },
 ];
 
@@ -66,6 +77,12 @@ export default meta;
 type Story = StoryObj<typeof PatientStandardTable>;
 
 export const Default: Story = {};
+Default.play = async ({ canvasElement }) => {
+  const canvas = within(canvasElement);
+  const viewButton = await canvas.findAllByRole('button', { name: /visualizar/i });
+  await userEvent.click(viewButton[0]);
+  await expect(viewCalled).toBe(true);
+};
 
 export const Loading: Story = {
   args: {

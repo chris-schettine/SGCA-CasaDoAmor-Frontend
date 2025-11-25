@@ -213,6 +213,7 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
           {/* Termo de Consentimento */}
           <Box>
             <Box
+              tabIndex={0}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -220,6 +221,7 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
                 p: 2,
                 maxHeight: showTermoCompleto ? 400 : 200,
                 overflow: 'auto',
+                // Make the scrollable region keyboard-focusable for accessibility
                 bgcolor: 'background.default',
               }}
             >
@@ -289,7 +291,7 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
           {loadingClientInfo ? (
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} />
+                <CircularProgress size={20} aria-label="Obtendo informações do cliente" />
                 <Typography variant="caption">Obtendo informações do cliente...</Typography>
               </Box>
             </Box>
@@ -331,7 +333,7 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
                 sx={{ minWidth: 120 }}
               >
                 {isSubmitting ? (
-                  <CircularProgress size={24} />
+                  <CircularProgress size={24} aria-label="Enviando consentimento" />
                 ) : concordaValue ? (
                   'Registrar Consentimento'
                 ) : (

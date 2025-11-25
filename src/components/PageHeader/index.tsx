@@ -40,13 +40,17 @@ export const PageHeader = ({
   action,
   searchComponent 
 }: PageHeaderProps) => {
+  // page header uses theme-aware text for accessibility
   const theme = useTheme();
-  const titleColor = theme.palette.mode === 'dark'
-    ? theme.palette.primary.main
-    : theme.custom.brandColors.secondary[500];
 
   return (
-    <Box sx={{ mb: { xs: 2, sm: 3 }, width: '100%' }}>
+    <Box
+      sx={{
+        mb: { xs: 2, sm: 3 },
+        width: '100%',
+        color: 'text.primary',
+      }}
+    >
       {/* Título e subtítulo */}
       <Box sx={{ mb: searchComponent || action ? { xs: 2, sm: 3 } : 0 }}>
         <Typography 
@@ -54,12 +58,16 @@ export const PageHeader = ({
           gutterBottom={!!subtitle}
           sx={{ 
             fontWeight: 700,
-            color: titleColor,
             mb: subtitle ? 1 : 0,
             fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+            color: theme.palette.text.primary,
+            WebkitTextFillColor: theme.palette.text.primary,
+            opacity: 1,
+            textShadow: 'none',
+            mixBlendMode: 'normal',
           }}
         >
-          {title}
+          <span style={{ color: theme.palette.text.primary, WebkitTextFillColor: theme.palette.text.primary, opacity: 1 }}>{title}</span>
         </Typography>
         {subtitle && (
           <Typography 
@@ -84,11 +92,13 @@ export const PageHeader = ({
           }}
         >
           {searchComponent && (
-            <Box sx={{ 
-              flex: { xs: '1 1 auto', sm: '1 1 auto' }, 
-              minWidth: { xs: '100%', sm: '250px' }, 
-              maxWidth: { xs: '100%', sm: '500px' } 
-            }}>
+            <Box
+              sx={{
+                flex: { xs: '1 1 auto', sm: '1 1 auto' },
+                minWidth: { xs: '100%', sm: '250px' },
+                maxWidth: { xs: '100%', sm: '500px' },
+              }}
+            >
               {searchComponent}
             </Box>
           )}

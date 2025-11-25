@@ -12,12 +12,15 @@ export const useTransition = () => {
 };
 
 export const TransitionProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // Allow Storybook test-runner to opt-in to reduced-motion (disable
+  // animations) by setting window.__test.disableAnimations = true.
+  const initialReduced = typeof window !== 'undefined' && (window as any).__test?.disableAnimations === true;
+  const [reducedMotion, setReducedMotion] = useState(initialReduced);
   const [featureFlags] = useState({ enhancedTransitions: true });
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = () => setReducedMotion(mq.matches);
+    const handler = () => setReducedMotion(mq.matches || initialReduced);
     handler();
     if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', handler);

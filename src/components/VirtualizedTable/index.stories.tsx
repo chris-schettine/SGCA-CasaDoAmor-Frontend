@@ -4,6 +4,9 @@ import { VirtualizedTable, VirtualizedPatientTable } from '.';
 const meta: Meta<typeof VirtualizedTable> = {
   title: 'Components/VirtualizedTable',
   component: VirtualizedTable,
+  args: {
+    ariaLabel: 'Tabela virtualizada de exemplo',
+  },
 };
 
 export default meta;

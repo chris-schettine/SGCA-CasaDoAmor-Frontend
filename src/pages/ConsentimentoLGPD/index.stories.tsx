@@ -1,9 +1,11 @@
+import React, { useEffect } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import ConsentimentoLGPDPage from '.';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { consentimentoKeys } from '../../hooks/useConsentimento';
 import type { PageConsentimentoResponseDTO } from '../../api/consentimento.dto';
+import { consentimentoService } from '../../api/consentimento.service';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +93,16 @@ export const Default: Story = {
       ],
     },
   },
+  render: () => {
+    useEffect(() => {
+      const original = consentimentoService.listarConsentimentos.bind(consentimentoService);
+      consentimentoService.listarConsentimentos = async () => mockConsentimentos;
+      return () => {
+        consentimentoService.listarConsentimentos = original;
+      };
+    }, []);
+    return <ConsentimentoLGPDPage />;
+  },
 };
 
 export const Loading: Story = {
@@ -103,6 +115,17 @@ export const Loading: Story = {
         },
       ],
     },
+  },
+  render: () => {
+    useEffect(() => {
+      const original = consentimentoService.listarConsentimentos.bind(consentimentoService);
+      consentimentoService.listarConsentimentos = async () =>
+        new Promise((resolve) => setTimeout(() => resolve(mockConsentimentos), 3000));
+      return () => {
+        consentimentoService.listarConsentimentos = original;
+      };
+    }, []);
+    return <ConsentimentoLGPDPage />;
   },
 };
 
@@ -122,6 +145,21 @@ export const Empty: Story = {
       ],
     },
   },
+  render: () => {
+    useEffect(() => {
+      const original = consentimentoService.listarConsentimentos.bind(consentimentoService);
+      consentimentoService.listarConsentimentos = async () => ({
+        ...mockConsentimentos,
+        content: [],
+        totalElements: 0,
+        empty: true,
+      });
+      return () => {
+        consentimentoService.listarConsentimentos = original;
+      };
+    }, []);
+    return <ConsentimentoLGPDPage />;
+  },
 };
 
 export const Error: Story = {
@@ -134,5 +172,17 @@ export const Error: Story = {
         },
       ],
     },
+  },
+  render: () => {
+    useEffect(() => {
+      const original = consentimentoService.listarConsentimentos.bind(consentimentoService);
+      consentimentoService.listarConsentimentos = async () => {
+        throw new Error('Storybook mock error');
+      };
+      return () => {
+        consentimentoService.listarConsentimentos = original;
+      };
+    }, []);
+    return <ConsentimentoLGPDPage />;
   },
 };

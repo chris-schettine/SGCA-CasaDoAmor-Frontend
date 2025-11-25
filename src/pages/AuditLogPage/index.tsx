@@ -20,6 +20,7 @@ import {
   useTheme,
   Chip,
 } from '@mui/material';
+import ThemeProvider from '../../contexts/ThemeContext';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
@@ -50,7 +51,7 @@ const columns = [
 
 // --- 2. COMPONENTE PRINCIPAL ---
 
-export const AuditLogPage = () => {
+export const AuditLogContent = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
@@ -178,13 +179,14 @@ export const AuditLogPage = () => {
 
 
   return (
-    <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
       <PageHeader 
         title="📋 Logs de Auditoria do Sistema"
       />
 
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>Filtros</Typography>
+        <Typography variant="h2" gutterBottom>Filtros</Typography>
         
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-end' }}>
 
@@ -201,10 +203,24 @@ export const AuditLogPage = () => {
 
           {/* Filtro por Tipo de Ação - CORRIGIDO com InputLabel shrink */}
           <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
-            <FormControl fullWidth variant="outlined">
+            <FormControl
+              fullWidth
+              variant="outlined"
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.palette.text.primary,
+                },
+              }}
+            >
               {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
-              <InputLabel shrink={filterTipoAcao !== ''}>Tipo de Ação</InputLabel>
+              <InputLabel id="audit-tipo-label" shrink={filterTipoAcao !== ''}>Tipo de Ação</InputLabel>
               <Select
+                labelId="audit-tipo-label"
                 value={filterTipoAcao}
                 onChange={(e) => setFilterTipoAcao(e.target.value)}
                 label="Tipo de Ação"
@@ -222,10 +238,24 @@ export const AuditLogPage = () => {
 
           {/* Filtro por Resultado - CORRIGIDO com InputLabel shrink */}
           <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
-            <FormControl fullWidth variant="outlined">
+            <FormControl
+              fullWidth
+              variant="outlined"
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.palette.text.primary,
+                },
+              }}
+            >
               {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
-              <InputLabel shrink={filterResultado !== ''}>Resultado</InputLabel>
+              <InputLabel id="audit-resultado-label" shrink={filterResultado !== ''}>Resultado</InputLabel>
               <Select
+                labelId="audit-resultado-label"
                 value={filterResultado}
                 onChange={(e) => setFilterResultado(e.target.value)}
                 label="Resultado"
@@ -308,7 +338,7 @@ export const AuditLogPage = () => {
                   </TableRow>
                 ) : (
                   currentLogs.map((log) => (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={log.id}>
+                    <TableRow hover tabIndex={-1} key={log.id}>
                       {columns.map((column) => {
                         const value = log[column.id as keyof AuditLogEntry];
                         return (
@@ -350,8 +380,15 @@ export const AuditLogPage = () => {
           }}
         />
       </Paper>
-    </Box>
+        </Box>
+      </Box>
   );
 };
+
+export const AuditLogPage = () => (
+  <ThemeProvider defaultMode="light">
+    <AuditLogContent />
+  </ThemeProvider>
+);
 
 export default AuditLogPage;

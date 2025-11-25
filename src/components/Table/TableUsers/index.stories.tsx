@@ -1,5 +1,23 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import MockAdapter from 'axios-mock-adapter';
 import TableUsers from '.';
+import { api } from '../../../api/api.gateway';
+
+// Basic mock to avoid real network calls during stories/tests.
+const usersMock = new MockAdapter(api, { delayResponse: 25 });
+usersMock.onGet('/admin/users').reply(200, {
+  content: [
+    {
+      id: 1,
+      nome: 'Admin Story',
+      email: 'admin@storybook.test',
+      cpf: '00000000000',
+      perfis: ['ADMIN'],
+    },
+  ],
+  totalElements: 1,
+});
+usersMock.onAny().passThrough();
 
 const meta: Meta<typeof TableUsers> = {
   title: 'Components/Table/TableUsers',

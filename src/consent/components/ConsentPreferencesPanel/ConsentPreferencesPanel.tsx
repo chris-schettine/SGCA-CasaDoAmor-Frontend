@@ -165,7 +165,8 @@ export function ConsentPreferencesPanel({
         variant="contained"
         fullWidth
         disabled={isLoading || !hasChanges}
-        startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+        // The button already conveys its state via its label ('Salvando...'), mark the decorative spinner as aria-hidden
+        startIcon={isLoading ? <CircularProgress size={16} color="inherit" aria-hidden /> : <SaveIcon />}
         sx={{
           height: 48,
           mt: 1,
@@ -188,7 +189,8 @@ export function ConsentPreferencesPanel({
             display: 'block', 
             textAlign: 'center', 
             mt: 1.5, 
-            color: ConsentColors.text.disabled,
+            // Use a higher-contrast token so small caption text meets WCAG
+            color: ConsentColors.text.primary,
             fontSize: '0.9rem',
           }}
         >

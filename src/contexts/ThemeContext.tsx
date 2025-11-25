@@ -73,14 +73,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       // Ignora erros de localStorage
     }
     
-    // Se não houver preferência salva, checa o modo do sistema (prefers-color-scheme)
-    try {
-      if (window && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
-    } catch {
-      // Ignore
-    }
+    // Sem preferência salva, usa sempre o modo padrão fornecido (light por padrão)
     return defaultMode;
   });
 
@@ -165,4 +158,3 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 };
 
 export default ThemeProvider;
-

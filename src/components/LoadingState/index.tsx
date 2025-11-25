@@ -35,12 +35,39 @@ export const LoadingState = ({
 }: LoadingStateProps) => {
   
   if (type === 'inline') {
-    return <CircularProgress size={size || 24} />;
+    return (
+      <Box
+        role="status"
+        aria-live="polite"
+        aria-label={message}
+        sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}
+      >
+        <CircularProgress size={size || 24} aria-hidden />
+        <Box
+          component="span"
+          sx={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            border: 0,
+          }}
+        >
+          {message}
+        </Box>
+      </Box>
+    );
   }
 
   if (type === 'section') {
     return (
       <Box 
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
         sx={{ 
           display: 'flex', 
           flexDirection: 'column', 
@@ -53,8 +80,8 @@ export const LoadingState = ({
           borderRadius: 2,
         }}
       >
-        <CircularProgress size={size || 40} />
-        <Typography variant="body1" color="text.secondary">
+        <CircularProgress size={size || 40} aria-hidden />
+        <Typography variant="body1" color="text.primary" id="loading-section-message">
           {message}
         </Typography>
       </Box>
@@ -64,6 +91,9 @@ export const LoadingState = ({
   // type === 'page'
   return (
     <Box 
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
@@ -73,8 +103,8 @@ export const LoadingState = ({
         minHeight: '60vh',
       }}
     >
-      <CircularProgress size={size || 48} />
-      <Typography variant="h6" color="text.secondary">
+      <CircularProgress size={size || 48} aria-hidden />
+      <Typography variant="h6" color="text.primary" id="loading-page-message">
         {message}
       </Typography>
     </Box>

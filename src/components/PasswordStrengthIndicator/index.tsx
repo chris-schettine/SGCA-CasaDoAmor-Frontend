@@ -60,6 +60,7 @@ export default function PasswordStrengthIndicator({ password }: PasswordStrength
         variant="determinate" 
         value={strength} 
         color={getStrengthColor()}
+        aria-label={`Força da senha: ${getStrengthLabel()}`}
         sx={{ 
           height: 8, 
           borderRadius: 4,

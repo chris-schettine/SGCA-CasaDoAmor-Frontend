@@ -10,6 +10,7 @@ import {
   Paper,
   Box,
   type TableCellProps,
+  useTheme,
 } from '@mui/material';
 
 export type TableRowData = Record<string, unknown>;
@@ -23,6 +24,10 @@ export interface Column<T extends TableRowData> {
   renderCell?: (row: T) => ReactNode;
   align?: TableCellProps['align'];
   headerAlign?: TableCellProps['align'];
+  /**
+   * Forneça um rótulo curto para leitores de tela quando o headerName for visual apenas (ex: abreviações)
+   */
+  ariaLabel?: string;
 }
 
 interface VirtualizedTableProps<T extends TableRowData> {
@@ -44,6 +49,7 @@ export function VirtualizedTable<T extends TableRowData>({
   onRowClick,
   ariaLabel,
 }: VirtualizedTableProps<T>) {
+  const theme = useTheme();
   const parentRef = useRef<HTMLDivElement>(null);
 
   const getVirtualRowKey = (index: number) => {
@@ -78,6 +84,7 @@ export function VirtualizedTable<T extends TableRowData>({
         // Better mobile scroll behavior
         WebkitOverflowScrolling: 'touch',
       }} 
+      tabIndex={0}
       ref={parentRef}
     >
       <Table 
@@ -96,9 +103,14 @@ export function VirtualizedTable<T extends TableRowData>({
                 component="th"
                 scope="col"
                 align={column.headerAlign || column.align || 'left'}
+                aria-label={column.ariaLabel}
                 sx={{
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
+                  backgroundColor: `${theme.palette.primary.main} !important`,
+                  color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+                  WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+                  opacity: 1,
                 }}
               >
                 {column.headerName}
@@ -164,7 +176,6 @@ export function VirtualizedTable<T extends TableRowData>({
                       >
                         <Box
                           component="div"
-                          role="row"
                           tabIndex={onRowClick ? 0 : -1}
                           onClick={() => onRowClick?.(row)}
                           onKeyDown={handleKeyDown}
@@ -195,8 +206,8 @@ export function VirtualizedTable<T extends TableRowData>({
                               <Box
                                 key={String(column.field)}
                                 component="div"
-                              role="cell"
-                              aria-colindex={columns.indexOf(column) + 1}
+                              // use data attributes for indexing to avoid invalid ARIA attributes on a plain div
+                              data-colindex={columns.indexOf(column) + 1}
                                 sx={{
                                   display: 'table-cell',
                                   width: column.width,
@@ -206,6 +217,9 @@ export function VirtualizedTable<T extends TableRowData>({
                                   verticalAlign: 'middle',
                                   textAlign: column.align || 'left',
                                   backgroundColor: 'inherit',
+                                  color: theme.palette.text.primary,
+                                  WebkitTextFillColor: theme.palette.text.primary,
+                                  opacity: 1,
 
                                 }}
                               >

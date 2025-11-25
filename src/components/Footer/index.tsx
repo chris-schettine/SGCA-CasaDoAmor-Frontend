@@ -57,8 +57,10 @@ const FooterTitle = ({ children }: { children: React.ReactNode }) => (
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
-    const theme = useTheme();
     const tokens = useDesignTokens();
+
+    const baseTextColor = '#ffffff';
+    const mutedTextColor = 'rgba(255,255,255,0.8)';
 
     return (
         <Box
@@ -66,18 +68,19 @@ const Footer = () => {
             role="contentinfo"
             aria-label="Rodapé do site"
             sx={{
-                        backgroundColor: theme.palette.mode === 'dark'
-                                    ? theme.palette.background.default
-                                    : tokens.brandColors.primary[500], 
-                                color: theme.palette.mode === 'dark'
-                                    ? theme.palette.text.primary
-                                    : theme.palette.getContrastText(tokens.brandColors.primary[500]),
-                py: 3, // ALTERAÇÃO PRINCIPAL: Reduzido de {xs:4, md:6} para 3
-                px: 3,
-                mt: 'auto',
-                width: '100%',
-                zIndex: 1,
-                borderTop: `1px solid ${alpha(theme.palette.common.white, 0.05)}`
+                        backgroundColor: tokens.brandColors.primary[500],
+                        color: baseTextColor,
+            py: 3, // ALTERAÇÃO PRINCIPAL: Reduzido de {xs:4, md:6} para 3
+            px: 3,
+            mt: 'auto',
+            width: '100%',
+            zIndex: 1,
+                borderTop: `1px solid ${alpha('#ffffff', 0.05)}`,
+                '& .MuiTypography-root': {
+                    color: baseTextColor,
+                    WebkitTextFillColor: baseTextColor,
+                    opacity: 1,
+                },
             }}
         >
             <Grid 
@@ -108,9 +111,10 @@ const Footer = () => {
                         />
                         <Typography 
                             variant="subtitle1" 
+                            color="inherit"
                             sx={{ 
                                 fontWeight: 'bold', 
-                                color: 'inherit', 
+                                color: baseTextColor, 
                                 mb: 0.5,
                                 lineHeight: 1.2
                             }}
@@ -118,11 +122,11 @@ const Footer = () => {
                             SGCA — Casa do Amor
                         </Typography>
                         
-                        <Typography variant="body2" sx={{ opacity: 0.5, maxWidth: '300px', mb: 2, fontSize: '0.85rem' }}>
+                        <Typography variant="body2" color="inherit" sx={{ color: mutedTextColor, maxWidth: '300px', mb: 2, fontSize: '0.85rem' }}>
                             Apoio e acolhimento de pacientes em tratamento.
                         </Typography>
 
-                        <Typography variant="caption" sx={{ opacity: 0.4, fontSize: '0.75rem' }}>
+                        <Typography variant="caption" color="inherit" sx={{ color: mutedTextColor, fontSize: '0.75rem' }}>
                             © {currentYear} — Todos os direitos reservados.
                         </Typography>
                     </Box>

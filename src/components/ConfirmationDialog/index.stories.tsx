@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Button, Stack } from '@mui/material';
+import { expect, screen, userEvent, within } from 'storybook/test';
 import ConfirmationDialog from './index';
 
 const meta: Meta<typeof ConfirmationDialog> = {
@@ -16,6 +17,8 @@ const meta: Meta<typeof ConfirmationDialog> = {
   args: {
     title: 'Excluir paciente',
     message: 'Tem certeza que deseja remover este paciente? Esta ação não pode ser desfeita.',
+    onClose: () => {},
+    onConfirm: () => {},
   },
 };
 
@@ -46,5 +49,12 @@ export const Interactive: Story = {
         />
       </Stack>
     );
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: /abrir diálogo/i }));
+    const confirmButton = await screen.findByRole('button', { name: /confirmar/i });
+    await userEvent.click(confirmButton);
+    await expect(confirmButton).toBeEnabled();
   },
 };

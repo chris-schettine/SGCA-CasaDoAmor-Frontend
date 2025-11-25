@@ -1,70 +1,66 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import PageHeader from './index';
 import { Box, Button } from '@mui/material';
+import PageHeader from './index';
 import SearchBar from '../SearchBar';
 
-const meta: Meta<typeof PageHeader> = {
-  title: 'Components/PageHeader',
+const meta = {
+  title: 'Components/Layout/PageHeader',
   component: PageHeader,
-  parameters: {
-    layout: 'fullwidth',
-  },
   tags: ['autodocs'],
+  parameters: {
+    layout: 'fullscreen',
+  },
   decorators: [
     (Story) => (
-      <Box sx={{ padding: 3 }}>
+      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
         <Story />
       </Box>
     ),
   ],
-};
-
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-/**
- * Header básico - apenas título
- */
-export const Basic: Story = {
+  argTypes: {
+    action: { control: false },
+    searchComponent: { control: false },
+  },
   args: {
     title: 'Lista de Pacientes',
   },
-};
+} satisfies Meta<typeof PageHeader>;
 
-/**
- * Header com subtítulo descritivo
- */
+export default meta;
+type Story = StoryObj<typeof PageHeader>;
+
+export const Basic: Story = {};
+
 export const WithSubtitle: Story = {
   args: {
-    title: 'Gestão de Usuários',
     subtitle: 'Administre os usuários do sistema',
   },
 };
 
-/**
- * Header com botão de ação
- */
 export const WithAction: Story = {
   args: {
-    title: 'Pacientes',
     subtitle: 'Gerencie os pacientes cadastrados',
-    action: (
-      <Button variant="contained" color="primary">
-        Novo Paciente
-      </Button>
+    action: <Button variant="contained">Novo paciente</Button>,
+  },
+};
+
+export const WithSearch: Story = {
+  args: {
+    searchComponent: (
+      <SearchBar
+        placeholder="Buscar sessão..."
+        value=""
+        onChange={(value: string) => console.log('Busca:', value)}
+      />
     ),
   },
 };
 
-/**
- * Header completo - título, subtítulo, busca e ação
- */
 export const Complete: Story = {
   args: {
-    title: 'Auditoria',
     subtitle: 'Histórico de ações no sistema',
     searchComponent: (
-      <SearchBar 
+      <SearchBar
         placeholder="Buscar por usuário ou ação"
         value=""
         onChange={(value: string) => console.log('Busca:', value)}
@@ -78,37 +74,13 @@ export const Complete: Story = {
   },
 };
 
-/**
- * Header apenas com busca
- */
-export const WithSearch: Story = {
-  args: {
-    title: 'Sessões',
-    searchComponent: (
-      <SearchBar 
-        placeholder="Buscar sessão..."
-        value=""
-        onChange={(value: string) => console.log('Busca:', value)}
-      />
-    ),
-  },
-};
-
-/**
- * Header com múltiplas ações
- */
 export const WithMultipleActions: Story = {
   args: {
-    title: 'Relatórios',
     subtitle: 'Gere e exporte relatórios',
     action: (
       <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button variant="outlined" color="primary">
-          Limpar Filtros
-        </Button>
-        <Button variant="contained" color="primary">
-          Gerar Relatório
-        </Button>
+        <Button variant="outlined">Limpar filtros</Button>
+        <Button variant="contained">Gerar relatório</Button>
       </Box>
     ),
   },

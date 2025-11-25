@@ -1,4 +1,5 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, useTheme, Paper, Stack } from "@mui/material";
+import ThemeProvider from '../../contexts/ThemeContext';
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +9,7 @@ import { toastSuccessCritical, toastErrorCritical } from "../../utils/toast";
 
 // inline styles removed in favor of theme tokens and responsive Paper
 
-const ForgotPassword = () => {
+const ForgotPasswordContent = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const [email, setEmail] = useState('');
@@ -39,7 +40,8 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', px: 2, py: 8, bgcolor: theme.palette.background.default }}>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', px: 2, py: 8, bgcolor: theme.palette.background.default }}>
       <Container maxWidth="sm">
         <Paper component="form" onSubmit={handleSubmit} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 2, boxShadow: theme.custom.shadows.md, display: 'flex', flexDirection: 'column', gap: 2, bgcolor: theme.palette.background.paper }}>
           <Stack alignItems="center" spacing={1}>
@@ -67,8 +69,15 @@ const ForgotPassword = () => {
           </Box>
         </Paper>
       </Container>
-    </Box>
+        </Box>
+      </Box>
   );
 };
+
+const ForgotPassword = () => (
+  <ThemeProvider defaultMode="light">
+    <ForgotPasswordContent />
+  </ThemeProvider>
+);
 
 export default ForgotPassword;

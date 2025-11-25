@@ -42,6 +42,10 @@ interface Props extends Omit<TextFieldProps, 'InputProps' | 'name'> { // Remova 
   lazy?: boolean;
   overwrite?: boolean;
   name: string;
+  /**
+   * Nome acessível explícito para leitores de tela
+   */
+  ariaLabel?: string;
   slotProps?: {
     inputLabel?: TextFieldProps['InputLabelProps']; // Reutiliza o tipo que o MUI espera
     formHelperText?: TextFieldProps['FormHelperTextProps']; // Reutiliza o tipo
@@ -57,6 +61,7 @@ const MaskedTextField: React.FC<Props> = ({
   helperText,
   error,
   value,
+  ariaLabel,
   slotProps,
   InputProps: parentInputProps,
   ...rest
@@ -75,6 +80,7 @@ const MaskedTextField: React.FC<Props> = ({
           definitions,
           lazy,
           overwrite,
+          'aria-label': ariaLabel ?? rest.label ?? rest.name,
         },
       }}
       slotProps={{

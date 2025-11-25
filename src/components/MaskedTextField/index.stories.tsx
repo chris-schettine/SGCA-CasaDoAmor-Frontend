@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Stack } from '@mui/material';
+import { expect, userEvent, within } from 'storybook/test';
 import MaskedTextField from './index';
 
 const meta: Meta<typeof MaskedTextField> = {
@@ -42,6 +43,13 @@ export const CPF: Story = {
     mask: '000.000.000-00',
     placeholder: '000.000.000-00',
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = await canvas.findByLabelText('CPF');
+    await userEvent.clear(input);
+    await userEvent.type(input, '12345678901');
+    await expect(input).toHaveValue('123.456.789-01');
+  },
 };
 
 export const CEP: Story = {
@@ -50,6 +58,7 @@ export const CEP: Story = {
     label: 'CEP',
     mask: '00000-000',
     placeholder: '00000-000',
+    ariaLabel: 'CEP',
   },
 };
 
@@ -59,6 +68,7 @@ export const Phone: Story = {
     label: 'Telefone',
     mask: '(00) 00000-0000',
     placeholder: '(00) 00000-0000',
+    ariaLabel: 'Telefone',
   },
 };
 
@@ -68,6 +78,7 @@ export const Date: Story = {
     label: 'Data',
     mask: '00/00/0000',
     placeholder: 'DD/MM/AAAA',
+    ariaLabel: 'Data',
   },
 };
 

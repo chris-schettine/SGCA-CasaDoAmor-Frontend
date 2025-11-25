@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Typography, useTheme, alpha, Link as MuiLink, IconButton, InputAdornment, Container, CircularProgress } from "@mui/material";
+import { Box, TextField, Button, Typography, useTheme, alpha, Link as MuiLink, IconButton, InputAdornment, Container, CircularProgress, GlobalStyles } from "@mui/material";
 import { useState, useEffect } from "react";
 import { isAxiosError } from 'axios';
 import Visibility from '@mui/icons-material/Visibility';
@@ -26,11 +26,22 @@ const formatCpf = (value: string) => {
 
 
 
-const Login = () => {
+const LoginContent = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const tokens = useDesignTokens();
+  const isDark = theme.palette.mode === 'dark';
+  const backgroundGradient = isDark
+    ? `linear-gradient(135deg,
+        ${tokens.brandColors.primary[700]} 0%,
+        ${tokens.brandColors.secondary[700]} 45%,
+        ${alpha(tokens.brandColors.dark[500], 0.85)} 100%)`
+    : `linear-gradient(135deg,
+        ${tokens.brandColors.primary[500]} 0%,
+        ${tokens.brandColors.secondary[400]} 45%,
+        ${alpha(tokens.brandColors.light[200], 0.9)} 100%)`;
+  const backgroundFallback = isDark ? tokens.brandColors.dark[700] : tokens.brandColors.primary[500];
   
   interface LocationState {
     from?: { pathname: string };
@@ -142,7 +153,27 @@ const Login = () => {
     }
   };
   return (
-    <AnimatedPageScale>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <AnimatedPageScale>
+      <GlobalStyles styles={{
+        html: { background: 'transparent' },
+        body: { background: 'transparent' },
+        '#root': { background: 'transparent' },
+      }} />
+      <Box
+        aria-hidden
+        sx={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          backgroundImage: backgroundGradient,
+          backgroundColor: backgroundFallback,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          pointerEvents: 'none',
+        }}
+      />
       <Box sx={{ 
         display: "flex", 
         alignItems: "center", 
@@ -150,7 +181,11 @@ const Login = () => {
         minHeight: "100vh", 
         m: 0, 
         p: { xs: 2, sm: 3 }, 
-        background: `linear-gradient(135deg, ${tokens.brandColors.primary[500]} 0%, ${alpha(tokens.brandColors.secondary[500], 0.7)} 100%)`,
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'transparent',
+        color: theme.palette.text.primary,
+        WebkitTextFillColor: theme.palette.text.primary,
         transition: 'background-color 0.3s ease',
         flexDirection: 'column', 
       }}>
@@ -166,10 +201,12 @@ const Login = () => {
         backgroundColor: theme.palette.background.paper, 
         borderRadius: `${tokens.borderRadius.base}px`, 
         boxShadow: theme.palette.mode === 'dark'
-          ? '0 0 0 200px rgba(59, 95, 191, 0.15)'
+          ? '0 12px 32px rgba(0, 0, 0, 0.45)'
           : '0 12px 40px rgba(0, 0, 0, 0.2)',
         borderTop: `4px solid ${tokens.brandColors.primary[500]}`, 
         transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Box
           component="img"
@@ -193,7 +230,8 @@ const Login = () => {
             mb: 1.5, 
             fontSize: { xs: '1.25rem', sm: '1.5rem' },
             textAlign: 'center',
-            color: theme.palette.text.primary, 
+            color: theme.palette.text.primary,
+            WebkitTextFillColor: theme.palette.text.primary,
           }}
         >
           Sistema de Gerenciamento da Casa do Amor
@@ -201,7 +239,8 @@ const Login = () => {
         <Typography 
           variant="body1" 
           sx={{ 
-            color: 'text.secondary', 
+            color: theme.palette.text.primary,
+            WebkitTextFillColor: theme.palette.text.primary,
             mb: 2,
             fontSize: { xs: '0.875rem', sm: '1rem' },
             textAlign: 'center'
@@ -234,15 +273,32 @@ const Login = () => {
             autoComplete="username" 
             error={!!cpfError}
             helperText={cpfError || "Formato: 000.000.000-00"} 
+            FormHelperTextProps={{
+              sx: {
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
+              },
+            }}
             inputProps={{ 
               maxLength: 14, 
               'aria-label': 'Digite seu CPF com 11 dígitos'
             }}
-
+            InputLabelProps={{
+              sx: {
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
+                '&.Mui-focused': { color: theme.palette.text.primary },
+              },
+            }}
             sx={{ 
               "& .MuiInputBase-root": {
                 height: { xs: 48, sm: 54 },
                 borderRadius: 2,
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
               }
             }}
           />
@@ -259,10 +315,21 @@ const Login = () => {
             inputProps={{
               'aria-label': 'Digite sua senha'
             }}
+            InputLabelProps={{
+              sx: {
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
+                '&.Mui-focused': { color: theme.palette.text.primary },
+              },
+            }}
             sx={{ 
               "& .MuiInputBase-root": {
                 height: { xs: 48, sm: 54 },
                 borderRadius: 2,
+                color: theme.palette.text.primary,
+                WebkitTextFillColor: theme.palette.text.primary,
+                opacity: 1,
               }
             }}
             InputProps={{ 
@@ -295,12 +362,16 @@ const Login = () => {
               fontSize: { xs: '0.9375rem', sm: '1rem' },
               minHeight: { xs: '44px', sm: '48px' },
               letterSpacing: '0.02em',
+              color: `${theme.palette.getContrastText(tokens.brandColors.primary[700])} !important`,
+              WebkitTextFillColor: `${theme.palette.getContrastText(tokens.brandColors.primary[700])} !important`,
+              backgroundColor: `${tokens.brandColors.primary[700]} !important`,
+              opacity: 1,
               '&:focus-visible': {
                 outline: `${tokens.focus.outlineWidth}px solid ${tokens.brandColors.primary[500]}`,
                 outlineOffset: `${tokens.focus.outlineOffset}px`,
               },
               '&:hover': {
-                backgroundColor: tokens.brandColors.primary[600],
+                backgroundColor: `${tokens.brandColors.primary[600]} !important`,
                 transform: 'translateY(-2px)',
                 boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
               },
@@ -310,7 +381,7 @@ const Login = () => {
             disabled={loading} 
           >
 
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
+            {loading ? <CircularProgress size={24} color="inherit" /> : <span style={{ color: theme.palette.getContrastText(tokens.brandColors.primary[700]), WebkitTextFillColor: theme.palette.getContrastText(tokens.brandColors.primary[700]), fontWeight: 600 }}>Entrar</span>}
           </Button>
         </Box>
         
@@ -337,7 +408,7 @@ const Login = () => {
       <Box sx={{ 
         mt: 4, 
         textAlign: 'center', 
-        color: alpha(theme.palette.common.white, 0.7),
+        color: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.7) : alpha(theme.palette.common.black, 0.65),
         position: 'absolute',
         bottom: 10,
         width: '100%',
@@ -366,10 +437,15 @@ const Login = () => {
             © {new Date().getFullYear()} Sistema de Gerenciamento da Casa do Amor | UESB
         </Typography>
       </Box>
-
       </Box>
-    </AnimatedPageScale>
+
+        </AnimatedPageScale>
+      </Box>
   )
 };
+
+const Login = () => (
+  <LoginContent />
+);
 
 export default Login;

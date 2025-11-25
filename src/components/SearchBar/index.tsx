@@ -1,4 +1,5 @@
 import { FormControl, Input, InputAdornment, InputLabel, IconButton } from '@mui/material';
+import React from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 // Removido ClearIcon personalizado para evitar duplicação com o clear nativo do input type="search"
 
@@ -9,6 +10,14 @@ interface SearchBarProps {
   placeholder?: string;
   id?: string;
   fullWidth?: boolean;
+  /**
+   * Texto para tecnologia assistiva quando o label não for suficiente
+   */
+  ariaLabel?: string;
+  /**
+   * Props extras repassadas para o elemento input (ex: aria-describedby)
+   */
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
 /**
@@ -21,6 +30,8 @@ export default function SearchBar({
   placeholder,
   id = 'search-input',
   fullWidth = true,
+  ariaLabel,
+  inputProps,
 }: SearchBarProps) {
   // O navegador já fornece botão clear para type="search" em alguns sistemas (ex: Safari, Edge, Chrome WebKit variantes)
   // Para manter acessibilidade, ainda permitimos limpar via ESC e exposição programática se necessário futuramente.
@@ -40,7 +51,12 @@ export default function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        aria-label={label}
+        aria-label={ariaLabel ?? label}
+        inputProps={{
+          'aria-describedby': inputProps?.['aria-describedby'],
+          ...(inputProps || {}),
+          'aria-label': ariaLabel ?? inputProps?.['aria-label'] ?? label,
+        }}
         endAdornment={
           <InputAdornment position="end">
             <IconButton aria-label="buscar" edge="end" tabIndex={-1}>

@@ -1,4 +1,5 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, useTheme, Paper, Stack } from "@mui/material";
+import ThemeProvider from '../../contexts/ThemeContext';
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -14,7 +15,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const ActivateAccountPage = () => {
+const ActivateAccountContent = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const query = useQuery();
@@ -83,7 +84,8 @@ const ActivateAccountPage = () => {
   };
 
   return (
-    <Box
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+        <Box
       sx={{
         minHeight: '100vh',
         display: 'flex',
@@ -183,8 +185,15 @@ const ActivateAccountPage = () => {
           </Box>
         </Paper>
       </Container>
-    </Box>
+        </Box>
+      </Box>
   );
 };
+
+const ActivateAccountPage = () => (
+  <ThemeProvider defaultMode="light">
+    <ActivateAccountContent />
+  </ThemeProvider>
+);
 
 export default ActivateAccountPage;

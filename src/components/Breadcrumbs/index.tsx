@@ -49,6 +49,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
             <Typography 
               key={index} 
               color="text.primary"
+              aria-current="page"
               sx={{ 
                 fontWeight: 600,
                 display: 'flex',
