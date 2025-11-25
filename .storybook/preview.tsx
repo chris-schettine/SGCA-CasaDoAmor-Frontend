@@ -6,6 +6,7 @@ import type { Decorator } from '@storybook/react';
 import React, { useMemo } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { setQueryClient, useAuthStore, type UserType } from '../src/stores/useAuthStore';
+import ThemeProvider from '../src/contexts/ThemeContext';
 import { ConsentContext } from '../src/consent/provider/ConsentProvider';
 import type { ConsentContextValue } from '../src/consent/types/consent.types';
 // createAppTheme was used by the old global theme decorator; theme handling moved to components
@@ -46,6 +47,20 @@ const withProviders: Decorator = (Story, context) => {
 
   type StorybookReactQueryParam = {
     initialQueries?: Array<{ queryKey: QueryKey; data: unknown }>;
+  };
+
+  // Helper wrapper used by tests to force a light/dark theme. Declared in
+  // the withProviders scope (so it's available where we render providers).
+  const TestThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // Check several possible runtime locations for an opt-in test theme flag.
+    const forced = (typeof process !== 'undefined' && (process.env as any).STORYBOOK_TEST_THEME) ||
+      (typeof globalThis !== 'undefined' && (globalThis as any).__STORYBOOK_TEST_THEME) ||
+      (typeof window !== 'undefined' && (window as any).__STORYBOOK_TEST_THEME);
+    if (forced === 'light' || forced === 'dark') {
+      // Use an isolated storageKey to avoid interfering with developer localStorage
+      return <ThemeProvider defaultMode={forced} storageKey="__storybook_test_theme__">{children}</ThemeProvider>;
+    }
+    return <>{children}</>;
   };
 
   const Providers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -141,6 +156,7 @@ const withProviders: Decorator = (Story, context) => {
       []
     );
 
+
     return (
       <QueryClientProvider client={queryClient}>
         <TransitionProvider>
@@ -153,11 +169,13 @@ const withProviders: Decorator = (Story, context) => {
   };
 
   return (
-    <MemoryRouter initialEntries={initialEntries}>
-      <Providers>
-        <Story />
-      </Providers>
-    </MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Providers>
+          <TestThemeWrapper>
+            <Story />
+          </TestThemeWrapper>
+        </Providers>
+      </MemoryRouter>
   );
 };
 

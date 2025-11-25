@@ -153,7 +153,7 @@ const LoginContent = () => {
     }
   };
   return (
-      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 0, color: 'text.primary' }}>
         <AnimatedPageScale>
       <GlobalStyles styles={{
         html: { background: 'transparent' },
@@ -175,12 +175,12 @@ const LoginContent = () => {
         }}
       />
       <Box sx={{ 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center", 
-        minHeight: "100vh", 
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
         m: 0, 
-        p: { xs: 2, sm: 3 }, 
+        p: { xs: 1, sm: 2 }, 
         position: 'relative',
         overflow: 'hidden',
         background: 'transparent',
@@ -196,8 +196,8 @@ const LoginContent = () => {
         justifyContent: "center", 
         maxWidth: { xs: "100%", sm: "450px" }, 
         width: "100%", 
-        minHeight: { xs: "auto", sm: "500px" }, 
-        padding: { xs: "1.5rem 1rem", sm: "2rem 1.5rem" }, 
+        minHeight: "auto",
+        padding: { xs: "1.25rem 1rem", sm: "1.5rem 1.25rem" }, 
         backgroundColor: theme.palette.background.paper, 
         borderRadius: `${tokens.borderRadius.base}px`, 
         boxShadow: theme.palette.mode === 'dark'
@@ -362,16 +362,16 @@ const LoginContent = () => {
               fontSize: { xs: '0.9375rem', sm: '1rem' },
               minHeight: { xs: '44px', sm: '48px' },
               letterSpacing: '0.02em',
-              color: `${theme.palette.getContrastText(tokens.brandColors.primary[700])} !important`,
-              WebkitTextFillColor: `${theme.palette.getContrastText(tokens.brandColors.primary[700])} !important`,
-              backgroundColor: `${tokens.brandColors.primary[700]} !important`,
+              color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+              WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+              backgroundColor: `${theme.palette.primary.main} !important`,
               opacity: 1,
               '&:focus-visible': {
                 outline: `${tokens.focus.outlineWidth}px solid ${tokens.brandColors.primary[500]}`,
                 outlineOffset: `${tokens.focus.outlineOffset}px`,
               },
               '&:hover': {
-                backgroundColor: `${tokens.brandColors.primary[600]} !important`,
+                backgroundColor: `${theme.palette.primary.dark} !important`,
                 transform: 'translateY(-2px)',
                 boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
               },
@@ -381,7 +381,7 @@ const LoginContent = () => {
             disabled={loading} 
           >
 
-            {loading ? <CircularProgress size={24} color="inherit" /> : <span style={{ color: theme.palette.getContrastText(tokens.brandColors.primary[700]), WebkitTextFillColor: theme.palette.getContrastText(tokens.brandColors.primary[700]), fontWeight: 600 }}>Entrar</span>}
+            {loading ? <CircularProgress size={24} color="inherit" /> : <span style={{ color: theme.palette.getContrastText(theme.palette.primary.main), WebkitTextFillColor: theme.palette.getContrastText(theme.palette.primary.main), fontWeight: 600 }}>Entrar</span>}
           </Button>
         </Box>
         

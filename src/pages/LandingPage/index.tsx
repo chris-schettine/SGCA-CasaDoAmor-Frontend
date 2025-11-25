@@ -22,13 +22,16 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const theme = useTheme(); 
 
-    const primaryBlue = theme.palette.secondary.main;
-    // Use a branded blue for the landing page header and text
-    const darkBlue = theme.custom.brandColors.secondary[500];
+    const primaryBlue = theme.palette.primary.main;
+    const accent = theme.palette.secondary.main;
 
-    // Darker gradient colors for the landing background
-    const bgStartColor = theme.custom.brandColors.secondary[700];
-    const bgEndColor = theme.custom.brandColors.dark[600];
+    const heroStart = theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.main;
+    const heroMid = theme.palette.mode === 'dark' ? theme.palette.secondary.dark : theme.palette.secondary.main;
+    const heroEnd = theme.palette.mode === 'dark'
+      ? alpha(theme.palette.background.default, 0.9)
+      : alpha(theme.palette.secondary.light, 0.9);
+
+    const logoSrc = theme.palette.mode === 'dark' ? '/logo3branco.png' : '/logo3.png';
 
    
     const features = [
@@ -57,30 +60,33 @@ const LandingPage = () => {
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
 
-            <Box component="nav" sx={{ bgcolor: theme.palette.background.paper, boxShadow: 1, py: 1.5, position: 'sticky', top: 0, zIndex: 1100 }}> 
+            <Box component="nav" sx={{ bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 1, py: 1.5, position: 'sticky', top: 0, zIndex: 1100 }}> 
                 <Container maxWidth="lg">
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack direction="row" alignItems="center" gap={2}>
                             <Box 
                                 component="img" 
-                                src="/logo3.png" 
+                                src={logoSrc} 
                                 alt="Logo SGCA"
                                 sx={{ height: 50, width: 'auto' }} 
                             />
-                            <Typography variant="h6" sx={{ color: darkBlue, fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}>
+                            <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}>
                                 SGCA
                             </Typography>
                         </Stack>
                         
                         <Button 
-                            variant="text" 
+                            variant="contained" 
                             startIcon={<LoginIcon />}
                             onClick={() => navigate('/login')}
                             aria-label="Acessar área restrita do sistema"
                             sx={{ 
                                 fontWeight: 600,
-                                color: darkBlue, 
-                                '&:hover': { bgcolor: alpha(primaryBlue, 0.08) } 
+                                backgroundColor: `${primaryBlue} !important`,
+                                color: `${theme.palette.getContrastText(primaryBlue)} !important`,
+                                WebkitTextFillColor: `${theme.palette.getContrastText(primaryBlue)} !important`,
+                                boxShadow: theme.shadows[1],
+                                '&:hover': { bgcolor: `${theme.palette.primary.dark} !important`, boxShadow: theme.shadows[3] } 
                             }}
                         >
                             Acessar Sistema
@@ -91,8 +97,8 @@ const LandingPage = () => {
 
          
                 <Box sx={{ 
-                background: `linear-gradient(135deg, ${bgStartColor} 0%, ${alpha(bgEndColor, 0.95)} 100%)`, 
-                color: theme.palette.common.white, 
+                background: `linear-gradient(135deg, ${heroStart} 0%, ${heroMid} 45%, ${heroEnd} 100%)`, 
+                color: theme.palette.getContrastText(heroStart), 
                 pt: { xs: 6, md: 10 }, 
                 pb: { xs: 8, md: 12 },
                 px: 3, 
@@ -111,10 +117,11 @@ const LandingPage = () => {
                             mb: 2, 
                             fontSize: { xs: '2.2rem', md: '3.5rem' },
                             lineHeight: 1.2,
-                            color: theme.palette.common.white
+                            color: theme.palette.common.white,
+                            WebkitTextFillColor: theme.palette.common.white,
                         }}
                     >
-                        Sistema de Gerenciamento da <Box component="span" sx={{ color: primaryBlue }}>Casa do Amor.</Box>
+                        Sistema de Gerenciamento da <Box component="span" sx={{ color: theme.palette.common.white, WebkitTextFillColor: theme.palette.common.white }}>Casa do Amor.</Box>
                     </Typography>
 
                    
@@ -126,7 +133,8 @@ const LandingPage = () => {
                             mb: 1, 
                             fontSize: { xs: '1.1rem', md: '1.5rem' }, 
                             lineHeight: 1.2,
-                            color: theme.palette.common.white
+                            color: theme.palette.common.white,
+                            WebkitTextFillColor: theme.palette.common.white,
                         }}
                     >
                         Gestão humana para quem acolhe com amor.
@@ -136,7 +144,8 @@ const LandingPage = () => {
                     <Typography variant="h6" sx={{ 
                         mb: 4, 
                         fontWeight: 400, 
-                            color: theme.custom.neutralColors[300],
+                            color: theme.palette.common.white,
+                        WebkitTextFillColor: theme.palette.common.white,
                         mx: 'auto', 
                         maxWidth: '700px',
                         fontSize: '1.25rem'
@@ -151,13 +160,15 @@ const LandingPage = () => {
                             onClick={() => navigate('/login')}
                             aria-label="Acessar o sistema agora"
                             sx={{ 
-                                bgcolor: primaryBlue, 
-                                '&:hover': { bgcolor: theme.palette.secondary.dark },
+                                bgcolor: `${primaryBlue} !important`, 
+                                color: `${theme.palette.getContrastText(primaryBlue)} !important`,
+                                WebkitTextFillColor: `${theme.palette.getContrastText(primaryBlue)} !important`,
+                                '&:hover': { bgcolor: `${theme.palette.primary.dark} !important` },
                                 fontWeight: 'bold',
                                 px: 5,
                                 py: 1.5,
                                 fontSize: '1.1rem',
-                                boxShadow: `0 4px 14px 0 ${alpha(theme.palette.secondary.main, 0.5)}`
+                                boxShadow: `0 4px 14px 0 ${alpha(primaryBlue, 0.5)}`
                             }}
                         >
                             Acessar Sistema
@@ -168,9 +179,9 @@ const LandingPage = () => {
                             size="large"
                             aria-label="Saber mais sobre o projeto"
                             sx={{ 
-                                color: theme.palette.common.white, 
-                                borderColor: alpha(theme.palette.common.white, 0.5),
-                                '&:hover': { borderColor: theme.palette.common.white, bgcolor: alpha(theme.palette.common.white, 0.08) },
+                                color: theme.palette.getContrastText(heroStart), 
+                                borderColor: alpha(theme.palette.getContrastText(heroStart), 0.5),
+                                '&:hover': { borderColor: theme.palette.getContrastText(heroStart), bgcolor: alpha(theme.palette.getContrastText(heroStart), 0.08) },
                                 px: 4
                             }}
                             onClick={() => navigate('/about')} 
@@ -206,11 +217,11 @@ const LandingPage = () => {
                                     }
                                 }}
                             >
-                                <Box sx={{ mb: 2, p: 1.5, bgcolor: theme.custom.brandColors.secondary[50], borderRadius: '50%', color: primaryBlue }} role="img" aria-label={`Ícone de ${feature.title}`}>
+                                <Box sx={{ mb: 2, p: 1.5, bgcolor: alpha(primaryBlue, 0.12), borderRadius: '50%', color: primaryBlue }} role="img" aria-label={`Ícone de ${feature.title}`}>
                                     {feature.icon}
                                 </Box>
                                 <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-                                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700, color: darkBlue }}>
+                                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
                                         {feature.title}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
