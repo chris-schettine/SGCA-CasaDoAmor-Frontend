@@ -1,5 +1,4 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, useTheme, Paper, Stack } from "@mui/material";
-import ThemeProvider from '../../contexts/ThemeContext';
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -191,9 +190,7 @@ const ActivateAccountContent = () => {
 };
 
 const ActivateAccountPage = () => (
-  <ThemeProvider defaultMode="light">
     <ActivateAccountContent />
-  </ThemeProvider>
 );
 
 export default ActivateAccountPage;

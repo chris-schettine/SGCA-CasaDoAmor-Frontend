@@ -77,6 +77,18 @@ const SessionsPage = () => {
 
       {loading ? (
         <LoadingState message="Carregando sessões..." />
+      ) : sessions.length === 0 ? (
+        <Paper sx={{ p: { xs: 2, sm: 3 }, textAlign: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+            <Chip label="Sem sessões ativas" color="default" />
+            <Box component="span" sx={{ color: 'text.secondary' }}>
+              Não encontramos sessões ativas no momento.
+            </Box>
+            <Button variant="outlined" onClick={fetchSessions} size="small">
+              Recarregar
+            </Button>
+          </Box>
+        </Paper>
       ) : isTablet ? (
         <Box sx={{ mt: 2 }}>
           {sessions.map(s => (

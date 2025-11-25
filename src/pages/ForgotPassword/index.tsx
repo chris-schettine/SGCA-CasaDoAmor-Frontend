@@ -1,5 +1,4 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, useTheme, Paper, Stack } from "@mui/material";
-import ThemeProvider from '../../contexts/ThemeContext';
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -75,9 +74,7 @@ const ForgotPasswordContent = () => {
 };
 
 const ForgotPassword = () => (
-  <ThemeProvider defaultMode="light">
-    <ForgotPasswordContent />
-  </ThemeProvider>
+  <ForgotPasswordContent />
 );
 
 export default ForgotPassword;

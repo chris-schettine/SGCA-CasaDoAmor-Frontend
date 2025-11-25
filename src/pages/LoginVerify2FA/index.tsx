@@ -1,5 +1,4 @@
 import { Box, Button, Container, TextField, Typography, CircularProgress, Link as MuiLink } from "@mui/material";
-import ThemeProvider from '../../contexts/ThemeContext';
 import { isAxiosError } from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -142,7 +141,6 @@ const LoginVerify2FAPage = () => {
 };
 
   return (
-    <ThemeProvider>
       <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
         <Box sx={BoxStyles}>
       <Container sx={ContainerFormStyles} component="form" onSubmit={handleSubmit}>
@@ -182,7 +180,6 @@ const LoginVerify2FAPage = () => {
       </Container>
         </Box>
       </Box>
-    </ThemeProvider>
   );
 };
 

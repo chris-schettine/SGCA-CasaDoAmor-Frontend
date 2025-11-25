@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import ThemeProvider from '../../contexts/ThemeContext';
 import CustomCheckbox from "../../components/CustomCheckbox";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import PageHeader from "../../components/PageHeader";
@@ -35,7 +34,6 @@ const MedicalRecordPage = () => {
   }
 
   return (
-    <ThemeProvider>
       <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
         <Box sx={{ 
       display: "flex", 
@@ -157,7 +155,6 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
       </Box>
-    </ThemeProvider>
   );
 };
 

@@ -13,6 +13,19 @@ const meta: Meta<typeof Users> = {
   parameters: {
     layout: 'fullscreen',
   },
+  decorators: [
+    (Story) => (
+      <Box sx={{
+        color: 'text.primary',
+        // Force headings and labels to high contrast for automated tests
+        '& .MuiTypography-h1': { color: '#000000 !important' },
+        '& .MuiInputLabel-root': { color: '#000000 !important' },
+        '& .MuiInputBase-input': { color: '#000000 !important' },
+      }}>
+        <Story />
+      </Box>
+    ),
+  ],
 };
 
 export default meta;

@@ -1,11 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import ForgotPassword from '.';
+import { ThemeProvider } from '../../contexts/ThemeContext';
 
 const meta: Meta<typeof ForgotPassword> = {
   title: 'Pages/ForgotPassword',
   component: ForgotPassword,
   decorators: [
-    (Story) => <Story />,
+    (Story) => (
+      <ThemeProvider defaultMode="light" storageKey="storybook-theme-mode">
+        <Story />
+      </ThemeProvider>
+    ),
   ],
   parameters: {
     layout: 'fullscreen',

@@ -294,6 +294,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o email"
+            autoComplete="email"
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
@@ -321,6 +322,7 @@ const UserForm = (
                     variant="outlined"
                     fullWidth
                     placeholder="00 00000-0000"
+                    autoComplete="tel"
                     error={!!errors.telefone}
                     helperText={errors.telefone?.message}
                     mask="00 00000-0000"
@@ -340,6 +342,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o nome completo"
+            autoComplete="name"
             {...register("nomeUsuario")}
             disabled={!!disabledFields?.nomeUsuario}
             error={!!errors.nomeUsuario}
@@ -369,6 +372,7 @@ const UserForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="000.000.000-00"
+                autoComplete="off"
                 error={!!errors.cpfUsuario}
                 helperText={errors.cpfUsuario?.message}
                 mask="000.000.000-00"
@@ -441,6 +445,7 @@ const UserForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00000-000"
+                autoComplete="postal-code"
                 error={!!errors.cep}
                 helperText={errors.cep?.message}
                 mask="00000-000"
@@ -458,6 +463,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Endereço"
+            autoComplete="address-line1"
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
@@ -472,6 +478,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Bairro"
+            autoComplete="address-level3"
             {...register("bairro")}
             error={!!errors.bairro}
             helperText={errors.bairro?.message}
@@ -486,6 +493,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Cidade"
+            autoComplete="address-level2"
             {...register("cidade")}
             error={!!errors.cidade}
             helperText={errors.cidade?.message}
@@ -500,6 +508,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Estado"
+            autoComplete="address-level1"
             {...register("estado")}
             error={!!errors.estado}
             helperText={errors.estado?.message}
@@ -514,6 +523,7 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Número"
+            autoComplete="off"
             {...register("numero")}
             error={!!errors.numero}
             helperText={errors.numero?.message}

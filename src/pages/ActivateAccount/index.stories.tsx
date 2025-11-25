@@ -1,15 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Route, Routes } from 'react-router-dom';
 import ActivateAccountPage from '.';
+import { ThemeProvider } from '../../contexts/ThemeContext';
 
 const meta: Meta<typeof ActivateAccountPage> = {
   title: 'Pages/ActivateAccountPage',
   component: ActivateAccountPage,
   decorators: [
     (Story, { args }) => (
-      <Routes>
-        <Route path="/activate-account" element={<Story {...args} />} />
-      </Routes>
+      <ThemeProvider defaultMode="light" storageKey="storybook-theme-mode">
+        <Routes>
+          <Route path="/activate-account" element={<Story {...args} />} />
+        </Routes>
+      </ThemeProvider>
     ),
   ],
   parameters: {
@@ -28,9 +31,11 @@ export const Default: Story = {};
 export const WithoutToken: Story = {
   decorators: [
     (Story, { args }) => (
-      <Routes>
-        <Route path="/activate-account" element={<Story {...args} />} />
-      </Routes>
+      <ThemeProvider defaultMode="light" storageKey="storybook-theme-mode">
+        <Routes>
+          <Route path="/activate-account" element={<Story {...args} />} />
+        </Routes>
+      </ThemeProvider>
     ),
   ],
   parameters: {

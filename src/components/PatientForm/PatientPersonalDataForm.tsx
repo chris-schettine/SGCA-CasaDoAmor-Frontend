@@ -284,6 +284,7 @@ const PatientPersonalDataForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00 00000-0000"
+                autoComplete="tel"
                 error={!!errors.telefone}
                 helperText={errors.telefone?.message}
                 mask="00 00000-0000"
@@ -305,6 +306,7 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
           placeholder="email@exemplo.com"
+          autoComplete="email"
           {...register("email")}
           error={!!errors.email}
           helperText={errors.email?.message || 'Informe um e-mail válido para contato.'}
@@ -356,6 +358,7 @@ const PatientPersonalDataForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00000-000"
+                autoComplete="postal-code"
                 error={!!errors.cep}
                 helperText={errors.cep?.message || (isCepLoading ? "Buscando..." : "")}
                 mask="00000-000"
@@ -384,6 +387,7 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o endereço"
+            autoComplete="address-line1"
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
@@ -404,12 +408,13 @@ const PatientPersonalDataForm = (
             label="Bairro"
             variant="outlined"
             fullWidth
-          placeholder="Bairro"
-          {...register("bairro")}
-          error={!!errors.bairro}
-          helperText={errors.bairro?.message}
-          disabled={isCepLoading}
-          InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
+            placeholder="Bairro"
+            autoComplete="address-level3"
+            {...register("bairro")}
+            error={!!errors.bairro}
+            helperText={errors.bairro?.message}
+            disabled={isCepLoading}
+            InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
           slotProps={{
             inputLabel: { shrink: !!bairroValue, required: true },
             formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
@@ -423,12 +428,13 @@ const PatientPersonalDataForm = (
             label="Cidade"
             variant="outlined"
             fullWidth
-          placeholder="Cidade"
-          {...register("cidade")}
-          error={!!errors.cidade}
-          helperText={errors.cidade?.message}
-          slotProps={{
-            inputLabel: { shrink: !!cidadeValue, required: true },
+            placeholder="Cidade"
+            autoComplete="address-level2"
+            {...register("cidade")}
+            error={!!errors.cidade}
+            helperText={errors.cidade?.message}
+            slotProps={{
+              inputLabel: { shrink: !!cidadeValue, required: true },
             formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
           }}
           required
@@ -440,12 +446,13 @@ const PatientPersonalDataForm = (
             label="Estado"
             variant="outlined"
             fullWidth
-          placeholder="Estado"
-          {...register("estado")}
-          error={!!errors.estado}
-          helperText={errors.estado?.message}
-          slotProps={{
-            inputLabel: { shrink: !!estadoValue, required: true },
+            placeholder="Estado"
+            autoComplete="address-level1"
+            {...register("estado")}
+            error={!!errors.estado}
+            helperText={errors.estado?.message}
+            slotProps={{
+              inputLabel: { shrink: !!estadoValue, required: true },
             formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
           }}
           required

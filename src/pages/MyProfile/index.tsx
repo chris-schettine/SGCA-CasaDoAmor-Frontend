@@ -3,6 +3,8 @@ import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Sele
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { isAxiosError } from 'axios';
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import type { AuthSessionResponse } from '../../api/auth.dto';
 import { authService } from '../../api/auth.service';
 import { adminService } from '../../api/admin.service';
@@ -14,6 +16,7 @@ import { useAuth } from '../../hooks/useAuth';
 import type { UserType } from '../../contexts/AuthContext';
 import { formatCPF, formatDateToISO, formatISOToDDMMYYYY, formatPhone, removeNonNumeric } from '../../utils/formatters';
 import { toastError, toastSuccess, toastWarn } from '../../utils/toast';
+import { cepSchema, phoneSchema, requiredString } from '../../schemas/commonValidation';
 
 type SexoOption = 'MASCULINO' | 'FEMININO';
 
@@ -36,6 +39,26 @@ interface MyProfileFormData {
   dataNascimento: string;
   naturalidade: string;
 }
+
+const myProfileSchema = z.object({
+  email: z.string().trim().min(1, 'O e-mail é obrigatório').email('Digite um e-mail válido'),
+  telefone: phoneSchema,
+  cep: cepSchema,
+  endereco: requiredString,
+  bairro: requiredString,
+  cidade: requiredString,
+  estado: requiredString,
+  numero: requiredString,
+  complemento: z.string().trim().optional(),
+  estadoCivil: z.string().trim().optional(),
+  naturalidade: z.string().trim().optional(),
+  dataNascimento: z.string().trim().optional(),
+  nome: z.string().trim().optional(),
+  cpf: z.string().trim().optional(),
+  registro: z.string().trim().optional(),
+  rqe: z.string().trim().optional(),
+  sexo: z.string().trim().optional(),
+});
 
 interface PasswordFormInputs {
   senhaAtual: string;
@@ -102,7 +125,10 @@ const MyProfilePage = () => {
   const [rawUser, setRawUser] = useState<DetailedAuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register } = useForm<MyProfileFormData>({ mode: 'onBlur' });
+  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register, formState: { errors, isSubmitting } } = useForm<MyProfileFormData>({
+    mode: 'onBlur',
+    resolver: zodResolver(myProfileSchema),
+  });
 
   // CEP auto-fill: mirror logic used in UserForm
   const cepValue = watch('cep');
@@ -174,7 +200,7 @@ const MyProfilePage = () => {
     };
   }, [cepValue, setValue, setError, clearErrors, watch]);
 
-  const { control: pwControl, handleSubmit: handleSubmitPw, reset: resetPw } = useForm<PasswordFormInputs>({ mode: 'onBlur' });
+  const { control: pwControl, handleSubmit: handleSubmitPw, reset: resetPw, formState: { isSubmitting: isPwSubmitting } } = useForm<PasswordFormInputs>({ mode: 'onBlur' });
 
   useEffect(() => {
     const fetch = async () => {
@@ -409,7 +435,16 @@ const MyProfilePage = () => {
               control={control}
               defaultValue=""
               render={({ field }) => (
-                <TextField fullWidth label="E-mail" {...field} />
+                <TextField
+                  fullWidth
+                  label="E-mail"
+                  autoComplete="email"
+                  {...field}
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  required
+                  InputLabelProps={{ required: true }}
+                />
               )}
             />
           </Grid>
@@ -419,7 +454,17 @@ const MyProfilePage = () => {
               control={control}
               defaultValue=""
               render={({ field }) => (
-                <MaskedTextField {...field} fullWidth label="Telefone" mask="00 00000-0000" />
+                <MaskedTextField
+                  {...field}
+                  fullWidth
+                  label="Telefone"
+                  mask="00 00000-0000"
+                  autoComplete="tel"
+                  error={!!errors.telefone}
+                  helperText={errors.telefone?.message}
+                  required
+                  InputLabelProps={{ required: true }}
+                />
               )}
             />
           </Grid>
@@ -505,32 +550,104 @@ const MyProfilePage = () => {
                   variant="outlined"
                   fullWidth
                   placeholder="00000-000"
+                  autoComplete="postal-code"
                   mask="00000-000"
+                  error={!!errors.cep}
+                  helperText={errors.cep?.message}
+                  required
+                  InputLabelProps={{ required: true }}
                 />
               )}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 8 }} sx={{ mt: 1 }}>
-            <TextField id="endereco" label="Endereço" variant="outlined" fullWidth placeholder="Endereço" {...register('endereco')} InputLabelProps={{ shrink: !!watch('endereco') }} />
+            <TextField
+              id="endereco"
+              label="Endereço"
+              variant="outlined"
+              fullWidth
+              placeholder="Endereço"
+              autoComplete="address-line1"
+              {...register('endereco')}
+              InputLabelProps={{ shrink: !!watch('endereco') }}
+              error={!!errors.endereco}
+              helperText={errors.endereco?.message}
+              required
+              InputLabelProps={{ shrink: !!watch('endereco'), required: true }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <TextField id="bairro" label="Bairro" variant="outlined" fullWidth placeholder="Bairro" {...register('bairro')} InputLabelProps={{ shrink: !!watch('bairro') }} />
+            <TextField
+              id="bairro"
+              label="Bairro"
+              variant="outlined"
+              fullWidth
+              placeholder="Bairro"
+              autoComplete="address-level3"
+              {...register('bairro')}
+              InputLabelProps={{ shrink: !!watch('bairro') }}
+              error={!!errors.bairro}
+              helperText={errors.bairro?.message}
+              required
+              InputLabelProps={{ shrink: !!watch('bairro'), required: true }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <TextField id="cidade" label="Cidade" variant="outlined" fullWidth placeholder="Cidade" {...register('cidade')} InputLabelProps={{ shrink: !!watch('cidade') }} />
+            <TextField
+              id="cidade"
+              label="Cidade"
+              variant="outlined"
+              fullWidth
+              placeholder="Cidade"
+              autoComplete="address-level2"
+              {...register('cidade')}
+              InputLabelProps={{ shrink: !!watch('cidade') }}
+              error={!!errors.cidade}
+              helperText={errors.cidade?.message}
+              required
+              InputLabelProps={{ shrink: !!watch('cidade'), required: true }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField id="estado" label="Estado" variant="outlined" fullWidth placeholder="Estado" {...register('estado')} InputLabelProps={{ shrink: !!watch('estado') }} />
+            <TextField
+              id="estado"
+              label="Estado"
+              variant="outlined"
+              fullWidth
+              placeholder="Estado"
+              autoComplete="address-level1"
+              {...register('estado')}
+              InputLabelProps={{ shrink: !!watch('estado') }}
+              error={!!errors.estado}
+              helperText={errors.estado?.message}
+              required
+              InputLabelProps={{ shrink: !!watch('estado'), required: true }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField id="numero" label="Número" variant="outlined" fullWidth placeholder="Número" {...register('numero')} InputLabelProps={{ shrink: !!watch('numero') }} />
+            <TextField
+              id="numero"
+              label="Número"
+              variant="outlined"
+              fullWidth
+              placeholder="Número"
+              autoComplete="off"
+              {...register('numero')}
+              InputLabelProps={{ shrink: !!watch('numero') }}
+              error={!!errors.numero}
+              helperText={errors.numero?.message}
+              required
+              InputLabelProps={{ shrink: !!watch('numero'), required: true }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-            <TextField id="complemento" label="Complemento" variant="outlined" fullWidth placeholder="Complemento" {...register('complemento')} InputLabelProps={{ shrink: !!watch('complemento') }} />
+            <TextField id="complemento" label="Complemento" variant="outlined" fullWidth placeholder="Complemento" autoComplete="address-line2" {...register('complemento')} InputLabelProps={{ shrink: !!watch('complemento') }} />
           </Grid>
 
           <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-            <Button variant="contained" type="submit">Salvar</Button>
+            <Button variant="contained" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
+            </Button>
           </Grid>
         </Grid>
       </form>
@@ -571,7 +688,9 @@ const MyProfilePage = () => {
             </Grid>
 
             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-              <Button variant="outlined" color="primary" type="submit">Alterar senha</Button>
+              <Button variant="outlined" color="primary" type="submit" disabled={isPwSubmitting}>
+                {isPwSubmitting ? 'Salvando...' : 'Alterar senha'}
+              </Button>
             </Grid>
           </Grid>
         </form>
