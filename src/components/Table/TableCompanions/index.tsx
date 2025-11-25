@@ -34,6 +34,12 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
+  // Parentesco sai primeiro em desktops estreitos; RG some apenas em telas ainda mais apertadas (tablet/mobile ou desktops <=1100px)
+  const isTightDesktop = useMediaQuery('(max-width:1100px)');
+  const hideParentesco = isMobile || isNarrowDesktop;
+  const hideRg = isMobile || isTablet || (isTightDesktop && hideParentesco && !isMobile);
+  const useCardLayout = isTablet;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -54,12 +60,12 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       {
         field: 'nome' as const,
         headerName: 'Nome',
-        width: isMobile ? 180 : 250,
+        width: isMobile ? 180 : (isNarrowDesktop ? 220 : 250),
       },
       {
         field: 'cpf' as const,
         headerName: 'CPF',
-        width: 150,
+        width: isNarrowDesktop ? 140 : 150,
         headerAlign: 'left' as const,
         align: 'left' as const,
         hidden: isMobile,
@@ -67,31 +73,32 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       {
         field: 'rg' as const,
         headerName: 'RG',
-        width: 150,
+        width: isNarrowDesktop ? 120 : 140,
         headerAlign: 'left' as const,
         align: 'left' as const,
         renderCell: (row) => formatRG(row.rg) || '—',
-        hidden: isTablet,
+        // Esconde RG depois de Parentesco quando o espaço continua apertado
+        hidden: hideRg,
       },
       {
         field: 'pacienteNome' as const,
         headerName: 'Paciente',
-        width: isMobile ? 150 : 200,
+        width: isMobile ? 150 : (isNarrowDesktop ? 180 : 200),
         headerAlign: 'left' as const,
         align: 'left' as const,
       },
       {
         field: 'parentesco' as const,
         headerName: 'Parentesco',
-        width: 120,
+        width: isNarrowDesktop ? 110 : 120,
         headerAlign: 'left' as const,
         align: 'left' as const,
-        hidden: isMobile,
+        hidden: hideParentesco,
       },
       {
         field: 'acoes' as const,
         headerName: 'Ações',
-        width: isMobile ? 100 : 120,
+        width: isMobile ? 100 : (isNarrowDesktop ? 110 : 120),
         align: 'center' as const,
         headerAlign: 'center' as const,
         renderCell: (row) => (
@@ -134,7 +141,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
     
     return allColumns.filter(col => !col.hidden);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile, isTablet]);
+  }, [isMobile, isTablet, isNarrowDesktop, isTightDesktop, hideParentesco, hideRg]);
 
   // Mapear acompanhantes para linhas planas
   const rows = useMemo<CompanionRow[]>(() => companions.map((companion) => ({
@@ -203,14 +210,15 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       marginTop: 2,
       boxShadow: { xs: 1, sm: 2 }
     }}>
-      {/* Mobile: Cards | Desktop: Tabela Virtualizada */}
-      {isMobile ? (
+      {/* Mobile/Tablet: Cards | Desktop: Tabela Virtualizada */}
+      {useCardLayout ? (
         <Box sx={{ p: 2 }}>
           {rows.map((row) => (
             <MobileCard
               key={row.id}
               title={row.nome}
               fields={[
+                { label: 'Paciente', value: row.pacienteNome || '—' },
                 { label: 'Parentesco', value: row.parentesco || '—' },
                 { label: 'CPF', value: row.cpf },
                 { label: 'RG', value: formatRG(row.rg) || '—' },
@@ -252,16 +260,16 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       )}
       
       <TablePagination
-        rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
+        rowsPerPageOptions={useCardLayout ? [10, 25] : [10, 25, 100]}
         component="div"
         count={totalCount}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage={isMobile ? "Por página:" : "Linhas por página:"}
+        labelRowsPerPage={useCardLayout ? "Por página:" : "Linhas por página:"}
         labelDisplayedRows={({ from, to, count }) => 
-          isMobile 
+          useCardLayout 
             ? `${from}-${to} de ${count}`
             : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
         }

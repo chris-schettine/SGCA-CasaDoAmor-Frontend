@@ -17,7 +17,9 @@ import {
   DialogContent,
   IconButton,
   Alert,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import ThemeProvider from '../../contexts/ThemeContext';
 import CloseIcon from '@mui/icons-material/Close';
@@ -28,9 +30,12 @@ import PageHeader from '../../components/PageHeader';
 import ConsentimentoForm from '../../components/ConsentimentoForm';
 import { useConsentimentos } from '../../hooks/useConsentimento';
 import { useAuth } from '../../hooks/useAuth';
+import MobileCard from '../../components/Table/MobileCard';
 
 const ConsentimentoLGPDPage = () => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDialog, setOpenDialog] = useState(false);
@@ -142,27 +147,18 @@ const ConsentimentoLGPDPage = () => {
           </Box>
         ) : (
           <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Data/Hora</TableCell>
-                    <TableCell>Versão</TableCell>
-                    <TableCell>Escopo</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>IP Origem</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {consentimentosData.content.map((consentimento) => (
-                    <TableRow key={consentimento.id} hover>
-                      <TableCell>{formatDateTime(consentimento.dataConsentimento)}</TableCell>
-                      <TableCell>
-                        <Chip label={consentimento.versaoTermo} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell>{consentimento.escopo}</TableCell>
-                      <TableCell>
-                        {consentimento.concorda ? (
+            {isTablet ? (
+              <Box sx={{ p: 2 }}>
+                {consentimentosData.content.map((consentimento) => (
+                  <MobileCard
+                    key={consentimento.id}
+                    title={formatDateTime(consentimento.dataConsentimento)}
+                    subtitle={`Versão ${consentimento.versaoTermo}`}
+                    fields={[
+                      { label: 'Escopo', value: consentimento.escopo },
+                      { 
+                        label: 'Status', 
+                        value: consentimento.concorda ? (
                           <Chip
                             icon={<CheckCircleIcon />}
                             label="Concordou"
@@ -176,28 +172,79 @@ const ConsentimentoLGPDPage = () => {
                             color="error"
                             size="small"
                           />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                          {consentimento.ipOrigem || '-'}
-                        </Typography>
-                      </TableCell>
+                        )
+                      },
+                      { 
+                        label: 'IP Origem', 
+                        value: (
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                            {consentimento.ipOrigem || '-'}
+                          </Typography>
+                        ),
+                        hidden: !consentimento.ipOrigem,
+                      },
+                    ]}
+                  />
+                ))}
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Data/Hora</TableCell>
+                      <TableCell>Versão</TableCell>
+                      <TableCell>Escopo</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>IP Origem</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {consentimentosData.content.map((consentimento) => (
+                      <TableRow key={consentimento.id} hover>
+                        <TableCell>{formatDateTime(consentimento.dataConsentimento)}</TableCell>
+                        <TableCell>
+                          <Chip label={consentimento.versaoTermo} size="small" variant="outlined" />
+                        </TableCell>
+                        <TableCell>{consentimento.escopo}</TableCell>
+                        <TableCell>
+                          {consentimento.concorda ? (
+                            <Chip
+                              icon={<CheckCircleIcon />}
+                              label="Concordou"
+                              color="success"
+                              size="small"
+                            />
+                          ) : (
+                            <Chip
+                              icon={<CancelIcon />}
+                              label="Revogou"
+                              color="error"
+                              size="small"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                            {consentimento.ipOrigem || '-'}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
 
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50]}
+              rowsPerPageOptions={isTablet ? [5, 10, 25] : [5, 10, 25, 50]}
               component="div"
               count={consentimentosData.totalElements}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage="Linhas por página:"
+              labelRowsPerPage={isTablet ? "Por página:" : "Linhas por página:"}
               labelDisplayedRows={({ from, to, count }) =>
                 `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
               }

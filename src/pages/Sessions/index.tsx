@@ -17,6 +17,8 @@ const SessionsPage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   
   const theme = useTheme();
+  const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Increase lightness for success chip backgrounds in light mode so text remains legible and green feels softer
@@ -75,7 +77,7 @@ const SessionsPage = () => {
 
       {loading ? (
         <LoadingState message="Carregando sessões..." />
-      ) : isMobile ? (
+      ) : isTablet ? (
         <Box sx={{ mt: 2 }}>
           {sessions.map(s => (
             <MobileCard
@@ -86,6 +88,11 @@ const SessionsPage = () => {
                 { label: 'IP Origem', value: s.ipOrigem || '-' },
                 { label: 'Criado Em', value: formatISOToLocalDateTime(s.criadoEm) || s.criadoEm },
                 { label: 'Expira Em', value: formatISOToLocalDateTime(s.expiraEm) || s.expiraEm },
+                { 
+                  label: 'User Agent', 
+                  value: <Box component="span" sx={{ wordBreak: 'break-word' }}>{s.userAgent || '-'}</Box>,
+                  hidden: isMobile,
+                },
                 { 
                   label: 'Status', 
                   value: (
@@ -138,45 +145,75 @@ const SessionsPage = () => {
           ))}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          <Table
+            size={isNarrowDesktop ? 'small' : 'medium'}
+            sx={{
+              '& .MuiTableCell-root': {
+                padding: isNarrowDesktop ? theme.spacing(1) : theme.spacing(1.5),
+                fontSize: isNarrowDesktop ? '0.9rem' : '1rem',
+              },
+              '& thead .MuiTableCell-root': {
+                padding: theme.spacing(2),
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                lineHeight: 1.6,
+              },
+            }}
+          >
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
+                {!isNarrowDesktop && <TableCell>ID</TableCell>}
                 <TableCell>Nome</TableCell>
                 <TableCell>CPF</TableCell>
-                <TableCell>IP Origem</TableCell>
-                <TableCell>User Agent</TableCell>
+                <TableCell>Conexão</TableCell>
                 <TableCell>Criado Em</TableCell>
                 <TableCell>Expira Em</TableCell>
-                <TableCell>Ativo</TableCell>
-                <TableCell>Atual</TableCell>
+                <TableCell>Status</TableCell>
                 <TableCell>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {sessions.map(s => (
                 <TableRow key={s.id}>
-                  <TableCell>{s.id}</TableCell>
+                  {!isNarrowDesktop && <TableCell>{s.id}</TableCell>}
                   <TableCell>{s.usuario?.nome || '-'}</TableCell>
                   <TableCell>{s.usuario?.cpf || '-'}</TableCell>
-                  <TableCell>{s.ipOrigem || '-'}</TableCell>
-                  <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.userAgent || '-'}</TableCell>
+                  <TableCell sx={{ maxWidth: isNarrowDesktop ? 260 : 340 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                        {s.ipOrigem || '-'}
+                      </Box>
+                      <Box
+                        component="span"
+                        title={s.userAgent || '-'}
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          wordBreak: 'break-word',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {s.userAgent || '-'}
+                      </Box>
+                    </Box>
+                  </TableCell>
                   <TableCell>{formatISOToLocalDateTime(s.criadoEm) || s.criadoEm}</TableCell>
                   <TableCell>{formatISOToLocalDateTime(s.expiraEm) || s.expiraEm}</TableCell>
                   <TableCell>
-                    {s.ativo ? (
-                      <Chip label="Sim" size="small" sx={{ backgroundColor: successBg, color: theme.palette.getContrastText(successBg) }} />
-                    ) : (
-                      <Chip label="Não" size="small" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {s.atual ? (
-                      <Chip label="Sim" size="small" sx={{ backgroundColor: primaryBg, color: theme.palette.getContrastText(primaryBg) }} />
-                    ) : (
-                      <Chip label="Não" size="small" />
-                    )}
+                    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {s.ativo ? (
+                        <Chip label="Ativo" size="small" sx={{ backgroundColor: successBg, color: theme.palette.getContrastText(successBg) }} />
+                      ) : (
+                        <Chip label="Inativo" size="small" />
+                      )}
+                      {s.atual && (
+                        <Chip label="Atual" size="small" sx={{ backgroundColor: primaryBg, color: theme.palette.getContrastText(primaryBg) }} />
+                      )}
+                    </Box>
                   </TableCell>
                   <TableCell>
                     <Button

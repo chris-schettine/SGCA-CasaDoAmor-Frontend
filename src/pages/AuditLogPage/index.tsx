@@ -53,7 +53,7 @@ const columns = [
 
 export const AuditLogContent = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -285,7 +285,7 @@ export const AuditLogContent = () => {
 
       {/* Tabela de Logs */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        {isMobile ? (
+        {isTablet ? (
           <Box sx={{ p: 2 }}>
             {currentLogs.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -357,16 +357,16 @@ export const AuditLogContent = () => {
         
         {/* Paginação */}
         <TablePagination
-          rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 50]}
+          rowsPerPageOptions={isTablet ? [10, 25] : [10, 25, 50]}
           component="div"
           count={filteredLogs.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage={isMobile ? "Por página:" : "Logs por página:"}
+          labelRowsPerPage={isTablet ? "Por página:" : "Logs por página:"}
           labelDisplayedRows={({ from, to, count }) =>
-            isMobile 
+            isTablet 
               ? `${from}-${to} de ${count}`
               : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
           }

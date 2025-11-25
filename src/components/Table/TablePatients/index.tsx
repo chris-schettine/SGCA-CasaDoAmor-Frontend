@@ -46,6 +46,8 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
+  const useCardLayout = isTablet;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -72,12 +74,12 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       {
         field: 'nome' as const,
         headerName: 'Nome',
-        width: isMobile ? 200 : 250,
+        width: isMobile ? 200 : (isNarrowDesktop ? 220 : 250),
       },
       {
         field: 'cpf' as const,
         headerName: 'CPF',
-        width: 150,
+        width: isNarrowDesktop ? 140 : 150,
         headerAlign: 'left' as const,
         align: 'left' as const,
         hidden: isMobile, // Oculta em mobile
@@ -85,7 +87,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       {
         field: 'rg' as const,
         headerName: 'RG',
-        width: 150,
+        width: isNarrowDesktop ? 130 : 150,
         headerAlign: 'left' as const,
         align: 'left' as const,
         renderCell: (row) => formatRG(row.rg) || '—',
@@ -94,7 +96,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       {
         field: 'acoes' as const,
         headerName: 'Ações',
-        width: isMobile ? 140 : 210,
+        width: isMobile ? 140 : (isNarrowDesktop ? 180 : 210),
         headerAlign: 'center' as const,
         align: 'center' as const,
         renderCell: (row) => (
@@ -157,7 +159,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
     // Filtra colunas ocultas
     return allColumns.filter(col => !col.hidden);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile, isTablet]);
+  }, [isMobile, isTablet, isNarrowDesktop]);
 
   // Mapear pacientes (nested DTO) para linhas planas que a VirtualizedTable espera
   // Incluímos o objeto completo do paciente para evitar race conditions ao buscar depois
@@ -237,8 +239,8 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       marginTop: 2,
       boxShadow: { xs: 1, sm: 2 }
     }}>
-      {/* Mobile: Cards | Desktop: Tabela Virtualizada */}
-      {isMobile ? (
+      {/* Mobile/Tablet: Cards | Desktop: Tabela Virtualizada */}
+      {useCardLayout ? (
         <Box sx={{ p: 2 }}>
           {rows.map((row) => (
             <MobileCard
@@ -285,16 +287,16 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       )}
       
       <TablePagination
-        rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
+        rowsPerPageOptions={useCardLayout ? [10, 25] : [10, 25, 100]}
         component="div"
         count={totalCount}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage={isMobile ? "Por página:" : "Linhas por página:"}
+        labelRowsPerPage={useCardLayout ? "Por página:" : "Linhas por página:"}
         labelDisplayedRows={({ from, to, count }) => 
-          isMobile 
+          useCardLayout 
             ? `${from}-${to} de ${count}`
             : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
         }

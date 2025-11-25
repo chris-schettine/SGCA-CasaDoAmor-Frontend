@@ -11,6 +11,7 @@ import {
   Box,
   type TableCellProps,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 
 export type TableRowData = Record<string, unknown>;
@@ -50,6 +51,7 @@ export function VirtualizedTable<T extends TableRowData>({
   ariaLabel,
 }: VirtualizedTableProps<T>) {
   const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('lg'));
   const parentRef = useRef<HTMLDivElement>(null);
 
   const getVirtualRowKey = (index: number) => {
@@ -106,6 +108,8 @@ export function VirtualizedTable<T extends TableRowData>({
                 aria-label={column.ariaLabel}
                 sx={{
                   fontWeight: 600,
+                  fontSize: isCompact ? '0.938rem' : '1rem',
+                  padding: isCompact ? '10px 12px' : '16px',
                   whiteSpace: 'nowrap',
                   backgroundColor: `${theme.palette.primary.main} !important`,
                   color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
@@ -211,7 +215,7 @@ export function VirtualizedTable<T extends TableRowData>({
                                 sx={{
                                   display: 'table-cell',
                                   width: column.width,
-                                  padding: '16px',
+                                  padding: isCompact ? '12px 10px' : '16px',
                                   borderBottom: '1px solid',
                                   borderColor: 'divider',
                                   verticalAlign: 'middle',

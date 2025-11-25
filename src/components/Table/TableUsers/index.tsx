@@ -19,6 +19,7 @@ interface Column {
   id: 'name' | 'function' | 'email' | 'telephone' | 'actions';
   label: string;
   minWidth?: number;
+  maxWidth?: number;
   align?: 'center';
   headerAlign?: 'left' | 'center' | 'right';
   hideOnMobile?: boolean;
@@ -34,6 +35,17 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
+  const useCardLayout = isTablet; // Avoid horizontal scroll on tablets by switching to cards
+  const cellTextSx = {
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical' as const,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    wordBreak: 'break-word' as const,
+    lineHeight: 1.4,
+  };
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filterTipo, setFilterTipo] = useState<string>('');
@@ -41,11 +53,11 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
 
   // Definir colunas responsivas
   const columns: readonly Column[] = [
-    { id: 'name', label: 'Nome', minWidth: isMobile ? 120 : 170, headerAlign: 'left' },
-    { id: 'function', label: 'Função', minWidth: 100, hideOnMobile: false, headerAlign: 'left' },
-    { id: 'email', label: 'E-mail', minWidth: 170, hideOnTablet: true, headerAlign: 'left' },
-    { id: 'telephone', label: 'Telefone', minWidth: 100, hideOnMobile: true, headerAlign: 'left' },
-    { id: 'actions', label: 'Ações', minWidth: isMobile ? 80 : 100, align: 'center', headerAlign: 'center' },
+    { id: 'name', label: 'Nome', minWidth: isNarrowDesktop ? 120 : 140, maxWidth: isNarrowDesktop ? 200 : 260, headerAlign: 'left' },
+    { id: 'function', label: 'Função', minWidth: isNarrowDesktop ? 95 : 110, maxWidth: isNarrowDesktop ? 180 : 200, hideOnMobile: false, headerAlign: 'left' },
+    { id: 'email', label: 'E-mail', minWidth: isNarrowDesktop ? 140 : 160, maxWidth: isNarrowDesktop ? 220 : 260, hideOnTablet: true, headerAlign: 'left' },
+    { id: 'telephone', label: 'Telefone', minWidth: isNarrowDesktop ? 105 : 120, maxWidth: isNarrowDesktop ? 180 : 200, hideOnMobile: true, headerAlign: 'left' },
+    { id: 'actions', label: 'Ações', minWidth: isNarrowDesktop ? 74 : 86, maxWidth: isNarrowDesktop ? 100 : 120, align: 'center', headerAlign: 'center' },
   ].filter(col => {
     if (isMobile && col.hideOnMobile) return false;
     if (isTablet && col.hideOnTablet) return false;
@@ -120,13 +132,13 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
       <TableContainer sx={{ 
-        maxHeight: isMobile ? 'none' : 440,
-        overflowX: 'auto',
+        maxHeight: useCardLayout ? 'none' : 440,
+        overflowX: useCardLayout ? 'visible' : 'auto',
         WebkitOverflowScrolling: 'touch'
       }} >
         {isLoading ? (
           <TableSkeleton rows={10} />
-        ) : isMobile ? (
+        ) : useCardLayout ? (
           <Box sx={{ p: 2 }}>
             {displayRows.length === 0 ? (
               <EmptyState
@@ -183,6 +195,10 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             stickyHeader
             aria-label="Tabela de usuários"
             sx={{
+              '& .MuiTableCell-root': {
+                paddingX: isNarrowDesktop ? 1 : 1.5,
+                paddingY: isNarrowDesktop ? 0.75 : 1.25,
+              },
               '& thead th': {
                 backgroundColor: `${theme.palette.primary.main} !important`,
                 color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
@@ -198,7 +214,11 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                 color: theme.palette.text.primary,
                 WebkitTextFillColor: theme.palette.text.primary,
                 opacity: 1,
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                lineHeight: 1.4,
               },
+              tableLayout: 'fixed',
             }}
           >
             <TableHead>
@@ -207,7 +227,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                 <TableCell
                   key={column.id}
                   align={column.headerAlign ?? column.align}
-                  style={{ minWidth: column.minWidth }}
+                  style={{ minWidth: column.minWidth, maxWidth: column.maxWidth }}
                   sx={{ textAlign: column.headerAlign ?? column.align ?? 'left' }}
                 >
                   {column.id === 'function' ? (
@@ -270,16 +290,32 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
             ) : (
               displayRows.map((row) => (
                 <TableRow key={row.id} hover>
-                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.nome}</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.tipo}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left', maxWidth: { md: 260, lg: 320 } }}>
+                    <Box component="span" sx={cellTextSx} title={row.nome}>
+                      {row.nome}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left', maxWidth: { md: 200, lg: 240 } }}>
+                    <Box component="span" sx={cellTextSx} title={row.tipo}>
+                      {row.tipo}
+                    </Box>
+                  </TableCell>
                   {!isTablet && (
-                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.email}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left', maxWidth: { md: 260, lg: 320 } }}>
+                      <Box component="span" sx={cellTextSx} title={row.email}>
+                        {row.email}
+                      </Box>
+                    </TableCell>
                   )}
                   {!isMobile && (
-                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left' }}>{row.telefone}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.813rem', sm: '0.875rem' }, textAlign: 'left', maxWidth: { md: 200, lg: 260 } }}>
+                      <Box component="span" sx={cellTextSx} title={row.telefone}>
+                        {row.telefone}
+                      </Box>
+                    </TableCell>
                   )}
                   <TableCell align="center">
-                    <Box sx={{ display: 'flex', gap: isMobile ? 0.25 : 0.5, justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: isMobile ? 0.25 : 0.5, justifyContent: 'center', flexWrap: 'wrap', minWidth: 72 }}>
                       <StandardTooltip title="Editar dados do usuário">
                         <IconButton 
                           color="success"
@@ -314,16 +350,16 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
         )}
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
+        rowsPerPageOptions={useCardLayout ? [10, 25] : [10, 25, 100]}
         component="div"
         count={filteredRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage={isMobile ? "Por página:" : "Linhas por página:"}
+        labelRowsPerPage={useCardLayout ? "Por página:" : "Linhas por página:"}
         labelDisplayedRows={({ from, to, count }) => 
-          isMobile 
+          useCardLayout 
             ? `${from}-${to} de ${count}`
             : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
         }
