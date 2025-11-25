@@ -148,7 +148,7 @@ const PatientPersonalDataForm = (
             error={!!errors.idade}
             helperText={errors.idade?.message}
             placeholder="Idade"
-            aria-readonly
+            inputProps={{ readOnly: true }}
             disabled
             slotProps={{
               inputLabel: { shrink: true },
