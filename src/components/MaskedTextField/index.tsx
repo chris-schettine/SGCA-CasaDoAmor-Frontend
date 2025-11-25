@@ -80,7 +80,8 @@ const MaskedTextField: React.FC<Props> = ({
           definitions,
           lazy,
           overwrite,
-          'aria-label': ariaLabel ?? rest.label ?? rest.name,
+          // Ensure aria-label is always a string to satisfy strict typing
+          'aria-label': String(ariaLabel ?? rest.label ?? rest.name),
         },
       }}
       slotProps={{

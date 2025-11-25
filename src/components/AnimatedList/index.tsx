@@ -111,7 +111,8 @@ export const AnimatedListItem = ({ children }: AnimatedListProps) => {
           y: 0,
           transition: {
             duration: 0.3,
-            ease: [0.4, 0, 0.2, 1],
+            // Use cubic-bezier easing array (tuple) to match the framer-motion/motion-utils typings
+            ease: [[0.4, 0, 0.2, 1] as const],
           },
         },
       };
@@ -170,7 +171,8 @@ export const AnimatedCard = ({ children }: AnimatedListProps) => {
       }}
       transition={{
         duration: 0.2,
-        ease: [0.4, 0, 0.2, 1],
+        // cubic-bezier array wrapped as array-of-easing to match framer-motion typings
+        ease: [[0.4, 0, 0.2, 1] as const],
       }}
     >
       {children}
