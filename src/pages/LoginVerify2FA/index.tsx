@@ -39,6 +39,7 @@ const LoginVerify2FAPage = () => {
   const [codigo, setCodigo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
  
   useEffect(() => {
     const cpfSalvo = sessionStorage.getItem('cpfFor2FA');
@@ -55,6 +56,7 @@ const LoginVerify2FAPage = () => {
     e.preventDefault();
     if (!cpf) return;
     setIsLoading(true);
+    setCodeError(null);
 
     try {
      
@@ -115,10 +117,16 @@ const LoginVerify2FAPage = () => {
 
     } catch (error: unknown) {
       console.error("Erro ao verificar 2FA:", error);
-      const message = isAxiosError(error)
-        ? error.response?.data?.message ?? "Código inválido ou expirado."
-        : "Código inválido ou expirado.";
-      toastError(message);
+      if (isAxiosError(error) && (error.response?.status === 400 || error.response?.status === 401)) {
+        const msg = error.response?.data?.message ?? 'Código inválido ou expirado.';
+        setCodeError(msg);
+        toastError(msg);
+      } else {
+        const message = isAxiosError(error)
+          ? error.response?.data?.message ?? "Código inválido ou expirado."
+          : "Código inválido ou expirado.";
+        toastError(message);
+      }
       setIsLoading(false);
     }
   };
@@ -156,11 +164,20 @@ const LoginVerify2FAPage = () => {
           variant="outlined"
           fullWidth
           value={codigo}
-          onChange={(e) => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))} // Permite apenas números, max 6
+          onChange={(e) => {
+            setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6));
+            if (codeError) setCodeError(null);
+          }} // Permite apenas números, max 6
           inputProps={{ maxLength: 6, inputMode: 'numeric', pattern: '[0-9]*' }}
           required
-          error={codigo.length > 0 && codigo.length < 6}
-          helperText={codigo.length > 0 && codigo.length < 6 ? 'Código deve ter 6 dígitos' : ''}
+          error={(codigo.length > 0 && codigo.length < 6) || !!codeError}
+          helperText={
+            codeError
+              ? codeError
+              : codigo.length > 0 && codigo.length < 6
+              ? 'Código deve ter 6 dígitos'
+              : ''
+          }
         />
 
         <Button

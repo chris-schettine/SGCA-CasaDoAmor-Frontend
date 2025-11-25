@@ -55,9 +55,23 @@ const ForgotPasswordContent = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
+          autoComplete="email"
           required
         />
-          <Button type="submit" variant="contained" disabled={isLoading} fullWidth sx={{ mt: 1, py: 1.25 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading}
+            fullWidth
+            sx={{
+              mt: 1,
+              py: 1.25,
+              '&:focus-visible': {
+                outline: (theme) => `3px solid ${theme.palette.primary.light}`,
+                outlineOffset: '2px',
+              },
+            }}
+          >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Enviar Link'}
           </Button>
 

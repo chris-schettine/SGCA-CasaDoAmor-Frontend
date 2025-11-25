@@ -15,6 +15,7 @@ const SessionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
   
   const theme = useTheme();
   const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
@@ -52,6 +53,7 @@ const SessionsPage = () => {
 
   const handleConfirmRevoke = async () => {
     if (!selectedId) return;
+    setIsRevoking(true);
     try {
       await authService.revokeSession(selectedId);
       toastSuccess('Sessão revogada com sucesso');
@@ -62,9 +64,13 @@ const SessionsPage = () => {
     } catch (err: unknown) {
       console.error('Erro ao revogar sessão', err);
       const message = isAxiosError(err)
-        ? err.response?.data?.message ?? 'Erro ao revogar sessão'
+        ? err.response?.status === 403
+          ? 'Você não tem permissão para revogar esta sessão.'
+          : err.response?.data?.message ?? 'Erro ao revogar sessão'
         : 'Erro ao revogar sessão';
       toastError(message);
+    } finally {
+      setIsRevoking(false);
     }
   };
 
@@ -141,7 +147,8 @@ const SessionsPage = () => {
                   color="error" 
                   size="small" 
                   onClick={() => handleRevokeClick(s.id)} 
-                  disabled={s.atual}
+                  disabled={s.atual || isRevoking}
+                  aria-label={`Revogar sessão de ${s.usuario?.nome || 'usuário'}`}
                   fullWidth
                   sx={{
                     backgroundColor: revokeBg,
@@ -234,7 +241,8 @@ const SessionsPage = () => {
                       size="small"
                       onClick={() => handleRevokeClick(s.id)}
                       sx={{ mr: 1, backgroundColor: revokeBg, color: theme.palette.getContrastText(revokeBg), '&:hover': { backgroundColor: theme.palette.error.main }, '&.Mui-disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled } }}
-                      disabled={s.atual}
+                      disabled={s.atual || isRevoking}
+                      aria-label={`Revogar sessão de ${s.usuario?.nome || 'usuário'}`}
                     >
                       Revogar
                     </Button>
@@ -248,12 +256,13 @@ const SessionsPage = () => {
 
       <ConfirmationDialog
         open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
+        onClose={() => { if (!isRevoking) setConfirmOpen(false); }}
         onConfirm={handleConfirmRevoke}
         title="Confirmar revogação"
         message={`Tem certeza que deseja revogar a sessão ${selectedId}? Isso encerrará a sessão do usuário.`}
-        confirmButtonText="Revogar"
+        confirmButtonText={isRevoking ? 'Revogando...' : 'Revogar'}
         cancelButtonText="Cancelar"
+        confirmButtonProps={{ disabled: isRevoking }}
       />
     </Container>
   );

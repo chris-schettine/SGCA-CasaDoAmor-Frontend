@@ -481,7 +481,17 @@ const MyProfilePage = () => {
 
           
           <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
-            <TextField id="estadoCivil" label="Estado Civil" variant="outlined" fullWidth placeholder="Estado Civil" {...register('estadoCivil')} InputLabelProps={{ shrink: !!watch('estadoCivil') }} />
+            <TextField
+              id="estadoCivil"
+              label="Estado Civil"
+              variant="outlined"
+              fullWidth
+              placeholder="Estado Civil"
+              {...register('estadoCivil')}
+              InputLabelProps={{ shrink: !!watch('estadoCivil') }}
+              helperText={errors.estadoCivil?.message || 'Opcional'}
+              error={!!errors.estadoCivil}
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
             <Controller
@@ -502,7 +512,17 @@ const MyProfilePage = () => {
             />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }} sx={{ mt: 1 }}>
-            <TextField id="naturalidade" label="Naturalidade" variant="outlined" fullWidth placeholder="Naturalidade" {...register('naturalidade')} InputLabelProps={{ shrink: !!watch('naturalidade') }} />
+            <TextField
+              id="naturalidade"
+              label="Naturalidade"
+              variant="outlined"
+              fullWidth
+              placeholder="Naturalidade"
+              {...register('naturalidade')}
+              InputLabelProps={{ shrink: !!watch('naturalidade') }}
+              helperText={errors.naturalidade?.message || 'Opcional'}
+              error={!!errors.naturalidade}
+            />
           </Grid>
 
           {/* Registro profissional / RQE (shown conditionally based on user tipo) */}
@@ -622,7 +642,17 @@ const MyProfilePage = () => {
           </Grid>
 
           <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-            <Button variant="contained" type="submit" disabled={isSubmitting}>
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={isSubmitting}
+              sx={{
+                '&:focus-visible': {
+                  outline: (theme) => `3px solid ${theme.palette.primary.light}`,
+                  outlineOffset: '2px',
+                },
+              }}
+            >
               {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </Grid>
@@ -665,7 +695,18 @@ const MyProfilePage = () => {
             </Grid>
 
             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
-              <Button variant="outlined" color="primary" type="submit" disabled={isPwSubmitting}>
+              <Button
+                variant="outlined"
+                color="primary"
+                type="submit"
+                disabled={isPwSubmitting}
+                sx={{
+                  '&:focus-visible': {
+                    outline: (theme) => `3px solid ${theme.palette.primary.light}`,
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
                 {isPwSubmitting ? 'Salvando...' : 'Alterar senha'}
               </Button>
             </Grid>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Button from '@mui/material/Button';
+import Button, { type ButtonProps } from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import StandardDialog from '../StandardDialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -27,6 +27,7 @@ interface ConfirmationDialogProps {
   message: string;
   confirmButtonText?: string;
   cancelButtonText?: string;
+  confirmButtonProps?: ButtonProps;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -37,6 +38,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   message,
   confirmButtonText = 'Confirmar', // Default text
   cancelButtonText = 'Cancelar',   // Default text
+  confirmButtonProps,
 }) => {
   return (
     <BootstrapDialog
@@ -67,7 +69,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button autoFocus onClick={onConfirm} variant="contained" color="primary">
+        <Button autoFocus onClick={onConfirm} variant="contained" color="primary" {...confirmButtonProps}>
           {confirmButtonText}
         </Button>
         <Button onClick={onClose} color="error" variant="outlined">

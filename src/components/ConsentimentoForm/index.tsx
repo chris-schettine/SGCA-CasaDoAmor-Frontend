@@ -26,6 +26,7 @@ interface ConsentimentoFormProps {
 
 const ConsentimentoForm = ({ profissionalUuid, onSuccess, onCancel, obrigatorio = false }: ConsentimentoFormProps) => {
   const [showTermoCompleto, setShowTermoCompleto] = useState(false);
+  const dialogTitleId = 'consentimento-lgpd-dialog-title';
 
   const {
     control,
@@ -167,11 +168,11 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
 
   return (
     <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: 'auto' }}>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography id={dialogTitleId} variant="h5" component="h2" gutterBottom>
         Consentimento LGPD
       </Typography>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate aria-labelledby={dialogTitleId}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Versão do Termo e Escopo */}
           <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
@@ -201,6 +202,7 @@ Este consentimento poderá ser revogado pelo Titular, a qualquer momento, median
                   label="Escopo"
                   variant="outlined"
                   fullWidth
+                  autoFocus
                   error={!!errors.escopo}
                   helperText={errors.escopo?.message}
                   InputLabelProps={{ shrink: true }}

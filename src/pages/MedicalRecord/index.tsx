@@ -58,7 +58,7 @@ const MedicalRecordPage = () => {
         subtitle="Fatores de risco e condições clínicas"
       />
 
-      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Lesão de pele:
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -76,7 +76,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Flebite
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -94,7 +94,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Queda
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -112,7 +112,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         SAE - Sistema de assistência de enfermagem
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
@@ -129,7 +129,7 @@ const MedicalRecordPage = () => {
         </Box>
       </Box>
 
-      <Typography component="h2" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
+      <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Histórico de saúde e doença
       </Typography>
       <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
