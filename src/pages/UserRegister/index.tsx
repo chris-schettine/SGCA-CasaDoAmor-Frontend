@@ -34,20 +34,6 @@ const UserRegisterPage = () => {
   const [isLoadingConsent, setIsLoadingConsent] = useState(false);
   const [pendingUserData, setPendingUserData] = useState<UserFormInputs | null>(null);
 
-  const handleOpenSaveDialog = () => {
-    handleSubmit(() => setOpenSaveDialog(true), onError)();
-  };
-
-  const handleCloseSaveDialog = () => setOpenSaveDialog(false);
-  const handleOpenCancelDialog = () => setOpenCancelDialog(true);
-  const handleCloseCancelDialog = () => setOpenCancelDialog(false);
-
-  const handleConfirmCancel = () => {
-    toastError("Profissional não salvo");
-    setTimeout(() => navigate('/users'), 1000);
-    setOpenCancelDialog(false);
-  };
-
   const {
     register,
     handleSubmit,
@@ -58,7 +44,6 @@ const UserRegisterPage = () => {
     setError,
     clearErrors,
     getValues,
-    
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
@@ -80,10 +65,56 @@ const UserRegisterPage = () => {
     },
   });
 
-  // Alerta de mudanças não salvas
+ const buildCreateUserDTO = (data: UserFormInputs): CreateUserDTO => {
+    
+    const temRegistroProfissional = !!data.registro;
+
+    return {
+      nome: data.nomeUsuario,
+      email: data.email,
+      cpf: removeNonNumeric(data.cpfUsuario),
+      telefone: data.telefone || undefined,
+      tipo: data.tipo || '',
+      perfisIds: data.perfisIds,
+
+      dadosPessoais: {
+        sexo: data.sexo || null,
+      },
+
+      registroProfissional: temRegistroProfissional ? {
+        numeroRegistro: data.registro,
+        rqe: data.rqe || null,
+        tipoProfissional: data.tipo || null, 
+      } : null,
+
+      endereco: {
+        cep: data.cep || null,
+        logradouro: data.endereco || null,
+        numero: data.numero || null,
+        complemento: data.complemento || null,
+        bairro: data.bairro || null,
+        cidade: data.cidade || null,
+        uf: data.estado || null,
+      }
+    };
+  };
+
+  const handleOpenSaveDialog = () => {
+    handleSubmit(() => setOpenSaveDialog(true), onError)();
+  };
+
+  const handleCloseSaveDialog = () => setOpenSaveDialog(false);
+  const handleOpenCancelDialog = () => setOpenCancelDialog(true);
+  const handleCloseCancelDialog = () => setOpenCancelDialog(false);
+
+  const handleConfirmCancel = () => {
+    toastError("Profissional não salvo");
+    setTimeout(() => navigate('/users'), 1000);
+    setOpenCancelDialog(false);
+  };
+
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
 
-  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
@@ -97,7 +128,6 @@ const UserRegisterPage = () => {
     }
   }, [setValue]);
 
-  // CEP auto-fill logic (similar to edit page)
   const cepValue = watch('cep');
   useEffect(() => {
     const handleCepSearch = async (cep: string) => {
@@ -135,16 +165,10 @@ const UserRegisterPage = () => {
     }
   }, [cepValue, setValue, setError, clearErrors, getValues]);
 
-  // Atalho Ctrl+S para salvar
   useSaveShortcut(() => {
     handleSubmit(handleSaveUser, onError)();
   });
 
-  // When saving the user form, don't create the user yet. Open the consent
-  // dialog immediately and keep the form data in memory (pendingUserData).
-  // The actual creation will happen after the user accepts consent or saves
-  // granular preferences. This removes the delay and prevents creating
-  // a user only to delete them afterward.
   const handleSaveUser = async (data: UserFormInputs) => {
     setPendingUserData(data);
     setOpenSaveDialog(false);
@@ -161,16 +185,12 @@ const UserRegisterPage = () => {
     setOpenConsentimentoDialog(false);
     setIsLoadingConsent(false);
     
-    // Garantir que o toast apareça
     setTimeout(() => {
       toastSuccessCritical('Profissional cadastrado com sucesso!');
       setTimeout(() => navigate('/users'), 5000);
     }, 200);
   };
 
-  /**
-   * ✨ NOVO: Handlers do sistema de consentimento WCAG 2.2 AA
-   */
   const handleAcceptAll = async () => {
     if (!pendingUserData) return;
 
@@ -178,63 +198,20 @@ const UserRegisterPage = () => {
     const choices = ConsentStore.getAcceptAllChoices();
 
     try {
-      // Create user now that consent was given
-      const createDTO: CreateUserDTO = {
-        nome: pendingUserData.nomeUsuario,
-        email: pendingUserData.email,
-        cpf: removeNonNumeric(pendingUserData.cpfUsuario),
-        telefone: pendingUserData.telefone || undefined,
-        tipo: pendingUserData.tipo || '',
-        perfisIds: pendingUserData.perfisIds,
-      };
+      const createDTO = buildCreateUserDTO(pendingUserData);
 
-  const newUserResponse = await adminService.createUser(createDTO);
-  setNewUserId(newUserResponse.id);
-  newUserUuidRef.current = newUserResponse.uuid;
+      const newUserResponse = await adminService.createUser(createDTO);
+      setNewUserId(newUserResponse.id);
+      newUserUuidRef.current = newUserResponse.uuid;
 
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackAcceptAll(CONSENT_VERSION);
       
-      // Garantir que o toast apareça após sucesso
       setTimeout(() => {
         handleConsentimentoSuccess();
       }, 100);
     } catch (error) {
-      console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      setIsLoadingConsent(false);
-      
-      // Tratamento de erros mais detalhado
-      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
-      
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (axiosError.response?.status === 400) {
-          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
-        } else if (axiosError.response?.status === 409) {
-          errorMessage = 'Usuário já existe com este CPF ou email.';
-        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
-          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
-        } else if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = `Erro: ${error.message}`;
-      }
-      
-      try { 
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('consentimento-pending', 'true');
-        }
-      } catch { 
-        void 0; 
-      }
-      
-      // Garantir que o toast de erro apareça
-      setTimeout(() => {
-        toastError(errorMessage);
-      }, 100);
-      
-      setPendingUserData(null);
+      handleError(error);
     }
   };
 
@@ -245,62 +222,20 @@ const UserRegisterPage = () => {
     const choices = ConsentStore.getEssentialOnlyChoices();
 
     try {
-      const createDTO: CreateUserDTO = {
-        nome: pendingUserData.nomeUsuario,
-        email: pendingUserData.email,
-        cpf: removeNonNumeric(pendingUserData.cpfUsuario),
-        telefone: pendingUserData.telefone || undefined,
-        tipo: pendingUserData.tipo || '',
-        perfisIds: pendingUserData.perfisIds,
-      };
+      const createDTO = buildCreateUserDTO(pendingUserData);
 
-  const newUserResponse = await adminService.createUser(createDTO);
-  setNewUserId(newUserResponse.id);
-  newUserUuidRef.current = newUserResponse.uuid;
+      const newUserResponse = await adminService.createUser(createDTO);
+      setNewUserId(newUserResponse.id);
+      newUserUuidRef.current = newUserResponse.uuid;
 
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       ConsentAnalytics.trackRejectNonEssential(CONSENT_VERSION);
       
-      // Garantir que o toast apareça após sucesso
       setTimeout(() => {
         handleConsentimentoSuccess();
       }, 100);
     } catch (error) {
-      console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      setIsLoadingConsent(false);
-      
-      // Tratamento de erros mais detalhado
-      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
-      
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (axiosError.response?.status === 400) {
-          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
-        } else if (axiosError.response?.status === 409) {
-          errorMessage = 'Usuário já existe com este CPF ou email.';
-        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
-          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
-        } else if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = `Erro: ${error.message}`;
-      }
-      
-      try { 
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('consentimento-pending', 'true');
-        }
-      } catch { 
-        void 0; 
-      }
-      
-      // Garantir que o toast de erro apareça
-      setTimeout(() => {
-        toastError(errorMessage);
-      }, 100);
-      
-      setPendingUserData(null);
+      handleError(error);
     }
   };
 
@@ -310,118 +245,93 @@ const UserRegisterPage = () => {
     setIsLoadingConsent(true);
 
     try {
-      const createDTO: CreateUserDTO = {
-        nome: pendingUserData.nomeUsuario,
-        email: pendingUserData.email,
-        cpf: removeNonNumeric(pendingUserData.cpfUsuario),
-        telefone: pendingUserData.telefone || undefined,
-        tipo: pendingUserData.tipo || '',
-        perfisIds: pendingUserData.perfisIds,
-      };
 
-  const newUserResponse = await adminService.createUser(createDTO);
-  setNewUserId(newUserResponse.id);
-  newUserUuidRef.current = newUserResponse.uuid;
+      const createDTO = buildCreateUserDTO(pendingUserData);
+
+      const newUserResponse = await adminService.createUser(createDTO);
+      setNewUserId(newUserResponse.id);
+      newUserUuidRef.current = newUserResponse.uuid;
 
       await ConsentStore.save(newUserResponse.uuid, choices, { requireApi: true });
       const purposesAccepted = Object.keys(choices).filter((k) => choices[k]);
       ConsentAnalytics.trackSavePreferences(CONSENT_VERSION, purposesAccepted);
       
-      // Garantir que o toast apareça após sucesso
       setTimeout(() => {
         handleConsentimentoSuccess();
       }, 100);
     } catch (error) {
-      console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
-      setIsLoadingConsent(false);
-      
-      // Tratamento de erros mais detalhado
-      let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
-      
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (axiosError.response?.status === 400) {
-          errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
-        } else if (axiosError.response?.status === 409) {
-          errorMessage = 'Usuário já existe com este CPF ou email.';
-        } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
-          errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
-        } else if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = `Erro: ${error.message}`;
-      }
-      
-      try { 
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('consentimento-pending', 'true');
-        }
-      } catch { 
-        void 0; 
-      }
-      
-      // Garantir que o toast de erro apareça
-      setTimeout(() => {
-        toastError(errorMessage);
-      }, 100);
-      
-      setPendingUserData(null);
+      handleError(error);
     }
+  };
+
+  const handleError = (error: unknown) => {
+    console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
+    setIsLoadingConsent(false);
+    
+    let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+      if (axiosError.response?.status === 400) {
+        errorMessage = 'Dados inválidos. Verifique os campos do formulário.';
+      } else if (axiosError.response?.status === 409) {
+        errorMessage = 'Usuário já existe com este CPF ou email.';
+      } else if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
+        errorMessage = 'Sessão expirada ou sem permissão. Faça login novamente.';
+      } else if (axiosError.response?.data?.message) {
+        errorMessage = axiosError.response.data.message;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = `Erro: ${error.message}`;
+    }
+    
+    try { 
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('consentimento-pending', 'true');
+      }
+    } catch { 
+      void 0; 
+    }
+    
+    setTimeout(() => {
+      toastError(errorMessage);
+    }, 100);
+    
+    setPendingUserData(null);
   };
 
   const handleCloseConsentDialog = () => {
-    // Não permite fechar sem consentir (obrigatório)
     console.log('[UserRegister] Fechamento bloqueado - consentimento obrigatório');
   };
 
-  /**
-   * Handler: Rejeição completa do consentimento
-   * Abre dialog de confirmação
-   */
   const handleCompleteRejection = () => {
-    if (import.meta.env.DEV) console.debug('[UserRegister] handleCompleteRejection called - opening confirm rejection dialog');
+    if (import.meta.env.DEV) console.debug('[UserRegister] handleCompleteRejection called');
     setOpenConfirmRejectionDialog(true);
   };
 
-  /**
-   * Handler: Confirma rejeição e cancela cadastro
-   */
   const handleConfirmRejection = () => {
-    if (import.meta.env.DEV) console.debug('[UserRegister] handleConfirmRejection called - attempting to delete created user (if any) and navigate back');
     setOpenConfirmRejectionDialog(false);
     setOpenConsentimentoDialog(false);
-    // Navigate immediately back to users list so the user sees the list right away.
-    // Keep deletion of the created user as a background task (do not block navigation).
     try {
-      // show warning toast immediately so it appears on the users page
       toastWarn('Cadastro cancelado. Consentimento necessário para usar o sistema.');
     } catch (e) {
-      console.error('[UserRegister] Failed to call toastWarn before navigation:', e);
+      console.error('[UserRegister] Failed to call toastWarn:', e);
     }
 
-    // perform deletion asynchronously without awaiting to avoid blocking UI
     (async () => {
       try {
         if (newUserId) {
-          if (import.meta.env.DEV) console.debug('[UserRegister] Deleting user id in background', { newUserId });
           await adminService.deleteUser(newUserId);
-          if (import.meta.env.DEV) console.debug('[UserRegister] User deleted in background', { newUserId });
         }
       } catch (err) {
-        console.error('[UserRegister] Erro ao excluir usuário após recusa de consentimento (background):', err);
+        console.error('[UserRegister] Erro ao excluir usuário (background):', err);
       }
     })();
 
-    // Immediately navigate back to the users list
     navigate('/users');
   };
 
-  /**
-   * Handler: Cancela rejeição e volta ao dialog de consentimento
-   */
   const handleCancelRejection = () => {
-    if (import.meta.env.DEV) console.debug('[UserRegister] handleCancelRejection called - closing confirmation dialog');
     setOpenConfirmRejectionDialog(false);
   };
 
@@ -456,7 +366,6 @@ const UserRegisterPage = () => {
           clearErrors={clearErrors}
         />
 
-        {/* Botões Salvar e Cancelar */}
         <Grid size={{ xs: 12 }} sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
@@ -486,7 +395,6 @@ const UserRegisterPage = () => {
         </Grid>
       </form>
 
-      {/* Diálogo de Confirmação para Cancelar */}
       <ConfirmationDialog
         open={openCancelDialog}
         onClose={handleCloseCancelDialog}
@@ -497,7 +405,6 @@ const UserRegisterPage = () => {
         cancelButtonText="Não, Continuar Editando"
       />
 
-      {/* Diálogo de Confirmação para Salvar */}
       <ConfirmationDialog
         open={openSaveDialog}
         onClose={handleCloseSaveDialog}
@@ -508,7 +415,6 @@ const UserRegisterPage = () => {
         cancelButtonText="Não, Voltar"
       />
 
-      {/* ✨ NOVO: Dialog de Consentimento LGPD com WCAG 2.2 AA */}
       {openConsentimentoDialog && (
         <ConsentDialog
           open={openConsentimentoDialog}
@@ -523,7 +429,6 @@ const UserRegisterPage = () => {
         />
       )}
 
-      {/* Dialog de Confirmação de Rejeição */}
       <Dialog
         open={openConfirmRejectionDialog}
         onClose={handleCancelRejection}

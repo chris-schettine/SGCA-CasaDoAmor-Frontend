@@ -7,7 +7,6 @@ import { patientSchema, type PatientFormInputs } from '../../schemas/patientSche
 import { useForm } from "react-hook-form";
 import type { FieldErrors, SubmitHandler, Resolver } from "react-hook-form";
 import { isAxiosError } from "axios";
-// fetchAddressByCep is dynamically imported where needed to allow code-splitting
 const PatientPersonalDataForm = React.lazy(() => import('../../components/PatientForm/PatientPersonalDataForm'));
 const PatientDetailsForm = React.lazy(() => import('../../components/PatientForm/PatientDetailsForm'));
 import { FormSkeleton } from '../../components/SuspenseWrapper';
@@ -26,14 +25,11 @@ const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
-  // location not used in this page; keep import removed to avoid unused var
   const { isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
-
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
-
   const [isCepLoading, setIsCepLoading] = useState(false);
 
   const {
@@ -58,6 +54,7 @@ const PatientRegisterPage = () => {
       nomeMae: "",
       profissao: "",
       telefone: "",
+      sexo: undefined,
       cep: "",
       endereco: "",
       bairro: "",
@@ -71,19 +68,14 @@ const PatientRegisterPage = () => {
     }
   });
 
-  // PatientRegister is used to create a new patient — no pre-selected patient
-  // is required. Removed redirect which belonged to companion registration.
-  // Alerta de mudanças não salvas
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
 
-  // Atalho Ctrl+S para salvar (apenas na última etapa)
   useSaveShortcut(() => {
     if (activeStep === steps.length - 1) {
       handleSubmit(handleSavePatient, onError)();
     }
   }, activeStep === steps.length - 1);
 
-  // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       const form = document.querySelector('form');
@@ -99,7 +91,6 @@ const PatientRegisterPage = () => {
     }
   }, [setValue, clearErrors]);
 
-  // Quando o usuário indica que não usa sonda, limpamos valores e erros relacionados
   const usoSondaValue = watch('usoSonda');
 
   useEffect(() => {
@@ -111,18 +102,20 @@ const PatientRegisterPage = () => {
       clearErrors(['tipoSondaNasal', 'tipoSondaCirurgica', 'tipoSondaVesical', 'seForOutra']);
     }
   }, [usoSondaValue, setValue, clearErrors]);
+
   const handleSavePatient: SubmitHandler<PatientFormInputs> = async (data) => {
     console.log("Formulário Válido, Dados:", data);
     try {
       if (!isAuthenticated) {
         toastError("Usuário não autenticado. Faça login novamente.");
         setTimeout(() => {
-          navigate('/login'); // Redireciona para a página de login
+          navigate('/login'); 
         }, 2000)
         return;
       }
 
-      // Monta o payload no formato esperado pelo novo endpoint (/pacientes/)
+      const sexoValue = (data as any).sexo; 
+
       const paciente: RegistrarPacienteDTO = {
         dadoPessoal: {
           nome: data.nomeCompletoPaciente,
@@ -134,6 +127,7 @@ const PatientRegisterPage = () => {
           nomeMae: data.nomeMae,
           profissao: data.profissao,
           estadoCivil: data.estadoCivil || undefined,
+          sexo: sexoValue || "NAO_INFORMADO", 
         },
         dadoClinico: {
           diagnostico: data.diagnostico || undefined,
@@ -141,15 +135,10 @@ const PatientRegisterPage = () => {
           tratamentoOutroDescricao: data.tratamentoOutroDescricao || null,
           condicaoChegada: (() => {
             switch (data.condicaoChegada) {
-              case 'de_ambulancia':
-                return 'AMBULANCIA';
-              case 'maca':
-                return 'MACA';
-              case 'cadeira_rodas':
-                return 'CADEIRA_RODAS';
-              case 'nenhum':
-              default:
-                return 'NENHUMA';
+              case 'de_ambulancia': return 'AMBULANCIA';
+              case 'maca': return 'MACA';
+              case 'cadeira_rodas': return 'CADEIRA_RODAS';
+              case 'nenhum': default: return 'NENHUMA';
             }
           })(),
           usaSonda: data.usoSonda === 'sim',
@@ -195,7 +184,7 @@ const PatientRegisterPage = () => {
         } : undefined,
       };
 
-      const response = await pacienteService.registrarPaciente(paciente); // chamada real com token automático
+      const response = await pacienteService.registrarPaciente(paciente);
       setOpenSaveDialog(false);
       toastSuccessCritical("Paciente cadastrado com sucesso!");
       setTimeout(() => {
@@ -217,15 +206,12 @@ const PatientRegisterPage = () => {
         }, 1200);
         return;
       }
-
       toastError("Erro ao cadastrar paciente. Tente novamente.");
     }
   };
 
   const onError = (errors: FieldErrors<PatientFormInputs>) => {
     console.log("Erros de validação:", errors);
-    
-    // Identifica campos com erro para mensagem mais específica
     const errorFields = Object.keys(errors);
     const fieldLabels: Record<string, string> = {
       nomeCompletoPaciente: "Nome Completo",
@@ -237,7 +223,8 @@ const PatientRegisterPage = () => {
       bairro: "Bairro",
       cidade: "Cidade",
       estado: "Estado",
-      numero: "Número"
+      numero: "Número",
+      sexo: "Sexo/Gênero"
     };
     
     if (errorFields.length > 0) {
@@ -246,7 +233,6 @@ const PatientRegisterPage = () => {
     } else {
       toastError("Por favor, corrija os erros no formulário.");
     }
-    
     setOpenSaveDialog(false);
   };
 
@@ -283,18 +269,12 @@ const PatientRegisterPage = () => {
           setValue('estado', addressData.uf ?? "", { shouldDirty: true });
           setValue('complemento', addressData.complemento ?? "", { shouldDirty: true });
         } else {
-          setError('cep', {
-            type: "manual",
-            message: "CEP não encontrado ou inválido."
-          });
+          setError('cep', { type: "manual", message: "CEP não encontrado ou inválido." });
           toastWarn("CEP não encontrado ou inválido.");
         }
       } catch (err) {
         console.error("Erro ao buscar CEP:", err);
-        setError('cep', {
-          type: "manual",
-          message: "Erro ao buscar CEP. Tente novamente."
-        });
+        setError('cep', { type: "manual", message: "Erro ao buscar CEP. Tente novamente." });
         toastError("Erro ao buscar CEP. Tente novamente.");
       } finally {
         setIsCepLoading(false);
@@ -309,56 +289,30 @@ const PatientRegisterPage = () => {
   }, [clearErrors, setError, setIsCepLoading, setValue]);
 
   useEffect(() => {
-    if (!cepValue) {
-      return;
-    }
-
+    if (!cepValue) return;
     const sanitizedCep = removeNonNumeric(cepValue);
     if (sanitizedCep.length === 8) {
       handleCepSearch(cepValue);
     }
   }, [cepValue, handleCepSearch]);
 
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
+  const handleNext = () => setActiveStep((prev) => prev + 1);
+  const handleBack = () => setActiveStep((prev) => prev - 1);
 
   return (
     <Box sx={{ 
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: 'column',
-      position: "relative",
-      minHeight: "56px",
-      margin: { xs: "16px auto", sm: "24px auto" },
-      paddingBottom: { xs: "10px", sm: "15px" },
-      width: { xs: '100%', sm: '95%', md: '90%' },
-      px: { xs: 2, sm: 3 }
+      display: "flex", alignItems: "center", justifyContent: "center", flexDirection: 'column', position: "relative",
+      minHeight: "56px", margin: { xs: "16px auto", sm: "24px auto" }, paddingBottom: { xs: "10px", sm: "15px" },
+      width: { xs: '100%', sm: '95%', md: '90%' }, px: { xs: 2, sm: 3 }
     }}>
-      <PageHeader 
-        title="Cadastrar Paciente" 
-        subtitle="Preencha os dados do paciente em duas etapas"
-      />
-      
-      {/* Stepper */}
+      <PageHeader title="Cadastrar Paciente" subtitle="Preencha os dados do paciente em duas etapas" />
       <Box sx={{ width: '100%', mb: { xs: 3, sm: 4 } }}>
         <Stepper activeStep={activeStep}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
+          {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
         </Stepper>
       </Box>
 
-    <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
-
-        {/* Dados Pessoais - Step 0 */}
+      <form onSubmit={handleSubmit(handleSavePatient, onError)} noValidate>
         {activeStep === 0 && (
           <Suspense fallback={<FormSkeleton fields={6} />}>
             <PatientPersonalDataForm
@@ -373,7 +327,6 @@ const PatientRegisterPage = () => {
           </Suspense>
         )}
 
-        {/* Mais detalhes do paciente - Step 1 */}
         {activeStep === 1 && (
           <Suspense fallback={<FormSkeleton fields={4} />}>
             <PatientDetailsForm
@@ -385,89 +338,24 @@ const PatientRegisterPage = () => {
           </Suspense>
         )}
 
-        {/* Botões de Navegação */}
-        <Grid size={{ xs: 12 }} sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between', 
-          gap: 2, 
-          mt: { xs: 3, sm: 4 }, 
-          mx: { xs: 0, sm: 3 }
-        }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', gap: 2, mt: { xs: 3, sm: 4 }, mx: { xs: 0, sm: 3 } }}>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
-            <Button
-              variant="outlined"
-              onClick={handleBack}
-              disabled={activeStep === 0}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-            >
-              Voltar
-            </Button>
+            <Button variant="outlined" onClick={handleBack} disabled={activeStep === 0} sx={{ width: { xs: '100%', sm: 'auto' } }}>Voltar</Button>
             {activeStep < steps.length - 1 && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNext}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                Próximo
-              </Button>
+              <Button variant="contained" color="primary" onClick={handleNext} sx={{ width: { xs: '100%', sm: 'auto' } }}>Próximo</Button>
             )}
           </Box>
-
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
             {activeStep === steps.length - 1 && (
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                aria-label="Salvar cadastro do paciente"
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                Salvar
-              </Button>
+              <Button type="submit" variant="contained" color="primary" sx={{ width: { xs: '100%', sm: 'auto' } }}>Salvar</Button>
             )}
-            <Button
-              variant="outlined"
-              sx={{
-                width: { xs: '100%', sm: 'auto' },
-                borderColor: '#d32f2f',
-                color: '#d32f2f',
-                '&:hover': {
-                  borderColor: '#c62828',
-                  backgroundColor: 'rgba(211, 47, 47, 0.04)',
-                },
-              }}
-              onClick={handleOpenCancelDialog}
-              aria-label="Cancelar cadastro e voltar"
-            >
-              Cancelar
-            </Button>
+            <Button variant="outlined" sx={{ width: { xs: '100%', sm: 'auto' }, borderColor: '#d32f2f', color: '#d32f2f', '&:hover': { borderColor: '#c62828', backgroundColor: 'rgba(211, 47, 47, 0.04)' } }} onClick={handleOpenCancelDialog}>Cancelar</Button>
           </Box>
         </Grid>
       </form>
 
-      {/* Diálogo de Confirmação para Cancelar */}
-      <ConfirmationDialog
-        open={openCancelDialog}
-        onClose={handleCloseCancelDialog}
-        onConfirm={handleConfirmCancel} // Navega para /patients
-        title="Confirmar Cancelamento"
-        message="Tem certeza que deseja cancelar? Você perderá todos os dados preenchidos."
-        confirmButtonText="Sim, Cancelar"
-        cancelButtonText="Não, Continuar Editando"
-      />
-
-      {/* Diálogo de Confirmação para Salvar */}
-      <ConfirmationDialog
-        open={openSaveDialog}
-        onClose={handleCloseSaveDialog}
-        onConfirm={handleConfirmSave} // Chama handleSubmit(handleSavePatient, onError)
-        title="Confirmar Salvamento"
-        message="Tem certeza que deseja salvar o paciente?"
-        confirmButtonText="Sim, Salvar"
-        cancelButtonText="Não, Voltar"
-      />
+      <ConfirmationDialog open={openCancelDialog} onClose={handleCloseCancelDialog} onConfirm={handleConfirmCancel} title="Confirmar Cancelamento" message="Tem certeza que deseja cancelar? Você perderá todos os dados preenchidos." confirmButtonText="Sim, Cancelar" cancelButtonText="Não, Continuar Editando" />
+      <ConfirmationDialog open={openSaveDialog} onClose={handleCloseSaveDialog} onConfirm={handleConfirmSave} title="Confirmar Salvamento" message="Tem certeza que deseja salvar o paciente?" confirmButtonText="Sim, Salvar" cancelButtonText="Não, Voltar" />
     </Box>
   );
 }

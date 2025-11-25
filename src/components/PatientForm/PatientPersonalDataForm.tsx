@@ -42,13 +42,11 @@ const PatientPersonalDataForm = (
   const estadoValue = watch("estado");
   const complementoValue = watch("complemento");
 
-  // Field array para contatos de emergência
   const { fields: contatosFields, append, remove } = useFieldArray<PatientFormInputs, "contatosDeEmergencia">({
     control,
     name: 'contatosDeEmergencia',
   });
 
-  // Efeito para calcular e preencher a idade automaticamente
   useEffect(() => {
     const age = calculateAge(dataNascimentoValue);
     if (age !== null) {
@@ -81,16 +79,12 @@ const PatientPersonalDataForm = (
                 required: true,
               },
               formHelperText: {
-                sx: {
-                  maxHeight: '0.4em',
-                  margin: '0 0.2em',
-                },
+                sx: { maxHeight: '0.4em', margin: '0 0.2em' },
               },
             }}
           />
         </Grid>
 
-        {/* CPF */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Controller
             name="cpfPaciente"
@@ -117,7 +111,7 @@ const PatientPersonalDataForm = (
           />
         </Grid>
 
-        {/* SEGUNDA LINHA: Data de Nascimento, Idade, Naturalidade, RG */}
+        {/* SEGUNDA LINHA: Data Nascimento, Idade, Sexo */}
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Controller
             name="dataNascimento"
@@ -143,7 +137,8 @@ const PatientPersonalDataForm = (
             )}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+
+        <Grid size={{ xs: 6, md: 2 }}>
           <TextField
             id="idade"
             label="Idade"
@@ -156,19 +151,43 @@ const PatientPersonalDataForm = (
             inputProps={{ readOnly: true }}
             disabled
             slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: '0.4em',
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { shrink: true },
+              formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+
+        {/* NOVO CAMPO: SEXO */}
+        <Grid size={{ xs: 6, md: 3 }}>
+          <Controller
+            name="sexo"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                // Garante que não dê erro de uncontrolled input caso venha undefined
+                value={field.value || ''}
+                id="sexo"
+                label="Sexo / Gênero"
+                variant="outlined"
+                fullWidth
+                select
+                required
+                error={!!errors.sexo}
+                helperText={errors.sexo?.message}
+                disabled={isDisabled('sexo')}
+              >
+                <MenuItem value="">Selecione...</MenuItem>
+                <MenuItem value="MASCULINO">Masculino</MenuItem>
+                <MenuItem value="FEMININO">Feminino</MenuItem>
+                <MenuItem value="NAO_INFORMADO">Prefiro não informar</MenuItem>
+              </TextField>
+            )}
+          />
+        </Grid>
+
+        {/* Movi Naturalidade para completar a linha ou descer conforme a tela */}
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <TextField
             id="naturalidade"
             label="Naturalidade"
@@ -180,16 +199,13 @@ const PatientPersonalDataForm = (
             error={!!errors.naturalidade}
             helperText={errors.naturalidade?.message}
             slotProps={{
-              formHelperText: {
-                sx: {
-                  maxHeight: '0.4em',
-                  margin: '0 0.2em',
-                },
-              },
+              formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+
+        {/* TERCEIRA LINHA: RG, Nome da Mãe */}
+        <Grid size={{ xs: 12, sm: 4, md: 4 }}>
           <Controller
             name="rg"
             control={control}
@@ -211,8 +227,7 @@ const PatientPersonalDataForm = (
           />
         </Grid>
 
-        {/* TERCEIRA LINHA: Nome da Mãe e Profissão */}
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid size={{ xs: 12, sm: 8, md: 8 }}>
           <TextField
             id="nome-mae"
             label="Nome da Mãe"
@@ -224,17 +239,13 @@ const PatientPersonalDataForm = (
             error={!!errors.nomeMae}
             helperText={errors.nomeMae?.message}
             slotProps={{
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        {/* QUARTA LINHA: Profissão e Telefone */}
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             id="profissao"
             label="Profissão"
@@ -245,18 +256,12 @@ const PatientPersonalDataForm = (
             error={!!errors.profissao}
             helperText={errors.profissao?.message}
             slotProps={{
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
 
-        {/* QUARTA LINHA: Telefone, CEP, Endereço */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <Controller
             name="telefone"
             control={control}
@@ -280,7 +285,9 @@ const PatientPersonalDataForm = (
             )}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+
+        {/* QUINTA LINHA: Email, Estado Civil */}
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <TextField
             id="email"
             label="E-mail"
@@ -289,18 +296,13 @@ const PatientPersonalDataForm = (
             placeholder="email@exemplo.com"
             {...register("email")}
             error={!!errors.email}
-            helperText={errors.email?.message || 'Será usado para contato e notificações (opcional).'}
+            helperText={errors.email?.message || 'Opcional'}
             slotProps={{
-              formHelperText: {
-                sx: {
-                  maxHeight: '0.4em',
-                  margin: '0 0.2em',
-                },
-              },
+              formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <Controller
             name="estadoCivil"
             control={control}
@@ -314,7 +316,7 @@ const PatientPersonalDataForm = (
                 fullWidth
                 select
                 error={!!errors.estadoCivil}
-                helperText={errors.estadoCivil?.message || 'Selecione o estado civil do paciente (opcional).'}
+                helperText={errors.estadoCivil?.message || 'Opcional'}
               >
                 <MenuItem value="">Selecione...</MenuItem>
                 <MenuItem value="SOLTEIRO">Solteiro(a)</MenuItem>
@@ -327,7 +329,9 @@ const PatientPersonalDataForm = (
             )}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+
+        {/* SEXTA LINHA: CEP e Endereço */}
+        <Grid size={{ xs: 12, sm: 4, md: 3 }}>
           <Controller
             name="cep"
             control={control}
@@ -340,7 +344,7 @@ const PatientPersonalDataForm = (
                 fullWidth
                 placeholder="00000-000"
                 error={!!errors.cep}
-                helperText={errors.cep?.message || (isCepLoading ? "Buscando endereço..." : "")}
+                helperText={errors.cep?.message || (isCepLoading ? "Buscando..." : "")}
                 mask="00000-000"
                 lazy={true}
                 onBlur={(e) => {
@@ -348,13 +352,11 @@ const PatientPersonalDataForm = (
                   handleCepSearch(e.target.value);
                 }}
                 required
-                InputLabelProps={{
-                  required: true,
-                }}
+                InputLabelProps={{ required: true }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      {isCepLoading && <CircularProgress size={20} aria-label="Buscando endereço pelo CEP" />}
+                      {isCepLoading && <CircularProgress size={20} />}
                     </InputAdornment>
                   ),
                 }}
@@ -362,7 +364,7 @@ const PatientPersonalDataForm = (
             )}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, md: 9 }}>
           <TextField
             id="endereco"
             label="Endereço"
@@ -376,21 +378,13 @@ const PatientPersonalDataForm = (
             required
             InputLabelProps={{ shrink: !!enderecoValue || isCepLoading, required: true }}
             slotProps={{
-              inputLabel: {
-                shrink: !!enderecoValue,
-                required: true,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: '0.4em',
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { shrink: !!enderecoValue, required: true },
+              formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
             }}
           />
         </Grid>
 
-        {/* QUINTA LINHA: Bairro, Número, Complemento */}
+        {/* SÉTIMA LINHA: Bairro, Cidade, Estado */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <TextField
             id="bairro"
@@ -404,15 +398,8 @@ const PatientPersonalDataForm = (
             disabled={isCepLoading}
             InputLabelProps={{ shrink: !!bairroValue || isCepLoading }}
             slotProps={{
-              inputLabel: {
-                shrink: !!bairroValue,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { shrink: !!bairroValue },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
@@ -427,15 +414,8 @@ const PatientPersonalDataForm = (
             error={!!errors.cidade}
             helperText={errors.cidade?.message}
             slotProps={{
-              inputLabel: {
-                shrink: !!cidadeValue,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { shrink: !!cidadeValue },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
@@ -450,18 +430,13 @@ const PatientPersonalDataForm = (
             error={!!errors.estado}
             helperText={errors.estado?.message}
             slotProps={{
-              inputLabel: {
-                shrink: !!estadoValue,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { shrink: !!estadoValue },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
+
+        {/* OITAVA LINHA: Número e Complemento */}
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <TextField
             id="numero"
@@ -474,19 +449,12 @@ const PatientPersonalDataForm = (
             helperText={errors.numero?.message}
             required
             slotProps={{
-              inputLabel: {
-                required: true,
-              },
-              formHelperText: {
-                sx: {
-                  maxHeight: 0,
-                  margin: '0 0.2em',
-                },
-              },
+              inputLabel: { required: true },
+              formHelperText: { sx: { maxHeight: 0, margin: '0 0.2em' } },
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, md: 9 }}>
           <TextField
             id="complemento"
             label="Complemento"
@@ -498,14 +466,11 @@ const PatientPersonalDataForm = (
             helperText={errors.complemento?.message}
             disabled={isCepLoading}
             InputLabelProps={{ shrink: !!complementoValue || isCepLoading }}
-            slotProps={{
-              inputLabel: {
-                shrink: !!complementoValue,
-              },
-            }}
+            slotProps={{ inputLabel: { shrink: !!complementoValue } }}
           />
         </Grid>
-        {/* Contatos de Emergência (array dinâmico) */}
+
+        {/* Contatos de Emergência */}
         <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ margin: 0 }}>Contatos de Emergência</h4>
@@ -605,7 +570,6 @@ const PatientPersonalDataForm = (
             {...register('dadoSocial.necessidadesEspeciais' as const)}
           />
         </Grid>
-        {/* Tratamento e Diagnóstico: movidos para a seção de dados médicos (PatientDetailsForm) */}
       </Grid>
     </>
   )
