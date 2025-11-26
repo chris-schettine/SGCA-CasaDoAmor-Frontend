@@ -8,7 +8,7 @@ import {
     CardContent, 
     Stack,
     alpha,
-    useTheme
+    useTheme,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -16,11 +16,23 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import GroupsIcon from '@mui/icons-material/Groups';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import LoginIcon from '@mui/icons-material/Login';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+
 import Footer from '../../components/Footer'; 
+import { toastSuccess } from '../../utils/toast'; 
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const theme = useTheme(); 
+
+    const pixKey = "10241191000137"; 
+    const pixBank = "Caixa Econômica Federal"; 
+
+    const handleCopyPix = () => {
+        navigator.clipboard.writeText(pixKey);
+        toastSuccess("Chave Pix copiada para a área de transferência!");
+    };
 
     const primaryBlue = theme.palette.primary.main;
 
@@ -32,7 +44,6 @@ const LandingPage = () => {
 
     const logoSrc = theme.palette.mode === 'dark' ? '/logo3branco.png' : '/logo3.png';
 
-   
     const features = [
         {
             title: "Cadastro Ágil",
@@ -81,9 +92,9 @@ const LandingPage = () => {
                             aria-label="Acessar área restrita do sistema"
                             sx={{ 
                                 fontWeight: 600,
-                                color: primaryBlue, // Cor do texto igual à cor primária
+                                color: primaryBlue,
                                 '&:hover': { 
-                                    bgcolor: alpha(primaryBlue, 0.08) // Fundo sutil apenas ao passar o mouse
+                                    bgcolor: alpha(primaryBlue, 0.08)
                                 }
                             }}
                         >
@@ -93,19 +104,17 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-         
-                <Box sx={{ 
+            <Box sx={{ 
                 background: `linear-gradient(135deg, ${heroStart} 0%, ${heroMid} 45%, ${heroEnd} 100%)`, 
                 color: theme.palette.getContrastText(heroStart), 
                 pt: { xs: 6, md: 10 }, 
-                pb: { xs: 8, md: 12 },
+                pb: { xs: 10, md: 16 }, 
                 px: 3, 
                 textAlign: 'center', 
                 position: 'relative',
                 overflow: 'hidden'
             }}>
                 <Container maxWidth="md">
-                    
                     <Typography 
                         component="h1" 
                         variant="h2" 
@@ -122,7 +131,6 @@ const LandingPage = () => {
                         Sistema de Gerenciamento da <Box component="span" sx={{ color: theme.palette.common.white, WebkitTextFillColor: theme.palette.common.white }}>Casa do Amor.</Box>
                     </Typography>
 
-                   
                     <Typography 
                         component="h2" 
                         variant="h5"  
@@ -138,11 +146,10 @@ const LandingPage = () => {
                         Gestão humana para quem acolhe com amor.
                     </Typography>
                     
-                 
                     <Typography variant="h6" sx={{ 
                         mb: 4, 
                         fontWeight: 400, 
-                            color: theme.palette.common.white,
+                        color: theme.palette.common.white,
                         WebkitTextFillColor: theme.palette.common.white,
                         mx: 'auto', 
                         maxWidth: '700px',
@@ -156,7 +163,6 @@ const LandingPage = () => {
                             variant="contained" 
                             size="large"
                             onClick={() => navigate('/login')}
-                            aria-label="Acessar o sistema agora"
                             sx={{ 
                                 bgcolor: `${primaryBlue} !important`, 
                                 color: `${theme.palette.getContrastText(primaryBlue)} !important`,
@@ -175,7 +181,6 @@ const LandingPage = () => {
                         <Button 
                             variant="outlined" 
                             size="large"
-                            aria-label="Saber mais sobre o projeto"
                             sx={{ 
                                 color: theme.palette.getContrastText(heroStart), 
                                 borderColor: alpha(theme.palette.getContrastText(heroStart), 0.5),
@@ -190,8 +195,7 @@ const LandingPage = () => {
                 </Container>
             </Box>
 
-           
-            <Container maxWidth="lg" sx={{ py: 6, flexGrow: 1, mt: -4, position: 'relative', zIndex: 2 }}>
+            <Container maxWidth="lg" sx={{ py: 6, mt: -8, position: 'relative', zIndex: 2 }}>
                 <Grid container spacing={3}> 
                     {features.map((feature, index) => (
                         <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
@@ -230,6 +234,89 @@ const LandingPage = () => {
                         </Grid>
                     ))}
                 </Grid>
+            </Container>
+
+            <Container maxWidth="md" sx={{ mb: 8, mt: 4 }}>
+                <Card sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', md: 'row' },
+                    overflow: 'visible',
+                    borderRadius: 4,
+                    boxShadow: theme.custom.shadows.lg,
+                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.secondary.dark, 0.1) : alpha(theme.palette.secondary.light, 0.1)
+                }}>
+                    <Box sx={{ p: { xs: 3, md: 5 }, flex: 1 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+                            <VolunteerActivismIcon color="secondary" fontSize="large" />
+                            <Typography variant="h5" fontWeight={800} color="text.primary">
+                                Ajude a manter a Casa
+                            </Typography>
+                        </Stack>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
+                            A Casa do Amor vive de doações para oferecer dignidade e conforto aos pacientes em tratamento.
+                            Sua contribuição direta via Pix faz toda a diferença.
+                        </Typography>
+                        
+                        <Typography variant="subtitle2" color="text.primary" fontWeight={700} gutterBottom>
+                            Dados para transferência (Pix):
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            CNPJ: {pixKey}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {pixBank}
+                        </Typography>
+                    </Box>
+
+                    <Box sx={{ 
+                        bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.5) : theme.palette.common.white,
+                        p: { xs: 3, md: 5 }, 
+                        flex: 0.8,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderLeft: { md: `1px solid ${alpha(theme.palette.divider, 0.1)}` },
+                        borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' }
+                    }}>
+                        <Typography variant="caption" color="text.secondary" gutterBottom>
+                            CHAVE PIX (CNPJ)
+                        </Typography>
+                        
+                        <Box sx={{ 
+                            p: 2, 
+                            bgcolor: alpha(theme.palette.action.hover, 0.05), 
+                            border: `1px dashed ${theme.palette.divider}`,
+                            borderRadius: 2,
+                            mb: 2,
+                            width: '100%',
+                            textAlign: 'center'
+                        }}>
+                            <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'text.primary', letterSpacing: 1 }}>
+                                {pixKey}
+                            </Typography>
+                        </Box>
+
+                        {/* Botão Fixo (Estilo Secondary) */}
+                        <Button 
+                            variant="contained" 
+                            color="secondary"
+                            size="large"
+                            startIcon={<ContentCopyIcon />}
+                            onClick={handleCopyPix}
+                            fullWidth
+                            sx={{ 
+                                fontWeight: 'bold', 
+                                borderRadius: 2,
+                                transition: 'all 0.2s',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 }
+                            }}
+                        >
+                            Copiar Chave Pix
+                        </Button>
+                    </Box>
+                </Card>
             </Container>
 
             <Footer />
