@@ -72,8 +72,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     } catch {
       // Ignora erros de localStorage
     }
-    
-    // Sem preferência salva, usa sempre o modo padrão fornecido (light por padrão)
+
+    // Sem preferência salva, tenta usar o tema do sistema
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+
+    // Fallback: modo padrão fornecido (light por padrão)
     return defaultMode;
   });
 

@@ -1,4 +1,4 @@
-import { Button, Box, CircularProgress, Backdrop } from "@mui/material";
+import { Button, Box, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import { DevTools } from "../../utils/devTools";
 import { toastError, toastSuccess, toastWarn } from "../../utils/toast";
+import { useFormDraft } from "../../hooks/useFormDraft";
 
 interface PatientEditLocationState {
   patient?: PacienteDTO;
@@ -64,6 +65,7 @@ const PatientEditPage = () => {
     handleSubmit,
     formState: { errors, isDirty },
     control,
+    reset,
     watch,
     setValue,
     setError,
@@ -104,6 +106,9 @@ const PatientEditPage = () => {
       tratamentoOutroDescricao: "",
     }
   });
+
+  const draftKey = `draft:patient-edit:${id ?? 'novo'}`;
+  const { hasDraft, restoreDraft } = useFormDraft<PatientFormInputs>(draftKey, watch, reset, { debounceMs: 1200 });
 
   // Alerta de mudanças não salvas
   useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
@@ -349,6 +354,10 @@ const PatientEditPage = () => {
 
   // Carregar paciente por id quando a página monta
   useEffect(() => {
+    if (hasDraft) {
+      const restored = restoreDraft();
+      if (restored) return;
+    }
     if (!id) return;
 
     const fillWithPatient = (p: PacienteDTO) => {
@@ -481,7 +490,7 @@ const PatientEditPage = () => {
     };
 
     fetchPatientFallback();
-  }, [id, navigate, setValue, passedPatient]);
+  }, [hasDraft, restoreDraft, id, navigate, setValue, passedPatient]);
 
   if (loading) return <FormSkeleton fields={8} />;
   if (isSaving) {

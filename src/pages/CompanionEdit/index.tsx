@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { Control, FieldErrors, UseFormClearErrors, UseFormRegister, UseFormSetError, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { editCompanionSchema, type CompanionFormInputs, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
@@ -16,34 +16,25 @@ import CompanionForm from "../../components/CompanionForm";
 import { formatDateToISO, formatISOToDDMMYYYY } from "../../utils/formatters";
 import { DevTools } from "../../utils/devTools";
 import { toastWarn, toastError, toastInfo, toastSuccessCritical } from "../../utils/toast";
+import { useFormDraft } from "../../hooks/useFormDraft";
 
 const CompanionEditPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const acompanhante = (location.state as { acompanhante?: AcompanhanteDTO })?.acompanhante;
-  
   const editarAcompanhanteMutation = useEditarAcompanhante();
   const [isSaving, setIsSaving] = useState(false);
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
 
-  // Verificar se temos o acompanhante
-  useEffect(() => {
-    if (!acompanhante && !id) {
-      toastWarn("Acompanhante não encontrado. Redirecionando...");
-      setTimeout(() => {
-        navigate(-1);
-      }, 2000);
-    }
-  }, [acompanhante, id, navigate]);
-
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    reset,
     watch,
     setValue,
     setError,
@@ -77,6 +68,22 @@ const CompanionEditPage = () => {
       ativo: acompanhante.ativo ?? false,
     } : undefined
   });
+  const draftKey = useMemo(() => `draft:companion-edit:${id || 'novo'}`, [id]);
+  const { hasDraft, restoreDraft } = useFormDraft<EditCompanionFormInputs>(draftKey, watch, reset, { debounceMs: 1200 });
+
+  // Verificar se temos o acompanhante ou rascunho
+  useEffect(() => {
+    if (hasDraft) {
+      const restored = restoreDraft();
+      if (restored) return;
+    }
+    if (!acompanhante && !id) {
+      toastWarn("Acompanhante não encontrado. Redirecionando...");
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
+    }
+  }, [acompanhante, id, navigate, hasDraft, restoreDraft]);
 
   // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {

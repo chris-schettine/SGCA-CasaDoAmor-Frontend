@@ -44,6 +44,13 @@ const formatCepDisplay = (value?: string | null): string => {
   return digits.replace(/(\d{5})(\d{3})/, "$1-$2");
 };
 
+const normalizeEstadoCivil = (value?: string | null): UserFormInputs['estadoCivil'] => {
+  if (!value) return undefined;
+  const v = value.toUpperCase();
+  const allowed: UserFormInputs['estadoCivil'][] = ['SOLTEIRO', 'CASADO', 'DIVORCIADO', 'VIUVO', 'SEPARADO', 'UNIAO_ESTAVEL'];
+  return (allowed.includes(v as UserFormInputs['estadoCivil']) ? v : undefined) as UserFormInputs['estadoCivil'];
+};
+
 const hasMeaningfulValue = (payload: unknown): boolean => {
   if (!payload || typeof payload !== 'object') {
     return false;
@@ -214,7 +221,7 @@ const UserEditPage = () => {
             ? formatISOToDDMMYYYY(personal.dataNascimento)
             : '',
           naturalidade: personal?.naturalidade ?? '',
-          estadoCivil: personal?.estadoCivil ?? '',
+          estadoCivil: normalizeEstadoCivil(personal?.estadoCivil),
           nomeMae: personal?.nomeMae ?? '',
           nomePai: personal?.nomePai ?? '',
           profissao: personal?.profissao ?? '',
@@ -286,6 +293,7 @@ const UserEditPage = () => {
   const handleSaveUser = async (data: UserFormInputs) => {
     if (!id) return;
     try {
+      setIsSaving(true);
       const { removeNonNumeric, formatDateToISO } = await import('../../utils/formatters');
 
       const personalPayload: UpdateUserDTO['dadosPessoais'] = {
@@ -355,6 +363,8 @@ const UserEditPage = () => {
         : 'Erro ao atualizar usuário';
       toastError(message);
       setOpenSaveDialog(false);
+    } finally {
+      setIsSaving(false);
     }
   };
 
