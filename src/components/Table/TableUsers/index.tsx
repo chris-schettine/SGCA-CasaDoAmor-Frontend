@@ -55,9 +55,9 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const columns: readonly Column[] = [
     { id: 'name', label: 'Nome', minWidth: isNarrowDesktop ? 120 : 140, maxWidth: isNarrowDesktop ? 200 : 260, headerAlign: 'left' },
     { id: 'function', label: 'Função', minWidth: isNarrowDesktop ? 95 : 110, maxWidth: isNarrowDesktop ? 180 : 200, hideOnMobile: false, headerAlign: 'left' },
-    { id: 'email', label: 'E-mail', minWidth: isNarrowDesktop ? 140 : 160, maxWidth: isNarrowDesktop ? 220 : 260, hideOnTablet: true, headerAlign: 'left' },
-    { id: 'telephone', label: 'Telefone', minWidth: isNarrowDesktop ? 105 : 120, maxWidth: isNarrowDesktop ? 180 : 200, hideOnMobile: true, headerAlign: 'left' },
-    { id: 'actions', label: 'Ações', minWidth: isNarrowDesktop ? 74 : 86, maxWidth: isNarrowDesktop ? 100 : 120, align: 'center', headerAlign: 'center' },
+    { id: 'email', label: 'E-mail', minWidth: isNarrowDesktop ? 160 : 180, maxWidth: isNarrowDesktop ? 260 : 300, hideOnTablet: true, headerAlign: 'left' },
+    { id: 'telephone', label: 'Telefone', minWidth: isNarrowDesktop ? 90 : 100, maxWidth: isNarrowDesktop ? 140 : 160, hideOnMobile: true, headerAlign: 'left' },
+    { id: 'actions', label: 'Ações', minWidth: isNarrowDesktop ? 90 : 100, maxWidth: isNarrowDesktop ? 120 : 140, align: 'center', headerAlign: 'center' },
   ].filter(col => {
     if (isMobile && col.hideOnMobile) return false;
     if (isTablet && col.hideOnTablet) return false;
@@ -275,16 +275,17 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
                         MenuListProps={{ 'aria-labelledby': 'filter-tipo' }}
                       >
                         <MenuItem
-                            selected={filterTipo === ''}
-                          >
-                            Todos
-                          </MenuItem>
-                        {tipos.map((t) => (
-                          <MenuItem
-                            key={t}
-                            selected={filterTipo === t}
-                            onClick={() => { setFilterTipo(t); setPage(0); handleCloseFilter(); }}
-                          >
+                          selected={filterTipo === ''}
+                          onClick={() => { setFilterTipo(''); setPage(0); handleCloseFilter(); }}
+                        >
+                          Todos
+                        </MenuItem>
+                      {tipos.map((t) => (
+                        <MenuItem
+                          key={t}
+                          selected={filterTipo === t}
+                          onClick={() => { setFilterTipo(t); setPage(0); handleCloseFilter(); }}
+                        >
                             {filterTipo === t && <CheckIcon fontSize="small" sx={{ mr: 1 }} />}
                             {t}
                           </MenuItem>

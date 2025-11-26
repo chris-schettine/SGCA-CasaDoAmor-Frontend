@@ -214,11 +214,11 @@ const SessionsContent = () => {
                 sx={{
                   '& .MuiTableCell-root': {
                     padding: isNarrowDesktop ? theme.spacing(1) : theme.spacing(1.5),
-                    fontSize: isNarrowDesktop ? '0.9rem' : '1rem',
+                    fontSize: isNarrowDesktop ? '0.85rem' : '0.95rem',
                   },
                   '& thead .MuiTableCell-root': {
                     padding: theme.spacing(2),
-                    fontSize: '0.875rem',
+                    fontSize: '0.84rem',
                     fontWeight: 600,
                     lineHeight: 1.6,
                   },
@@ -232,8 +232,8 @@ const SessionsContent = () => {
                     <TableCell>Conexão</TableCell>
                     <TableCell>Criado Em</TableCell>
                     <TableCell>Expira Em</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Ações</TableCell>
+                    <TableCell align="center" sx={{ textAlign: 'center' }}>Status</TableCell>
+                    <TableCell align="center" sx={{ textAlign: 'center' }}>Ações</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -266,7 +266,7 @@ const SessionsContent = () => {
                       </TableCell>
                       <TableCell>{formatISOToLocalDateTime(s.criadoEm) || s.criadoEm}</TableCell>
                       <TableCell>{formatISOToLocalDateTime(s.expiraEm) || s.expiraEm}</TableCell>
-                      <TableCell>
+                      <TableCell align="center" sx={{ textAlign: 'center' }}>
                         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', justifyContent: 'center' }}>
                           {s.ativo ? (
                             <Chip label="Ativo" size="small" sx={{ backgroundColor: successBg, color: theme.palette.getContrastText(successBg) }} />
@@ -278,11 +278,11 @@ const SessionsContent = () => {
                           )}
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          size="small"
+                      <TableCell align="center" sx={{ textAlign: 'center' }}>
+                        <Button 
+                          variant="contained" 
+                          color="error" 
+                          size="small" 
                           onClick={() => handleRevokeClick(s.id)}
                           sx={{ mr: 1, backgroundColor: revokeBg, color: theme.palette.getContrastText(revokeBg), '&:hover': { backgroundColor: theme.palette.error.main }, '&.Mui-disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled } }}
                           disabled={s.atual || isRevoking}
