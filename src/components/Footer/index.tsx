@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Link, Grid, Stack, alpha } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
-import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { ConsentManageLink } from '../../consent/components/ConsentManageLink/ConsentManageLink';
 import { useDesignTokens } from '../../design-tokens/utils';
@@ -190,13 +190,13 @@ const Footer = () => {
                         <Grid size={{ xs: 12, sm: 4, md: 3 }}>
                             <Stack alignItems="flex-start">
                                 <FooterTitle>Contato</FooterTitle>
-                                <FooterLink href="https://instagram.com" icon={<InstagramIcon sx={{ fontSize: 18 }} />} external>
+                                <FooterLink href="https://www.instagram.com/casadoamorvca/" icon={<InstagramIcon sx={{ fontSize: 18 }} />} external>
                                     Instagram
                                 </FooterLink>
-                                <FooterLink href="mailto:202210325@uesb.edu.br" icon={<EmailIcon sx={{ fontSize: 18 }} />}>
-                                    Email
+                                <FooterLink href="tel:+557734219660" icon={<PhoneIcon sx={{ fontSize: 18 }} />}>
+                                    Telefone
                                 </FooterLink>
-                                <FooterLink href="https://wa.me/5577998627311" icon={<WhatsAppIcon sx={{ fontSize: 18 }} />} external>
+                                <FooterLink href="https://wa.me/5577999463319" icon={<WhatsAppIcon sx={{ fontSize: 18 }} />} external>
                                     WhatsApp
                                 </FooterLink>
                             </Stack>
