@@ -1,4 +1,4 @@
-import { Button, Box, CircularProgress } from "@mui/material";
+import { Button, Box, CircularProgress, Backdrop } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,6 +50,7 @@ const PatientEditPage = () => {
   );
   const passedPatient = locationState?.patient;
   const { isAuthenticated } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
@@ -143,6 +144,7 @@ const PatientEditPage = () => {
 
   const handleSavePatient = useCallback<SubmitHandler<PatientFormInputs>>(async (data) => {
     try {
+      setIsSaving(true);
       if (!isAuthenticated) {
         toastError("Usuário não autenticado. Faça login novamente.");
         setTimeout(() => {
@@ -203,7 +205,7 @@ const PatientEditPage = () => {
           : undefined,
       };
 
-      await pacienteService.editarPaciente(id, paciente);
+      const updatedPatient = await pacienteService.editarPaciente(id, paciente);
 
       // 2. Atualizar dados clínicos separadamente (se existir ID do dado clínico)
       if (dadoClinicoId) {
@@ -247,9 +249,7 @@ const PatientEditPage = () => {
       setLoading(false);
       setOpenSaveDialog(false);
       toastSuccess("Paciente atualizado com sucesso!");
-      setTimeout(() => {
-        navigate('/patients');
-      }, 1500);
+      navigate('/patient/information', { state: { patientId: id, patient: updatedPatient } });
     } catch (error) {
       console.error("Erro ao editar paciente:", error);
       setLoading(false);
@@ -264,6 +264,8 @@ const PatientEditPage = () => {
       }
 
       toastError("Erro ao editar paciente. Tente novamente.");
+    } finally {
+      setIsSaving(false);
     }
   }, [dadoClinicoId, id, isAuthenticated, navigate]);
 
@@ -482,6 +484,13 @@ const PatientEditPage = () => {
   }, [id, navigate, setValue, passedPatient]);
 
   if (loading) return <FormSkeleton fields={8} />;
+  if (isSaving) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress size={40} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 

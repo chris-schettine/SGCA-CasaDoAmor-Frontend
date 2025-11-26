@@ -158,6 +158,15 @@ const CompanionInformation = () => {
                 label={acompanhante.ativo ? 'Ativo' : 'Inativo'} 
                 color={acompanhante.ativo ? 'success' : 'error'}
                 size="small"
+                sx={(theme) => {
+                  if (theme.palette.mode !== 'light') return { fontWeight: 600 };
+                  const bg = acompanhante.ativo ? theme.palette.success.main : theme.palette.error.main;
+                  return {
+                    backgroundColor: bg,
+                    color: theme.palette.getContrastText(bg),
+                    fontWeight: 700,
+                  };
+                }}
               />
             </Box>
           </Box>

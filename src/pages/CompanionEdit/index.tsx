@@ -1,4 +1,4 @@
-import { Button, Box } from "@mui/material";
+import { Button, Box, Backdrop, CircularProgress } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,7 +24,7 @@ const CompanionEditPage = () => {
   const acompanhante = (location.state as { acompanhante?: AcompanhanteDTO })?.acompanhante;
   
   const editarAcompanhanteMutation = useEditarAcompanhante();
-
+  const [isSaving, setIsSaving] = useState(false);
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -144,18 +144,22 @@ const CompanionEditPage = () => {
         ativo: data.ativo,
       };
       
-      await editarAcompanhanteMutation.mutateAsync({ id, dto });
+      setIsSaving(true);
+      const updated = await editarAcompanhanteMutation.mutateAsync({ id, dto });
       setOpenSaveDialog(false);
       toastSuccessCritical("Acompanhante atualizado com sucesso!");
-      setTimeout(() => {
-        navigate(-1);
-      }, 2000);
+      navigate("/companion/information", { state: { acompanhante: updated } });
     } catch (error) {
       console.error("Erro ao atualizar acompanhante:", error);
       toastError("Erro ao atualizar acompanhante. Tente novamente.");
       setOpenSaveDialog(false);
+    } finally {
+      setIsSaving(false);
     }
   };
+      <Backdrop open={isSaving} sx={{ zIndex: (theme) => theme.zIndex.modal + 1, color: '#fff' }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
 
   const onError = (errors: FieldErrors<EditCompanionFormInputs>) => {
     console.log("Erros de validação do Acompanhante:", errors);

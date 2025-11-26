@@ -59,6 +59,7 @@ const UserRegisterPage = () => {
       nomeUsuario: "",
       sexo: "",
       registro: "",
+      estadoCivil: undefined,
       estado: "",
       rqe: "",
       cep: "",

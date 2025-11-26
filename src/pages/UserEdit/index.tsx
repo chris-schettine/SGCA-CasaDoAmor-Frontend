@@ -1,4 +1,4 @@
-import { Button, Grid, Box } from "@mui/material";
+import { Button, Grid, Box, Backdrop, CircularProgress } from "@mui/material";
 import { FormSkeleton } from '../../components/SuspenseWrapper';
 import { isAxiosError } from "axios";
 import PageHeader from "../../components/PageHeader";
@@ -57,6 +57,7 @@ const hasMeaningfulValue = (payload: unknown): boolean => {
 const UserEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>("");
@@ -346,7 +347,7 @@ const UserEditPage = () => {
 
       setOpenSaveDialog(false);
       toastSuccess('Usuário atualizado com sucesso');
-      setTimeout(() => navigate('/users'), 1200);
+      navigate('/users');
     } catch (error: unknown) {
       console.error('Erro ao atualizar usuário', error);
       const message = isAxiosError(error)
@@ -365,6 +366,13 @@ const UserEditPage = () => {
 
   const handleConfirmSave = handleSubmit(handleSaveUser, onError);
 
+  // Overlay de salvamento
+  const savingOverlay = isSaving ? (
+    <Backdrop open sx={{ zIndex: (theme) => theme.zIndex.modal + 1, color: '#fff' }}>
+      <CircularProgress color="inherit" />
+    </Backdrop>
+  ) : null;
+
   if (loading) {
     return <FormSkeleton fields={8} />;
   }
@@ -382,6 +390,7 @@ const UserEditPage = () => {
       width: { xs: '100%', sm: '95%', md: '90%' },
       px: { xs: 2, sm: 3 }
     }}>
+      {savingOverlay}
       <Breadcrumbs items={[
         { label: 'Usuários Autorizados', path: '/users' },
         { label: userName || 'Carregando...', path: `/users/${id}` },

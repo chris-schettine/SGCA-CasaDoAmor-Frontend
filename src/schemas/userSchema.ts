@@ -21,7 +21,7 @@ export const userSchema = z.object({
   // personal data fields (used when editing/providing detailed info)
   dataNascimento: z.string().trim().optional(), // expect ISO or DD/MM/YYYY depending on flow
   naturalidade: z.string().trim().optional(),
-  estadoCivil: z.string().trim().optional(),
+  estadoCivil: z.enum(["SOLTEIRO", "CASADO", "DIVORCIADO", "VIUVO", "SEPARADO", "UNIAO_ESTAVEL"]).optional(),
   nomeMae: z.string().trim().optional(),
   nomePai: z.string().trim().optional(),
   profissao: z.string().trim().optional(),

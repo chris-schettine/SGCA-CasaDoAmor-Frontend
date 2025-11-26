@@ -422,16 +422,34 @@ const UserForm = (
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            id="estadoCivil"
-            label="Estado Civil"
-            variant="outlined"
-            fullWidth
-            placeholder="Estado Civil"
-            {...register("estadoCivil")}
-            error={!!errors.estadoCivil}
-            helperText={errors.estadoCivil?.message || 'Opcional'}
-            InputLabelProps={{ shrink: !!watch('estadoCivil') }}
+          <Controller
+            name="estadoCivil"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth error={!!errors.estadoCivil}>
+                <InputLabel id="estado-civil-label" shrink>Estado Civil</InputLabel>
+                <Select
+                  labelId="estado-civil-label"
+                  id="estadoCivil"
+                  label="Estado Civil"
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value || undefined)}
+                  onBlur={field.onBlur}
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Selecione</em>
+                  </MenuItem>
+                  <MenuItem value="SOLTEIRO">Solteiro(a)</MenuItem>
+                  <MenuItem value="CASADO">Casado(a)</MenuItem>
+                  <MenuItem value="DIVORCIADO">Divorciado(a)</MenuItem>
+                  <MenuItem value="VIUVO">Viúvo(a)</MenuItem>
+                  <MenuItem value="SEPARADO">Separado(a)</MenuItem>
+                  <MenuItem value="UNIAO_ESTAVEL">União Estável</MenuItem>
+                </Select>
+                <FormHelperText>{errors.estadoCivil?.message || 'Opcional'}</FormHelperText>
+              </FormControl>
+            )}
           />
         </Grid>
         
