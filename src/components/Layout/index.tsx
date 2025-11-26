@@ -160,8 +160,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
         event.preventDefault();
         // Sempre fecha/encolhe a sidebar ao navegar para evitar overflow/responsividade quebrada
         window.dispatchEvent(new CustomEvent('sgca:close-drawer', { detail: { reason: 'nav-click' } }));
-        if (theme.breakpoints.values.md && window.innerWidth < theme.breakpoints.values.md) {
+        const isMobileView = theme.breakpoints.values.md && window.innerWidth < theme.breakpoints.values.md;
+        if (isMobileView) {
             navigate(to);
+            onToggleDrawer();
             return;
         }
         if (!isCurrentActive && open) {
