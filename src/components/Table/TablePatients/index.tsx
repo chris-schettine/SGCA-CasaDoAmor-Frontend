@@ -151,7 +151,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
     ];
     
     // Filtra colunas ocultas
-    return allColumns.filter(col => !col.hidden);
+    return allColumns.filter(col => !col.hidden) as PatientColumn[];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, isTablet, isNarrowDesktop]);
 
@@ -271,9 +271,9 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       ) : (
         <VirtualizedTable
           data={rows}
-          columns={virtualColumns.map(col => col.field === 'acoes' ? {
+          columns={useMemo<PatientColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
             ...col,
-            renderCell: (row) => (
+            renderCell: (row: PatientRow) => (
               navigatingId === row.id ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
                   <CircularProgress size={18} />
@@ -281,7 +281,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
                 </Box>
               ) : (col.renderCell ? col.renderCell(row) : null)
             )
-          } : col)}
+          } : col), [virtualColumns, navigatingId])}
           rowHeight={60}
           height={440}
           getRowId={(row) => row.id}

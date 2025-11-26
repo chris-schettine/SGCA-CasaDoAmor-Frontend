@@ -147,7 +147,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       },
     ];
     
-    return allColumns.filter(col => !col.hidden);
+    return allColumns.filter(col => !col.hidden) as CompanionColumn[];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, isTablet, isNarrowDesktop, isVeryTight, hideParentesco, hideRg]);
 
@@ -265,9 +265,9 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       ) : (
         <VirtualizedTable
           data={rows}
-          columns={virtualColumns.map(col => col.field === 'acoes' ? {
+          columns={useMemo<CompanionColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
             ...col,
-            renderCell: (row) => (
+            renderCell: (row: CompanionRow) => (
               navigatingId === row.id ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
                   <CircularProgress size={18} />
@@ -275,7 +275,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
                 </Box>
               ) : (col.renderCell ? col.renderCell(row) : null)
             )
-          } : col)}
+          } : col), [virtualColumns, navigatingId])}
           rowHeight={60}
           height={440}
           getRowId={(row) => row.id}

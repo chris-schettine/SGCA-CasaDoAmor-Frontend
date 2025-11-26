@@ -24,7 +24,6 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO } from '../../api/admin.dto';
-import LoadingState from '../../components/LoadingState';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from '../../components/PageHeader';
 import MobileCard from '../../components/Table/MobileCard';

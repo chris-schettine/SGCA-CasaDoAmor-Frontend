@@ -16,9 +16,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 // ExpandMoreIcon moved to shared technical details component
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import BlockIcon from '@mui/icons-material/Block';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
   CONSENT_LABELS,
@@ -85,13 +83,15 @@ interface ConsentDialogProps {
 export function ConsentDialog({
   open,
   onClose,
-  onAcceptAll,
-  onRejectNonEssential,
   onSavePreferences,
   currentChoices,
   isLoading = false,
   required = false,
   onCompleteRejection,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onAcceptAll: _onAcceptAll,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onRejectNonEssential: _onRejectNonEssential,
 }: ConsentDialogProps) {
   if (import.meta.env.DEV) console.debug('[ConsentDialog] render', { open, required, hasCompleteRejection: !!onCompleteRejection });
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -139,14 +139,6 @@ export function ConsentDialog({
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [open, required, handleClose]);
-
-  const handleAcceptAll = () => {
-    onAcceptAll();
-  };
-
-  const handleRejectNonEssential = () => {
-    onRejectNonEssential();
-  };
 
   const handleRejectAll = () => {
     if (import.meta.env.DEV) console.debug('[ConsentDialog] handleRejectAll called', { required, hasCallback: !!onCompleteRejection });
