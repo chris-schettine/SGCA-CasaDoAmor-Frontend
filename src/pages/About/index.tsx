@@ -13,7 +13,8 @@ import {
     Card,
     CardContent,
     useTheme,
-    alpha
+    alpha,
+    Tooltip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -21,6 +22,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GroupsIcon from '@mui/icons-material/Groups';
+import ApiIcon from '@mui/icons-material/Api'; 
 import Footer from '../../components/Footer';
 
 // Função para gerar cores dinâmicas para Avatares 
@@ -52,6 +54,8 @@ const AboutPage = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const darkBlue = theme.custom.brandColors.secondary[500];
+
+    const swaggerUrl = "https://api.casadoamorconquista.com.br/swagger-ui/index.html"; 
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
@@ -123,69 +127,14 @@ const AboutPage = () => {
                                 TECNOLOGIAS UTILIZADAS
                             </Typography>
                             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                                <Chip
-                                    label="React"
-                                    avatar={<Avatar src="/icons/react.svg" alt="React" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="TypeScript"
-                                    avatar={<Avatar src="/icons/typescript.svg" alt="TypeScript" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="Java"
-                                    avatar={<Avatar src="/icons/java.svg" alt="Java" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="Spring Boot"
-                                    avatar={<Avatar src="/icons/springboot.svg" alt="Spring Boot" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="MySQL"
-                                    avatar={<Avatar src="/icons/mysql.svg" alt="MySQL" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="Docker"
-                                    avatar={<Avatar src="/icons/docker.svg" alt="Docker" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
-                                <Chip
-                                    label="Material UI"
-                                    avatar={<Avatar src="/icons/mui.svg" alt="MUI" sx={{ width: 28, height: 28 }} />}
-                                    color="primary"
-                                    variant="outlined"
-                                    size="medium"
-                                    role="presentation"
-                                    sx={{ py: 0.5, px: 1.25, borderRadius: 3 }}
-                                />
+                                <Chip label="React" avatar={<Avatar src="/icons/react.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="TypeScript" avatar={<Avatar src="/icons/typescript.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="Java 17" avatar={<Avatar src="/icons/java.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="Spring Boot" avatar={<Avatar src="/icons/springboot.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="MySQL" avatar={<Avatar src="/icons/mysql.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="Docker" avatar={<Avatar src="/icons/docker.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="Material UI" avatar={<Avatar src="/icons/mui.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                                <Chip label="Swagger" icon={<ApiIcon />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
                             </Stack>
                         </Paper>
                     </Grid>
@@ -193,11 +142,15 @@ const AboutPage = () => {
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Paper elevation={4} sx={{ p: 3, borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                             <Stack spacing={2}>
-                                <Typography variant="h6" fontWeight="bold" color={darkBlue}>
-                                    Documentação Técnica
-                                </Typography>
+                                <Stack direction="row" alignItems="center" gap={1}>
+                                    <DescriptionIcon color="primary" />
+                                    <Typography variant="h6" fontWeight="bold" color={darkBlue}>
+                                        Documentação
+                                    </Typography>
+                                </Stack>
+                                
                                 <Typography variant="body2" color="text.secondary">
-                                    Acesso completo à arquitetura e requisitos para fins acadêmicos e de auditoria.
+                                    Recursos técnicos para desenvolvedores e auditores do sistema.
                                 </Typography>
 
                                 <Divider sx={{ my: 1 }} />
@@ -209,14 +162,32 @@ const AboutPage = () => {
                                     target="_blank"
                                     fullWidth
                                     color="primary"
-                                    sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                                    sx={{ textTransform: 'none', fontWeight: 'bold', justifyContent: 'flex-start' }}
                                 >
                                     Baixar PDF de Requisitos
                                 </Button>
 
+                                <Tooltip title="Visualizar endpoints da API (Swagger UI)" arrow>
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<ApiIcon />}
+                                        href={swaggerUrl}
+                                        target="_blank"
+                                        fullWidth
+                                        color="primary" 
+                                        sx={{ 
+                                            textTransform: 'none', 
+                                            fontWeight: 'bold', 
+                                            justifyContent: 'flex-start'
+                                        }}
+                                    >
+                                        Documentação da API
+                                    </Button>
+                                </Tooltip>
+
                                 <Box sx={{ pt: 2 }}>
                                     <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                                        REPOSITÓRIOS (CÓDIGO FONTE)
+                                        REPOSITÓRIOS (OPEN SOURCE)
                                     </Typography>
                                 </Box>
 
@@ -228,7 +199,7 @@ const AboutPage = () => {
                                         target="_blank"
                                         fullWidth
                                         color="secondary"
-                                        sx={{ textTransform: 'none' }}
+                                        sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
                                     >
                                         Frontend (React)
                                     </Button>
@@ -240,11 +211,12 @@ const AboutPage = () => {
                                         target="_blank"
                                         fullWidth
                                         color="secondary"
-                                        sx={{ textTransform: 'none' }}
+                                        sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
                                     >
                                         Backend (Java/Spring)
                                     </Button>
                                 </Stack>
+
                             </Stack>
                         </Paper>
                     </Grid>
@@ -310,14 +282,18 @@ const AboutPage = () => {
 
                                         <Stack direction="row" spacing={1} justifyContent="center">
                                             {dev.github !== "#" && (
-                                                <IconButton size="small" href={dev.github} target="_blank" color="primary" aria-label={`GitHub de ${dev.name}`}>
-                                                    <GitHubIcon fontSize="small" />
-                                                </IconButton>
+                                                <Tooltip title="GitHub">
+                                                    <IconButton size="small" href={dev.github} target="_blank" color="primary" aria-label={`GitHub de ${dev.name}`}>
+                                                        <GitHubIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
                                             )}
                                             {dev.linkedin !== "#" && (
-                                                <IconButton size="small" href={dev.linkedin} target="_blank" color="primary" aria-label={`LinkedIn de ${dev.name}`}>
-                                                    <LinkedInIcon fontSize="small" />
-                                                </IconButton>
+                                                <Tooltip title="LinkedIn">
+                                                    <IconButton size="small" href={dev.linkedin} target="_blank" color="primary" aria-label={`LinkedIn de ${dev.name}`}>
+                                                        <LinkedInIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
                                             )}
                                         </Stack>
                                     </CardContent>
