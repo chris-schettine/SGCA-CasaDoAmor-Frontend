@@ -240,77 +240,104 @@ const LandingPage = () => {
                 <Card sx={{ 
                     display: 'flex', 
                     flexDirection: { xs: 'column', md: 'row' },
-                    overflow: 'visible',
-                    borderRadius: 4,
-                    boxShadow: theme.custom.shadows.lg,
-                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
-                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.secondary.dark, 0.1) : alpha(theme.palette.secondary.light, 0.1)
+                    overflow: 'visible', 
+                    borderRadius: 5, 
+                    bgcolor: alpha(theme.palette.background.paper, 0.8),
+                    backdropFilter: 'blur(12px)', 
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    boxShadow: theme.palette.mode === 'dark' 
+                        ? '0 20px 40px rgba(0,0,0,0.4)' 
+                        : '0 20px 40px rgba(0,0,0,0.08)',
                 }}>
+    
                     <Box sx={{ p: { xs: 3, md: 5 }, flex: 1 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                            <VolunteerActivismIcon color="secondary" fontSize="large" />
-                            <Typography variant="h5" fontWeight={800} color="text.primary">
+                        <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+                            <Box sx={{ 
+                                p: 1, 
+                                borderRadius: '50%', 
+                                bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                                color: 'secondary.main',
+                                display: 'flex'
+                            }}>
+                                <VolunteerActivismIcon fontSize="medium" />
+                            </Box>
+                            <Typography variant="h5" fontWeight={800} color="text.primary" letterSpacing={-0.5}>
                                 Ajude a manter a Casa
                             </Typography>
                         </Stack>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
-                            A Casa do Amor vive de doações para oferecer dignidade e conforto aos pacientes em tratamento.
-                            Sua contribuição direta via Pix faz toda a diferença.
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7, fontSize: '1.05rem' }}>
+                            A Casa do Amor vive de doações para oferecer dignidade e conforto aos pacientes.
+                            Sua contribuição direta via Pix faz toda a diferença na vida de quem precisa.
                         </Typography>
                         
-                        <Typography variant="subtitle2" color="text.primary" fontWeight={700} gutterBottom>
-                            Dados para transferência (Pix):
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            CNPJ: {pixKey}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {pixBank}
-                        </Typography>
+                        <Stack spacing={0.5}>
+                            <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ letterSpacing: 1, opacity: 0.7 }}>
+                                Instituição
+                            </Typography>
+                            <Typography variant="body2" color="text.primary" fontWeight={600}>
+                                Associação Casa do Amor
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {pixBank}
+                            </Typography>
+                        </Stack>
                     </Box>
 
+
                     <Box sx={{ 
-                        bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.5) : theme.palette.common.white,
+                        background: theme.palette.mode === 'dark'
+                            ? `linear-gradient(135deg, ${alpha(theme.palette.primary.dark, 0.15)} 0%, ${alpha(theme.palette.background.paper, 0.3)} 100%)`
+                            : `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.08)} 0%, ${alpha(theme.palette.background.paper, 0.5)} 100%)`,
                         p: { xs: 3, md: 5 }, 
-                        flex: 0.8,
+                        flex: 0.85,
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        borderLeft: { md: `1px solid ${alpha(theme.palette.divider, 0.1)}` },
-                        borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' }
+                        borderLeft: { md: `1px solid ${alpha(theme.palette.divider, 0.05)}` },
                     }}>
-                        <Typography variant="caption" color="text.secondary" gutterBottom>
+                        <Typography variant="caption" color="primary" gutterBottom fontWeight="bold" sx={{ letterSpacing: 1.2, mb: 1 }}>
                             CHAVE PIX (CNPJ)
                         </Typography>
                         
                         <Box sx={{ 
-                            p: 2, 
-                            bgcolor: alpha(theme.palette.action.hover, 0.05), 
-                            border: `1px dashed ${theme.palette.divider}`,
-                            borderRadius: 2,
-                            mb: 2,
+                            py: 2,
+                            px: 3,
+                            bgcolor: theme.palette.background.paper, 
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`, 
+                            borderRadius: 3,
+                            mb: 3,
                             width: '100%',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.03)', 
+                            position: 'relative'
                         }}>
+                            
                             <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'text.primary', letterSpacing: 1 }}>
                                 {pixKey}
                             </Typography>
                         </Box>
 
-                        {/* Botão Fixo (Estilo Secondary) */}
                         <Button 
                             variant="contained" 
-                            color="secondary"
                             size="large"
                             startIcon={<ContentCopyIcon />}
                             onClick={handleCopyPix}
                             fullWidth
                             sx={{ 
+                                bgcolor: theme.palette.primary.main,
+                                color: '#fff',
                                 fontWeight: 'bold', 
-                                borderRadius: 2,
-                                transition: 'all 0.2s',
-                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 }
+                                borderRadius: 3, 
+                                py: 1.8,
+                                fontSize: '1rem',
+                                boxShadow: `0 8px 20px -4px ${alpha(theme.palette.primary.main, 0.5)}`, 
+                                transition: 'all 0.3s ease',
+                                '&:hover': { 
+                                    transform: 'translateY(-3px)', 
+                                    boxShadow: `0 12px 24px -4px ${alpha(theme.palette.primary.main, 0.6)}`,
+                                    bgcolor: theme.palette.primary.dark
+                                }
                             }}
                         >
                             Copiar Chave Pix
@@ -318,7 +345,6 @@ const LandingPage = () => {
                     </Box>
                 </Card>
             </Container>
-
             <Footer />
         </Box>
     );
