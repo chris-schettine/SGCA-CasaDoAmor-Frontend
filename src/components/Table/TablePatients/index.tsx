@@ -155,6 +155,19 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, isTablet, isNarrowDesktop]);
 
+  // Mapeia colunas de ações fora do JSX para manter hooks estáveis
+  const tableColumns = useMemo<PatientColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
+    ...col,
+    renderCell: (row: PatientRow) => (
+      navigatingId === row.id ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
+          <CircularProgress size={18} />
+          <Typography variant="caption">Abrindo...</Typography>
+        </Box>
+      ) : (col.renderCell ? col.renderCell(row) : null)
+    )
+  } : col), [virtualColumns, navigatingId]);
+
   // Mapear pacientes (nested DTO) para linhas planas que a VirtualizedTable espera
   // Incluímos o objeto completo do paciente para evitar race conditions ao buscar depois
   const rows = useMemo<PatientRow[]>(() => patients.map((patient) => ({
@@ -271,17 +284,7 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       ) : (
         <VirtualizedTable
           data={rows}
-          columns={useMemo<PatientColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
-            ...col,
-            renderCell: (row: PatientRow) => (
-              navigatingId === row.id ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
-                  <CircularProgress size={18} />
-                  <Typography variant="caption">Abrindo...</Typography>
-                </Box>
-              ) : (col.renderCell ? col.renderCell(row) : null)
-            )
-          } : col), [virtualColumns, navigatingId])}
+          columns={tableColumns}
           rowHeight={60}
           height={440}
           getRowId={(row) => row.id}

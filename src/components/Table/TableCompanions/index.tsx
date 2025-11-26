@@ -151,6 +151,19 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, isTablet, isNarrowDesktop, isVeryTight, hideParentesco, hideRg]);
 
+  // Garante hooks estáveis: mapeia colunas de ações fora do JSX condicional
+  const tableColumns = useMemo<CompanionColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
+    ...col,
+    renderCell: (row: CompanionRow) => (
+      navigatingId === row.id ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
+          <CircularProgress size={18} />
+          <Typography variant="caption">Abrindo...</Typography>
+        </Box>
+      ) : (col.renderCell ? col.renderCell(row) : null)
+    )
+  } : col), [virtualColumns, navigatingId]);
+
   // Mapear acompanhantes para linhas planas
   const rows = useMemo<CompanionRow[]>(() => companions.map((companion) => ({
     id: companion.id,
@@ -265,17 +278,7 @@ const TableCompanions = ({ searchText }: TableCompanionsProps) => {
       ) : (
         <VirtualizedTable
           data={rows}
-          columns={useMemo<CompanionColumn[]>(() => virtualColumns.map(col => col.field === 'acoes' ? {
-            ...col,
-            renderCell: (row: CompanionRow) => (
-              navigatingId === row.id ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
-                  <CircularProgress size={18} />
-                  <Typography variant="caption">Abrindo...</Typography>
-                </Box>
-              ) : (col.renderCell ? col.renderCell(row) : null)
-            )
-          } : col), [virtualColumns, navigatingId])}
+          columns={tableColumns}
           rowHeight={60}
           height={440}
           getRowId={(row) => row.id}

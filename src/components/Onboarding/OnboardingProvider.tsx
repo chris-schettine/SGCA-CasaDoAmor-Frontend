@@ -75,9 +75,11 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [theme.palette.primary.main, theme.palette.text.primary, theme.palette.text.secondary, theme.palette.action.hover]);
 
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+
   const canShowTour = useMemo(
-    () => hasConsent('product_tour') || hasConsent('functional_help') || hasConsent('analytics_usage'),
-    [hasConsent]
+    () => !isMobile && (hasConsent('product_tour') || hasConsent('functional_help') || hasConsent('analytics_usage')),
+    [hasConsent, isMobile]
   );
 
   const steps: DriveStep[] = useMemo(
