@@ -184,22 +184,28 @@ const CompanionForm = ({
                 <Controller
                   name="ativo"
                   control={control as unknown as Control<EditCompanionFormInputs>}
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          {...field}
-                          checked={value}
-                          onChange={(e) => onChange(e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Typography variant="body2" color={value ? 'success.main' : 'error.main'}>
-                          {value ? 'Ativo' : 'Inativo'}
-                        </Typography>
-                      }
-                    />
-                  )}
+                  render={({ field: { value, onChange, ...field } }) => {
+                    const isActive = Boolean(value);
+                    return (
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            {...field}
+                            color="primary"
+                            sx={{
+                              // Ajuste fino só no thumb para alinhar ao trilho
+                              '& .MuiSwitch-thumb': {
+                                transform: 'translateY(-1px)',
+                              },
+                            }}
+                            checked={isActive}
+                            onChange={(e) => onChange(e.target.checked)}
+                          />
+                        }
+                        label={isActive ? 'Ativo' : 'Inativo'}
+                      />
+                    );
+                  }}
                 />
               </FormControl>
             </Grid>

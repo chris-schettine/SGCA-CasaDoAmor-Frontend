@@ -20,10 +20,13 @@ import { removeNonNumeric } from '../../utils/formatters';
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
-import { toastError, toastSuccessCritical, toastWarn } from "../../utils/toast";
+import { useFormDraft } from "../../hooks/useFormDraft";
+import { useAuth } from "../../hooks/useAuth";
+import { toastError, toastSuccessCritical, toastWarn, toastInfo } from "../../utils/toast";
 
 const UserRegisterPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -32,6 +35,7 @@ const UserRegisterPage = () => {
   const newUserUuidRef = useRef<string>('');
   const [newUserId, setNewUserId] = useState<number | null>(null);
   const [isLoadingConsent, setIsLoadingConsent] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [pendingUserData, setPendingUserData] = useState<UserFormInputs | null>(null);
 
   const {
@@ -44,6 +48,7 @@ const UserRegisterPage = () => {
     setError,
     clearErrors,
     getValues,
+    reset,
   } = useForm<UserFormInputs>({
     resolver: zodResolver(userSchema),
     mode: "onBlur",
@@ -64,6 +69,22 @@ const UserRegisterPage = () => {
       complemento: "",
     },
   });
+
+  const draftKey = `draft:user-register:${user?.uuid || 'guest'}`;
+  const { hasDraft, restoreDraft, clearDraft } = useFormDraft<UserFormInputs>(draftKey, watch, reset);
+  const initialHasDraftRef = useRef(hasDraft);
+  const restoredOnceRef = useRef(false);
+
+  useEffect(() => {
+    if (restoredOnceRef.current) return;
+    if (initialHasDraftRef.current && hasDraft) {
+      const restored = restoreDraft();
+      if (restored) {
+        toastInfo('Rascunho restaurado', { toastId: `${draftKey}-restore`, autoClose: 1500 });
+        restoredOnceRef.current = true;
+      }
+    }
+  }, [hasDraft, restoreDraft, draftKey]);
 
  const buildCreateUserDTO = (data: UserFormInputs): CreateUserDTO => {
     
@@ -103,11 +124,15 @@ const UserRegisterPage = () => {
     handleSubmit(() => setOpenSaveDialog(true), onError)();
   };
 
-  const handleCloseSaveDialog = () => setOpenSaveDialog(false);
+  const handleCloseSaveDialog = () => {
+    if (isSaving || isLoadingConsent) return;
+    setOpenSaveDialog(false);
+  };
   const handleOpenCancelDialog = () => setOpenCancelDialog(true);
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
 
   const handleConfirmCancel = () => {
+    clearDraft();
     toastError("Profissional não salvo");
     setTimeout(() => navigate('/users'), 1000);
     setOpenCancelDialog(false);
@@ -171,6 +196,7 @@ const UserRegisterPage = () => {
 
   const handleSaveUser = async (data: UserFormInputs) => {
     setPendingUserData(data);
+    clearDraft();
     setOpenSaveDialog(false);
     setOpenConsentimentoDialog(true);
   };
@@ -184,6 +210,7 @@ const UserRegisterPage = () => {
   const handleConsentimentoSuccess = () => {
     setOpenConsentimentoDialog(false);
     setIsLoadingConsent(false);
+    setIsSaving(false);
     
     setTimeout(() => {
       toastSuccessCritical('Profissional cadastrado com sucesso!');
@@ -195,6 +222,7 @@ const UserRegisterPage = () => {
     if (!pendingUserData) return;
 
     setIsLoadingConsent(true);
+    setIsSaving(true);
     const choices = ConsentStore.getAcceptAllChoices();
 
     try {
@@ -212,6 +240,8 @@ const UserRegisterPage = () => {
       }, 100);
     } catch (error) {
       handleError(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -219,6 +249,7 @@ const UserRegisterPage = () => {
     if (!pendingUserData) return;
 
     setIsLoadingConsent(true);
+    setIsSaving(true);
     const choices = ConsentStore.getEssentialOnlyChoices();
 
     try {
@@ -236,6 +267,8 @@ const UserRegisterPage = () => {
       }, 100);
     } catch (error) {
       handleError(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -243,6 +276,7 @@ const UserRegisterPage = () => {
     if (!pendingUserData) return;
 
     setIsLoadingConsent(true);
+    setIsSaving(true);
 
     try {
 
@@ -261,12 +295,15 @@ const UserRegisterPage = () => {
       }, 100);
     } catch (error) {
       handleError(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleError = (error: unknown) => {
     console.error('[UserRegister] Erro ao criar/salvar consentimento:', error);
     setIsLoadingConsent(false);
+    setIsSaving(false);
     
     let errorMessage = 'Erro ao criar usuário ou salvar consentimento. Tente novamente.';
     
@@ -353,6 +390,15 @@ const UserRegisterPage = () => {
       <PageHeader 
         title="Cadastrar Profissional"
         subtitle="Preencha os dados do novo usuário do sistema"
+        action={
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            {hasDraft && (
+              <Button variant="outlined" size="small" onClick={restoreDraft}>
+                Restaurar rascunho
+              </Button>
+            )}
+          </Box>
+        }
       />
       <form noValidate>
 
@@ -379,9 +425,11 @@ const UserRegisterPage = () => {
             color="primary"
             onClick={handleOpenSaveDialog}
             aria-label="Salvar cadastro do profissional"
+            disabled={isSaving || isLoadingConsent}
+            data-testid="btn-save-user"
             sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
-            Salvar
+            {isSaving ? 'Salvando...' : 'Salvar'}
           </Button>
           <Button
             variant="outlined"
@@ -411,8 +459,9 @@ const UserRegisterPage = () => {
         onConfirm={handleConfirmSave}
         title="Confirmar Salvamento"
         message="Tem certeza que deseja salvar o profissional?"
-        confirmButtonText="Sim, Salvar"
+        confirmButtonText={isSaving ? 'Salvando...' : 'Sim, Salvar'}
         cancelButtonText="Não, Voltar"
+        confirmButtonProps={{ disabled: isSaving }}
       />
 
       {openConsentimentoDialog && (

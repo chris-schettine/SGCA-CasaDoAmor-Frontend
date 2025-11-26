@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Stepper, Step, StepLabel, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from '@mui/material/Grid';
@@ -19,18 +19,20 @@ import { formatDateToISO, removeNonNumeric } from "../../utils/formatters";
 import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
 import { useSaveShortcut } from "../../hooks/useSaveShortcut";
 import { DevTools } from "../../utils/devTools";
-import { toastError, toastErrorCritical, toastSuccessCritical, toastWarn } from "../../utils/toast";
+import { toastError, toastErrorCritical, toastSuccessCritical, toastWarn, toastInfo } from "../../utils/toast";
+import { useFormDraft } from "../../hooks/useFormDraft";
 
 const steps = ['Dados Pessoais e Endereço', 'Informações Médicas'];
 
 const PatientRegisterPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
@@ -41,9 +43,11 @@ const PatientRegisterPage = () => {
     setValue,
     setError,
     clearErrors,
+    reset,
   } = useForm<PatientFormInputs, unknown, PatientFormInputs>({
     resolver: zodResolver(patientSchema) as Resolver<PatientFormInputs>,
-    mode: "onBlur",
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       nomeCompletoPaciente: "",
       cpfPaciente: "",
@@ -68,7 +72,23 @@ const PatientRegisterPage = () => {
     }
   });
 
-  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?');
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?', { includeRouteGuard: true });
+  const draftKey = useMemo(() => `draft:patient-register:${user?.uuid || 'guest'}`, [user?.uuid]);
+  const { hasDraft, restoreDraft, clearDraft } = useFormDraft<PatientFormInputs>(draftKey, watch, reset, { debounceMs: 1200 });
+  const initialHasDraftRef = useRef(hasDraft);
+  const restoredOnceRef = useRef(false);
+
+  // Restaura rascunho salvo automaticamente, sem toasts
+  useEffect(() => {
+    if (restoredOnceRef.current) return;
+    if (initialHasDraftRef.current && hasDraft) {
+      const restored = restoreDraft();
+      if (restored) {
+        toastInfo('Rascunho restaurado', { toastId: `${draftKey}-restored`, autoClose: 1500 });
+        restoredOnceRef.current = true;
+      }
+    }
+  }, [hasDraft, restoreDraft, draftKey]);
 
   useSaveShortcut(() => {
     if (activeStep === steps.length - 1) {
@@ -105,16 +125,16 @@ const PatientRegisterPage = () => {
 
   const handleSavePatient: SubmitHandler<PatientFormInputs> = async (data) => {
     console.log("Formulário Válido, Dados:", data);
+    setIsSaving(true);
     try {
       if (!isAuthenticated) {
         toastError("Usuário não autenticado. Faça login novamente.");
         setTimeout(() => {
           navigate('/login'); 
         }, 2000)
+        setIsSaving(false);
         return;
       }
-
-      const sexoValue = (data as any).sexo; 
 
       const paciente: RegistrarPacienteDTO = {
         dadoPessoal: {
@@ -127,7 +147,7 @@ const PatientRegisterPage = () => {
           nomeMae: data.nomeMae,
           profissao: data.profissao,
           estadoCivil: data.estadoCivil || undefined,
-          sexo: sexoValue || "NAO_INFORMADO", 
+          sexo: data.sexo || "NAO_INFORMADO", 
         },
         dadoClinico: {
           diagnostico: data.diagnostico || undefined,
@@ -186,6 +206,7 @@ const PatientRegisterPage = () => {
 
       const response = await pacienteService.registrarPaciente(paciente);
       setOpenSaveDialog(false);
+      clearDraft();
       toastSuccessCritical("Paciente cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patient/companion/register', { 
@@ -204,10 +225,12 @@ const PatientRegisterPage = () => {
         setTimeout(() => {
           navigate('/login');
         }, 1200);
+        setIsSaving(false);
         return;
       }
       toastError("Erro ao cadastrar paciente. Tente novamente.");
     }
+    setIsSaving(false);
   };
 
   const onError = (errors: FieldErrors<PatientFormInputs>) => {
@@ -239,6 +262,7 @@ const PatientRegisterPage = () => {
   const handleOpenCancelDialog = () => setOpenCancelDialog(true);
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
   const handleConfirmCancel = () => {
+    clearDraft();
     setOpenCancelDialog(false);
     navigate('/patients');
   };
@@ -305,7 +329,10 @@ const PatientRegisterPage = () => {
       minHeight: "56px", margin: { xs: "16px auto", sm: "24px auto" }, paddingBottom: { xs: "10px", sm: "15px" },
       width: { xs: '100%', sm: '95%', md: '90%' }, px: { xs: 2, sm: 3 }
     }}>
-      <PageHeader title="Cadastrar Paciente" subtitle="Preencha os dados do paciente em duas etapas" />
+      <PageHeader
+        title="Cadastrar Paciente"
+        subtitle="Preencha os dados do paciente em duas etapas"
+      />
       <Box sx={{ width: '100%', mb: { xs: 3, sm: 4 } }}>
         <Stepper activeStep={activeStep}>
           {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
@@ -347,7 +374,16 @@ const PatientRegisterPage = () => {
           </Box>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
             {activeStep === steps.length - 1 && (
-              <Button type="submit" variant="contained" color="primary" sx={{ width: { xs: '100%', sm: 'auto' } }}>Salvar</Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isSaving}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                data-testid="btn-save-patient"
+              >
+                {isSaving ? 'Salvando...' : 'Salvar'}
+              </Button>
             )}
             <Button variant="outlined" sx={{ width: { xs: '100%', sm: 'auto' }, borderColor: '#d32f2f', color: '#d32f2f', '&:hover': { borderColor: '#c62828', backgroundColor: 'rgba(211, 47, 47, 0.04)' } }} onClick={handleOpenCancelDialog}>Cancelar</Button>
           </Box>
@@ -355,7 +391,16 @@ const PatientRegisterPage = () => {
       </form>
 
       <ConfirmationDialog open={openCancelDialog} onClose={handleCloseCancelDialog} onConfirm={handleConfirmCancel} title="Confirmar Cancelamento" message="Tem certeza que deseja cancelar? Você perderá todos os dados preenchidos." confirmButtonText="Sim, Cancelar" cancelButtonText="Não, Continuar Editando" />
-      <ConfirmationDialog open={openSaveDialog} onClose={handleCloseSaveDialog} onConfirm={handleConfirmSave} title="Confirmar Salvamento" message="Tem certeza que deseja salvar o paciente?" confirmButtonText="Sim, Salvar" cancelButtonText="Não, Voltar" />
+      <ConfirmationDialog
+        open={openSaveDialog}
+        onClose={() => { if (!isSaving) handleCloseSaveDialog(); }}
+        onConfirm={handleConfirmSave}
+        title="Confirmar Salvamento"
+        message="Tem certeza que deseja salvar o paciente?"
+        confirmButtonText={isSaving ? 'Salvando...' : 'Sim, Salvar'}
+        cancelButtonText="Não, Voltar"
+        confirmButtonProps={{ disabled: isSaving }}
+      />
     </Box>
   );
 }

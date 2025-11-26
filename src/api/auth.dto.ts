@@ -105,6 +105,7 @@ export interface AuthSessionResponse {
   nome?: string;
   email?: string;
   cpf?: string;
+  id?: number | string;
   uuid?: string;
   roles?: string[];
   perfis?: Array<{ nome?: string | null } | null>;

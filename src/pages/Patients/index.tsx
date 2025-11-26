@@ -3,6 +3,7 @@ import { Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { pacienteService } from '../../api/paciente.service';
+import type { PacienteDTO } from '../../api/paciente.dto';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
@@ -33,7 +34,7 @@ const Patients = () => {
 
       const headers = ['ID', 'Nome', 'CPF', 'RG', 'Email', 'Telefone', 'Nascimento'];
 
-      const rows = data.map((p: any) => [
+      const rows = data.map((p: PacienteDTO) => [
         p.id,
         p.dadoPessoal?.nome || '',
         p.dadoPessoal?.cpf || '',
@@ -94,15 +95,16 @@ const Patients = () => {
       >
         {exporting ? 'Exportando...' : 'Exportar'}
       </Button>
-      <Button
-        component={Link}
-        to="/patient/register"
-        variant="contained"
-        sx={{
-          backgroundColor: `${theme.palette.primary.main} !important`,
-          color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
-          WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
-          fontWeight: 600,
+    <Button
+      component={Link}
+      to="/patient/register"
+      variant="contained"
+      data-tour-id="add-patient-button"
+      sx={{
+        backgroundColor: `${theme.palette.primary.main} !important`,
+        color: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+        WebkitTextFillColor: `${theme.palette.getContrastText(theme.palette.primary.main)} !important`,
+        fontWeight: 600,
           '&:hover': { backgroundColor: `${theme.palette.primary.dark} !important` },
         }}
       >
@@ -116,6 +118,9 @@ const Patients = () => {
       <PageContainer>
         <PageHeader 
           title="Pacientes"
+          tourId="page-header"
+          searchTourId="page-search"
+          actionTourId="page-action"
           searchComponent={searchComponent}
           action={actionButton}
         />

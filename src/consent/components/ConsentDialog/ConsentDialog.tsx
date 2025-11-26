@@ -189,6 +189,8 @@ export function ConsentDialog({
       fullWidth
       aria-labelledby="consent-dialog-title"
       aria-describedby="consent-dialog-description"
+      data-testid="dialog-consent"
+      aria-live="polite"
       disableEscapeKeyDown={required}
       transitionDuration={reducedMotion ? 0 : tokens.duration.modal}
       PaperProps={{
@@ -361,21 +363,19 @@ export function ConsentDialog({
   <DialogActions sx={{ p: 2.5, pt: 1.5, gap: 1.5, flexDirection: 'column', position: 'sticky', bottom: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.96))', zIndex: 10 }}>
         {!showPreferences && (
           <Stack spacing={1.5} sx={{ width: '100%' }}>
-            {/* Botão: Aceitar Todos */}
-              <Button
-              onClick={handleAcceptAll}
+            {/* Apenas mantém Gerenciar Preferências */}
+            <Button
+              onClick={() => setShowPreferences(true)}
               variant="contained"
-              color="primary"
               disabled={isLoading}
               fullWidth
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-label="Salvando - aceitando todos" /> : <CheckCircleIcon aria-hidden="true" />}
+              startIcon={<SettingsIcon aria-hidden="true" />}
               sx={{
                 height: 48,
                 fontWeight: 600,
                 fontSize: '0.9375rem',
                 textTransform: 'none',
                 borderRadius: 2,
-                boxShadow: 2,
                 backgroundColor: ConsentColors.primary.main,
                 color: ConsentColors.primary.contrast,
                 '&:hover': {
@@ -383,76 +383,34 @@ export function ConsentDialog({
                 },
               }}
             >
-              {CONSENT_LABELS.acceptAllButton}
+              Gerenciar preferências
             </Button>
 
-            {/* Botão: Apenas Essenciais */}
-            <Button
-              onClick={handleRejectNonEssential}
-              variant="outlined"
-              color="primary"
-              disabled={isLoading}
-              fullWidth
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-label="Salvando - apenas essenciais" /> : <BlockIcon aria-hidden="true" />}
-              sx={{
-                height: 48,
-                fontWeight: 600,
-                fontSize: '0.9375rem',
-                textTransform: 'none',
-                borderRadius: 2,
-                color: ConsentColors.primary.main,
-                borderColor: ConsentColors.primary.main,
-                '&:hover': {
-                  backgroundColor: 'rgba(9,36,75,0.08)',
-                },
-              }}
-            >
-              {CONSENT_LABELS.rejectNonEssentialButton}
-            </Button>
-
-            <Divider sx={{ my: 0.5 }} />
-
-            {/* Botão: Personalizar */}
-            <Button
-              onClick={() => setShowPreferences(true)}
-              variant="text"
-              disabled={isLoading}
-              fullWidth
-              startIcon={<SettingsIcon aria-hidden="true" />}
-              sx={{
-                height: 44,
-                fontWeight: 500,
-                fontSize: '0.9rem',
-                textTransform: 'none',
-                color: ConsentColors.primary.main,
-              }}
-            >
-              Personalizar preferências
-            </Button>
-
-            {/* Botão: Não Assinar (sempre visível em modo required) */}
-            <Button
-              onClick={handleRejectAll}
-              variant="outlined"
-              disabled={isLoading}
-              fullWidth
-              // The button label communicates the saving state, hide the visual spinner from AT
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-hidden /> : <CancelIcon aria-hidden="true" />}
-              sx={{
-                height: 44,
-                fontWeight: 600,
-                fontSize: '0.9375rem',
-                textTransform: 'none',
-                color: ConsentColors.error.dark,
-                borderColor: ConsentColors.error.main,
-              }}
-              aria-label={required ? 'Recusar tudo e cancelar cadastro' : 'Recusar tudo'}
-              data-testid="consent-reject-all"
-              onPointerDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onPointerDown reject button'); }}
-              onMouseDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onMouseDown reject button'); }}
-            >
-              {required ? 'Recusar tudo (cancela cadastro)' : 'Recusar tudo'}
-            </Button>
+              {/* Botão: Não Assinar (somente quando consentimento é obrigatório) */}
+              {required && (
+                <Button
+                  onClick={handleRejectAll}
+                  variant="outlined"
+                  disabled={isLoading}
+                  fullWidth
+                  // The button label communicates the saving state, hide the visual spinner from AT
+                  startIcon={isLoading ? <CircularProgress size={18} color="inherit" aria-hidden /> : <CancelIcon aria-hidden="true" />}
+                  sx={{
+                    height: 44,
+                    fontWeight: 600,
+                    fontSize: '0.9375rem',
+                    textTransform: 'none',
+                    color: ConsentColors.error.dark,
+                    borderColor: ConsentColors.error.main,
+                  }}
+                  aria-label="Recusar tudo e cancelar cadastro"
+                  data-testid="consent-reject-all"
+                  onPointerDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onPointerDown reject button'); }}
+                  onMouseDown={() => { if (import.meta.env.DEV) console.debug('[ConsentDialog] onMouseDown reject button'); }}
+                >
+                  Recusar tudo (cancela cadastro)
+                </Button>
+              )}
           </Stack>
         )}
 

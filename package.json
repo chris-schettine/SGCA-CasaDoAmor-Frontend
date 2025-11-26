@@ -12,7 +12,9 @@
     "test-storybook": "vitest --project=storybook",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "chromatic": "chromatic --exit-zero-on-changes --only-changed --build-script-name build-storybook"
+    "chromatic": "chromatic --exit-zero-on-changes --only-changed --build-script-name build-storybook",
+    "test:e2e": "playwright test tests/e2e --project=chromium-desktop",
+    "test:visual:playwright": "playwright test tests/visual --project=chromium-desktop"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -26,6 +28,7 @@
     "@testing-library/dom": "^10.4.1",
     "axios": "^1.12.2",
     "dotenv": "^16.5.0",
+    "driver.js": "^1.4.0",
     "form-data": "^4.0.4",
     "framer-motion": "^12.23.24",
     "imask": "^7.6.1",
@@ -43,6 +46,7 @@
     "@chromatic-com/storybook": "^4.1.2",
     "@eslint/js": "^9.25.0",
     "@faker-js/faker": "^10.1.0",
+    "@playwright/test": "^1.57.0",
     "@storybook/addon-a11y": "^10.0.8",
     "@storybook/addon-actions": "^9.0.8",
     "@storybook/addon-docs": "^10.0.6",

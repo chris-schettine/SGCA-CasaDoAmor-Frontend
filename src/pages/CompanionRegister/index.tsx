@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { Control, FieldErrors, UseFormClearErrors, UseFormRegister, UseFormSetError, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { companionSchema, type CompanionFormInputs, type EditCompanionFormInputs } from "../../schemas/companionSchema";
 import PageHeader from "../../components/PageHeader";
@@ -13,7 +13,9 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import CompanionForm from "../../components/CompanionForm";
 import { formatDateToISO } from "../../utils/formatters";
 import { DevTools } from "../../utils/devTools";
-import { toastWarn, toastSuccessCritical, toastError } from "../../utils/toast";
+import { toastWarn, toastSuccessCritical, toastError, toastInfo } from "../../utils/toast";
+import { useUnsavedChangesWarning } from "../../hooks/useUnsavedChangesWarning";
+import { useFormDraft } from "../../hooks/useFormDraft";
 
 const CompanionRegisterPage = () => {
   const navigate = useNavigate();
@@ -64,17 +66,36 @@ const CompanionRegisterPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
     watch,
     setValue,
     setError,
     clearErrors,
+    reset,
   } = useForm<CompanionFormInputs>({
     resolver: zodResolver(companionSchema),
-    mode: "onBlur",
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues,
   });
+
+  useUnsavedChangesWarning(isDirty, 'Você tem alterações não salvas no formulário. Tem certeza que deseja sair?', { includeRouteGuard: true });
+  const draftKey = useMemo(() => `draft:companion-register:${patientId || 'sem-paciente'}`, [patientId]);
+  const { hasDraft, restoreDraft, clearDraft } = useFormDraft<CompanionFormInputs>(draftKey, watch, reset, { debounceMs: 1200 });
+  const initialHasDraftRef = useRef(hasDraft);
+  const restoredOnceRef = useRef(false);
+
+  useEffect(() => {
+    if (restoredOnceRef.current) return;
+    if (initialHasDraftRef.current && hasDraft) {
+      const restored = restoreDraft();
+      if (restored) {
+        toastInfo('Rascunho restaurado', { toastId: `${draftKey}-restore`, autoClose: 1500 });
+        restoredOnceRef.current = true;
+      }
+    }
+  }, [hasDraft, restoreDraft, draftKey]);
 
   // DevTools: Adiciona botão para preencher com dados fake (apenas em DEV)
   useEffect(() => {
@@ -102,6 +123,7 @@ const CompanionRegisterPage = () => {
   const handleCloseCancelDialog = () => setOpenCancelDialog(false);
   
   const handleConfirmCancel = () => {
+    clearDraft();
     toastWarn("Acompanhante não cadastrado");
     setTimeout(() => {
       navigate('/patients');
@@ -141,6 +163,7 @@ const CompanionRegisterPage = () => {
       
       await registrarAcompanhanteMutation.mutateAsync(dto);
       setOpenSaveDialog(false);
+      clearDraft();
       toastSuccessCritical("Acompanhante cadastrado com sucesso!");
       setTimeout(() => {
         navigate('/patients');

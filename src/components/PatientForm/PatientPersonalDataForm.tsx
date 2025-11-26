@@ -200,7 +200,7 @@ const PatientPersonalDataForm = (
             {...register("naturalidade")}
             disabled={isDisabled('naturalidade')}
             error={!!errors.naturalidade}
-            helperText={errors.naturalidade?.message}
+            helperText={errors.naturalidade?.message || 'Opcional'}
             slotProps={{
               inputLabel: { shrink: !!naturalidadeValue, required: true },
               formHelperText: { sx: { maxHeight: '0.4em', margin: '0 0.2em' } },
@@ -284,7 +284,6 @@ const PatientPersonalDataForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00 00000-0000"
-                autoComplete="tel"
                 error={!!errors.telefone}
                 helperText={errors.telefone?.message}
                 mask="00 00000-0000"
@@ -302,11 +301,10 @@ const PatientPersonalDataForm = (
         <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <TextField
             id="email"
-            label="E-mail"
-            variant="outlined"
-            fullWidth
+          label="E-mail"
+          variant="outlined"
+          fullWidth
           placeholder="email@exemplo.com"
-          autoComplete="email"
           {...register("email")}
           error={!!errors.email}
           helperText={errors.email?.message || 'Informe um e-mail válido para contato.'}
@@ -358,7 +356,6 @@ const PatientPersonalDataForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00000-000"
-                autoComplete="postal-code"
                 error={!!errors.cep}
                 helperText={errors.cep?.message || (isCepLoading ? "Buscando..." : "")}
                 mask="00000-000"
@@ -387,7 +384,6 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o endereço"
-            autoComplete="address-line1"
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
@@ -409,7 +405,6 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
             placeholder="Bairro"
-            autoComplete="address-level3"
             {...register("bairro")}
             error={!!errors.bairro}
             helperText={errors.bairro?.message}
@@ -429,7 +424,6 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
             placeholder="Cidade"
-            autoComplete="address-level2"
             {...register("cidade")}
             error={!!errors.cidade}
             helperText={errors.cidade?.message}
@@ -447,7 +441,6 @@ const PatientPersonalDataForm = (
             variant="outlined"
             fullWidth
             placeholder="Estado"
-            autoComplete="address-level1"
             {...register("estado")}
             error={!!errors.estado}
             helperText={errors.estado?.message}

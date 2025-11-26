@@ -23,9 +23,10 @@ interface KeyboardShortcutsHelpProps {
   open: boolean;
   onClose: () => void;
   shortcuts: KeyboardShortcut[];
+  onStartTour?: () => void;
 }
 
-const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: KeyboardShortcutsHelpProps) => {
+const KeyboardShortcutsHelp = ({ open, onClose, shortcuts, onStartTour }: KeyboardShortcutsHelpProps) => {
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -145,8 +146,31 @@ const KeyboardShortcutsHelp = ({ open, onClose, shortcuts }: KeyboardShortcutsHe
             >
               {isMac ? '⌘' : 'Ctrl'}+K
             </Box>
-            {' '}para abrir este painel novamente
+              {' '}para abrir este painel novamente
           </Typography>
+          {onStartTour && (
+            <Box sx={{ mt: 1 }}>
+              <Typography
+                variant="body2"
+                role="button"
+                tabIndex={0}
+                onClick={onStartTour}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onStartTour(); }}
+                sx={{
+                  display: 'inline-block',
+                  color: theme.palette.primary.main,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  '&:focus-visible': {
+                    outline: `3px solid ${theme.palette.primary.light}`,
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
+                Reabrir tour guiado
+              </Typography>
+            </Box>
+          )}
         </Box>
       </DialogContent>
     </Dialog>

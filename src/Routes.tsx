@@ -53,6 +53,9 @@ const preloadRoutes = () => {
     () => import('./pages/Login'),
     () => import('./pages/Patients'),
     () => import('./components/Layout'),
+    () => import('./pages/Users'),
+    () => import('./pages/Sessions'),
+    () => import('./pages/AuditLogPage'),
   ];
 
   // Usa requestIdleCallback se disponível, senão usa setTimeout

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { adminService } from '../api/admin.service';
 import type { CreateUserDTO, UpdateUserDTO, AtribuirRolesDTO, Pageable, AuditLoginsQueryParams } from '../api/admin.dto';
 
@@ -29,7 +29,7 @@ export const auditKeys = {
  * ✅ Substitui useState + useEffect manual
  */
 export function useUsers(pageable: Pageable) {
-  return useQuery({
+  return useSuspenseQuery({
     queryKey: userKeys.list(pageable),
     queryFn: () => adminService.listUsers(pageable),
     staleTime: 1000 * 60 * 5, // 5 minutos

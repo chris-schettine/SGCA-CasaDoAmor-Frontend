@@ -10,6 +10,7 @@ import PageHeader from "../../components/PageHeader";
 import ConfirmationDialog from "../../components/ConfirmationDialog";
 import { useEditarAcompanhante } from "../../hooks/useAcompanhantes";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import { FormSkeleton } from "../../components/SuspenseWrapper";
 import type { AcompanhanteDTO } from "../../api/acompanhante.dto";
 import CompanionForm from "../../components/CompanionForm";
 import { formatDateToISO, formatISOToDDMMYYYY } from "../../utils/formatters";
@@ -72,8 +73,8 @@ const CompanionEditPage = () => {
         cep: acompanhante.endereco?.cep || "",
       },
       parentesco: acompanhante.parentesco,
-      podeAjudarNaCozinha: acompanhante.podeAjudarNaCozinha,
-      ativo: acompanhante.ativo,
+      podeAjudarNaCozinha: acompanhante.podeAjudarNaCozinha ?? false,
+      ativo: acompanhante.ativo ?? false,
     } : undefined
   });
 
@@ -163,6 +164,11 @@ const CompanionEditPage = () => {
   };
 
   const handleConfirmSave = handleSubmit(handleSaveCompanion, onError);
+
+  // Mostrar esqueleto enquanto esperamos dados do acompanhante (ex: acesso direto via rota)
+  if (!acompanhante) {
+    return <FormSkeleton fields={8} />;
+  }
 
   return (
     <Box sx={{ 

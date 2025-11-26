@@ -19,6 +19,12 @@ export interface PageHeaderProps {
    * Componente de busca/filtros
    */
   searchComponent?: ReactNode;
+  /**
+   * IDs opcionais para tours/onboarding
+   */
+  tourId?: string;
+  searchTourId?: string;
+  actionTourId?: string;
 }
 
 /**
@@ -38,13 +44,17 @@ export const PageHeader = ({
   title, 
   subtitle,
   action,
-  searchComponent 
+  searchComponent,
+  tourId,
+  searchTourId,
+  actionTourId,
 }: PageHeaderProps) => {
   // page header uses theme-aware text for accessibility
   const theme = useTheme();
 
   return (
     <Box
+      data-tour-id={tourId}
       sx={{
         mb: { xs: 2, sm: 3 },
         width: '100%',
@@ -93,6 +103,7 @@ export const PageHeader = ({
         >
           {searchComponent && (
             <Box
+              data-tour-id={searchTourId}
               sx={{
                 flex: { xs: '1 1 auto', sm: '1 1 auto' },
                 minWidth: { xs: '100%', sm: '250px' },
@@ -103,10 +114,13 @@ export const PageHeader = ({
             </Box>
           )}
           {action && (
-            <Box sx={{ 
-              flex: '0 0 auto',
-              width: { xs: '100%', sm: 'auto' }
-            }}>
+            <Box
+              data-tour-id={actionTourId}
+              sx={{ 
+                flex: '0 0 auto',
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
               {action}
             </Box>
           )}

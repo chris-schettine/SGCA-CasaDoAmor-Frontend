@@ -1,5 +1,5 @@
 import { Button, Box, Typography, Card, CardContent, Chip } from "@mui/material";
-import LoadingState from '../../components/LoadingState';
+import { CardSkeleton } from '../../components/SuspenseWrapper';
 import { useLocation, useNavigate } from "react-router-dom";
 import type { AcompanhanteDTO } from "../../api/acompanhante.dto";
 import { formatISOToDDMMYYYY } from '../../utils/formatters';
@@ -19,7 +19,7 @@ const CompanionInformation = () => {
     setTimeout(() => {
       navigate("/companions");
     }, 2000);
-    return <LoadingState message="Carregando acompanhante..." />;
+    return <CardSkeleton />;
   }
 
   return (

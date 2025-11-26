@@ -6,9 +6,10 @@ import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
 import { FormControl, Input, InputAdornment, InputLabel, IconButton, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { AnimatedPage } from "../../components/AnimatedPage";
+import { TableSkeleton } from "../../components/SuspenseWrapper";
 
 const UsersContent = () => {
   const { canManageUsers } = usePermissions();
@@ -124,7 +125,9 @@ const UsersContent = () => {
           searchComponent={searchComponent}
           action={actionButton}
         />
-            <TableUsers searchText={searchText} />
+            <Suspense fallback={<TableSkeleton rows={10} />}>
+              <TableUsers searchText={searchText} />
+            </Suspense>
           </PageContainer>
         </AnimatedPage>
       </Box>

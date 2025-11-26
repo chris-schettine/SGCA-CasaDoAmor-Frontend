@@ -270,7 +270,7 @@ const LoginContent = () => {
             fullWidth
             required
             type="tel" 
-            autoComplete="username" 
+            autoComplete="username"
             error={!!cpfError}
             helperText={cpfError || "Formato: 000.000.000-00"} 
             FormHelperTextProps={{
@@ -378,6 +378,7 @@ const LoginContent = () => {
             }}
             type="submit"
             aria-label="Fazer login no sistema"
+            data-testid="btn-login"
             disabled={loading} 
           >
 

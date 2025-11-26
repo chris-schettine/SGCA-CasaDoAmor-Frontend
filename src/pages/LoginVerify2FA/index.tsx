@@ -190,7 +190,19 @@ const LoginVerify2FAPage = () => {
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 1 }}>
-            <MuiLink component="button" type="button" onClick={handleResendCode} disabled={resendLoading || !cpf} variant="body2">
+            <MuiLink
+              component="button"
+              type="button"
+              onClick={handleResendCode}
+              disabled={resendLoading || !cpf}
+              variant="body2"
+              sx={{
+                '&:focus-visible': {
+                  outline: (theme) => `3px solid ${theme.palette.primary.light}`,
+                  outlineOffset: '2px',
+                },
+              }}
+            >
                 {resendLoading ? 'Reenviando...' : 'Reenviar código'}
             </MuiLink>
         </Box>

@@ -2,8 +2,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AssignmentIcon from '@mui/icons-material/Assignment'; 
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Paper, TablePagination, IconButton, Box, Typography, useMediaQuery, useTheme } from "@mui/material"
-import { PatientListSkeleton } from '../../SuspenseWrapper';
+import { Paper, TablePagination, IconButton, Box, Typography, useMediaQuery, useTheme, CircularProgress } from "@mui/material"
 import StandardTooltip from '../../StandardTooltip';
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -50,23 +49,18 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
   const useCardLayout = isTablet;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [navigatingId, setNavigatingId] = useState<string | null>(null);
 
-  // 🚀 TanStack Query - substitui useState + useEffect
-  const queryResult = !mockState
-    ? usePatients(rowsPerPage, page * rowsPerPage, searchText)
-    : { data: undefined, isLoading: false, error: null };
+  const queryResult = usePatients(rowsPerPage, page * rowsPerPage, searchText);
 
   const resolvedData = mockState?.data ?? queryResult.data;
-  const resolvedLoading = mockState?.isLoading ?? queryResult.isLoading;
-  const resolvedError = mockState?.error ?? (queryResult.error as Error | null | undefined);
+  const resolvedError = mockState?.error;
 
   const patients: PacienteDTO[] = useMemo(
     () => resolvedData?.nodes ?? [],
     [resolvedData?.nodes]
   );
   const totalCount = resolvedData?.totalCount ?? 0;
-
-  const delay = 1000;
 
   // 🚀 Configuração de colunas para tabela virtualizada (DEVE estar antes dos early returns)
   const virtualColumns = useMemo<PatientColumn[]>(() => {
@@ -186,14 +180,10 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
   }
 
   const handleViewMedicalRecords = (id: string, patientData: PacienteDTO) => {
-    console.log('[TablePatients handleViewMedicalRecords] id:', id);
-    console.log('[TablePatients handleViewMedicalRecords] patientData:', patientData);
-    
-    setTimeout(() => {
-      navigate("/patient/information", {
-        state: { patientId: id, patient: patientData }
-      });
-    }, delay);
+    setNavigatingId(id);
+    navigate("/patient/information", {
+      state: { patientId: id, patient: patientData }
+    });
   }
 
   const handleEdit = (id: string, patientData: PacienteDTO) => {
@@ -202,10 +192,6 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
 
   const handleReport = (id: string, patientData: PacienteDTO) => {
     navigate(`/patient/report/${id}`, { state: { patient: patientData } });
-  }
-
-  if (resolvedLoading) {
-    return <PatientListSkeleton />;
   }
 
   if (resolvedError) {
@@ -251,26 +237,33 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
                 { label: 'RG', value: formatRG(row.rg) || '—' },
               ]}
               actions={
-                <>
-                  <StandardTooltip title="Visualizar">
-                    <IconButton 
-                      color="primary"
-                      onClick={() => handleViewMedicalRecords(row.id, row._patientData)}
-                      size="medium"
-                    >
-                      <VisibilityIcon />
-                    </IconButton>
-                  </StandardTooltip>
-                  <StandardTooltip title="Editar">
-                    <IconButton 
-                      color="success"
-                      onClick={() => handleEdit(row.id, row._patientData)}
-                      size="medium"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </StandardTooltip>
-                </>
+                navigatingId === row.id ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} />
+                    <Typography variant="body2">Abrindo ficha...</Typography>
+                  </Box>
+                ) : (
+                  <>
+                    <StandardTooltip title="Visualizar">
+                      <IconButton 
+                        color="primary"
+                        onClick={() => handleViewMedicalRecords(row.id, row._patientData)}
+                        size="medium"
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </StandardTooltip>
+                    <StandardTooltip title="Editar">
+                      <IconButton 
+                        color="success"
+                        onClick={() => handleEdit(row.id, row._patientData)}
+                        size="medium"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </StandardTooltip>
+                  </>
+                )
               }
             />
           ))}
@@ -278,8 +271,18 @@ const TablePatients = ({ searchText, mockState }: TablePatientsProps) => {
       ) : (
         <VirtualizedTable
           data={rows}
-          columns={virtualColumns}
-          rowHeight={53}
+          columns={virtualColumns.map(col => col.field === 'acoes' ? {
+            ...col,
+            renderCell: (row) => (
+              navigatingId === row.id ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.5 }}>
+                  <CircularProgress size={18} />
+                  <Typography variant="caption">Abrindo...</Typography>
+                </Box>
+              ) : (col.renderCell ? col.renderCell(row) : null)
+            )
+          } : col)}
+          rowHeight={60}
           height={440}
           getRowId={(row) => row.id}
           ariaLabel="Tabela de pacientes"

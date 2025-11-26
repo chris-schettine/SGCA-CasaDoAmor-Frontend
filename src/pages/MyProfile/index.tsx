@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useActionState } from 'react';
 import { Box, Button, Grid, TextField, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { isAxiosError } from 'axios';
@@ -107,7 +107,7 @@ const MyProfilePage = () => {
   const [rawUser, setRawUser] = useState<DetailedAuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register, formState: { errors, isSubmitting } } = useForm<MyProfileFormData>({
+  const { control, handleSubmit, reset, watch, setValue, setError, clearErrors, register, formState: { errors } } = useForm<MyProfileFormData>({
     mode: 'onBlur',
     resolver: zodResolver(myProfileSchema),
   });
@@ -184,6 +184,106 @@ const MyProfilePage = () => {
 
   const { control: pwControl, handleSubmit: handleSubmitPw, reset: resetPw, formState: { isSubmitting: isPwSubmitting } } = useForm<PasswordFormInputs>({ mode: 'onBlur' });
 
+  const [saveResult, saveProfileAction, isSavePending] = useActionState(
+    async (_prevState: { error: string | null }, data: MyProfileFormData) => {
+      if (!rawUser || !user) {
+        toastError('Perfil não carregado. Tente novamente.');
+        return { error: 'Perfil não carregado' };
+      }
+      const userId = Number(rawUser.user?.id);
+      if (!userId || Number.isNaN(userId)) {
+        toastError('Não foi possível identificar o usuário.');
+        return { error: 'ID do usuário ausente' };
+      }
+
+      try {
+        const sanitizedTelefone = data.telefone ? formatPhone(data.telefone) : '';
+
+        const personalPayload: UpdateUserDTO['dadosPessoais'] = {
+          dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : null,
+          estadoCivil: data.estadoCivil || null,
+          naturalidade: data.naturalidade || null,
+          sexo: data.sexo || null,
+        };
+        const hasPersonalData = Object.values(personalPayload ?? {}).some((value) => value !== null && value !== undefined && value !== '');
+
+        const addressPayload: UpdateUserDTO['endereco'] = {
+          bairro: data.bairro || null,
+          cep: removeNonNumeric(data.cep) || null,
+          cidade: data.cidade || null,
+          complemento: data.complemento || null,
+          uf: data.estado || null,
+          numero: data.numero || null,
+          logradouro: data.endereco || null,
+        };
+
+        const hasAddressData = Object.values(addressPayload ?? {}).some((value) => value !== null && value !== undefined && value !== '');
+        const isProfessional = rawUser.tipo ? PROFESSIONAL_USER_TYPES.includes(rawUser.tipo) : false;
+
+        const professionalPayload: UpdateUserDTO['registroProfissional'] = isProfessional
+          ? {
+              tipoProfissional: rawUser.tipo,
+              numeroRegistro: data.registro ? data.registro : null,
+              rqe: rawUser.tipo === 'MEDICO' ? (data.rqe ? data.rqe : null) : null,
+            }
+          : null;
+
+        const payload: UpdateUserDTO = {
+          nome: data.nome,
+          email: data.email,
+          telefone: sanitizedTelefone || undefined,
+          dadosPessoais: hasPersonalData ? personalPayload : null,
+          endereco: hasAddressData ? addressPayload : null,
+          registroProfissional: professionalPayload,
+        };
+
+        await adminService.updateUser(userId, payload);
+
+        const fallbackRoles = Array.isArray(rawUser.perfis)
+          ? rawUser.perfis
+              .map((perfil) => perfil?.nome)
+              .filter((roleName): roleName is string => Boolean(roleName))
+          : rawUser.roles ?? rawUser.user?.roles ?? [];
+
+        const previousUser: UserType = user ?? {
+          nome: rawUser.nome ?? rawUser.user?.nome ?? '',
+          email: rawUser.email ?? rawUser.user?.email ?? '',
+          cpf: rawUser.cpf ?? rawUser.user?.cpf ?? '',
+          roles: fallbackRoles,
+          tipoUsuario: rawUser.tipoUsuario ?? rawUser.tipo ?? rawUser.user?.tipoUsuario,
+          uuid: rawUser.uuid ?? rawUser.user?.uuid,
+        };
+
+        const mergedUser: UserType = {
+          nome: data.nome || previousUser.nome,
+          email: data.email || previousUser.email,
+          cpf: previousUser.cpf,
+          roles: previousUser.roles,
+          tipoUsuario: previousUser.tipoUsuario,
+          uuid: previousUser.uuid,
+        };
+
+        login(token ?? '', mergedUser);
+
+        toastSuccess('Perfil atualizado com sucesso');
+        return { error: null };
+      } catch (error: unknown) {
+        console.error('Erro ao salvar perfil', error);
+        if (isAxiosError(error)) {
+          const message = typeof error.response?.data === 'object' && error.response?.data !== null
+            ? (error.response.data as { message?: string }).message
+            : undefined;
+          toastError(message ?? 'Erro ao salvar perfil');
+          return { error: message ?? 'Erro ao salvar perfil' };
+        } else {
+          toastError('Erro ao salvar perfil');
+          return { error: 'Erro ao salvar perfil' };
+        }
+      }
+    },
+    { error: null }
+  );
+
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
@@ -256,102 +356,8 @@ const MyProfilePage = () => {
     fetch();
   }, [reset]);
 
-  const onSaveProfile: SubmitHandler<MyProfileFormData> = async (data) => {
-    if (!rawUser?.id) {
-      toastError('Não foi possível identificar o usuário.');
-      return;
-    }
-
-    const userId = Number(rawUser.id);
-    if (Number.isNaN(userId)) {
-      toastError('Identificador de usuário inválido.');
-      return;
-    }
-
-    try {
-      const sanitizedTelefone = removeNonNumeric(data.telefone);
-      const sanitizedCep = removeNonNumeric(data.cep);
-
-      const personalPayload: UpdateUserDTO['dadosPessoais'] = {
-        sexo: data.sexo ? data.sexo : null,
-        estadoCivil: data.estadoCivil ? data.estadoCivil : null,
-        dataNascimento: data.dataNascimento ? formatDateToISO(data.dataNascimento) : null,
-        naturalidade: data.naturalidade ? data.naturalidade : null,
-      };
-
-      const hasPersonalData = Object.values(personalPayload ?? {}).some((value) => Boolean(value));
-
-      const addressPayload: UpdateUserDTO['endereco'] = {
-        logradouro: data.endereco ? data.endereco : null,
-        numero: data.numero ? data.numero : null,
-        complemento: data.complemento ? data.complemento : null,
-        bairro: data.bairro ? data.bairro : null,
-        cidade: data.cidade ? data.cidade : null,
-        uf: data.estado ? data.estado : null,
-        cep: sanitizedCep ? sanitizedCep : null,
-      };
-
-      const hasAddressData = Object.values(addressPayload ?? {}).some((value) => Boolean(value));
-
-      const isProfessional = rawUser.tipo ? PROFESSIONAL_USER_TYPES.includes(rawUser.tipo) : false;
-
-      const professionalPayload: UpdateUserDTO['registroProfissional'] = isProfessional
-        ? {
-            tipoProfissional: rawUser.tipo,
-            numeroRegistro: data.registro ? data.registro : null,
-            rqe: rawUser.tipo === 'MEDICO' ? (data.rqe ? data.rqe : null) : null,
-          }
-        : null;
-
-      const payload: UpdateUserDTO = {
-        nome: data.nome,
-        email: data.email,
-        telefone: sanitizedTelefone || undefined,
-        dadosPessoais: hasPersonalData ? personalPayload : null,
-        endereco: hasAddressData ? addressPayload : null,
-        registroProfissional: professionalPayload,
-      };
-
-      await adminService.updateUser(userId, payload);
-
-      const fallbackRoles = Array.isArray(rawUser.perfis)
-        ? rawUser.perfis
-            .map((perfil) => perfil?.nome)
-            .filter((roleName): roleName is string => Boolean(roleName))
-        : rawUser.roles ?? rawUser.user?.roles ?? [];
-
-      const previousUser: UserType = user ?? {
-        nome: rawUser.nome ?? rawUser.user?.nome ?? '',
-        email: rawUser.email ?? rawUser.user?.email ?? '',
-        cpf: rawUser.cpf ?? rawUser.user?.cpf ?? '',
-        roles: fallbackRoles,
-        tipoUsuario: rawUser.tipoUsuario ?? rawUser.tipo ?? rawUser.user?.tipoUsuario,
-        uuid: rawUser.uuid ?? rawUser.user?.uuid,
-      };
-
-      const mergedUser: UserType = {
-        nome: data.nome || previousUser.nome,
-        email: data.email || previousUser.email,
-        cpf: previousUser.cpf,
-        roles: previousUser.roles,
-        tipoUsuario: previousUser.tipoUsuario,
-        uuid: previousUser.uuid,
-      };
-
-      login(token ?? '', mergedUser);
-
-      toastSuccess('Perfil atualizado com sucesso');
-    } catch (error: unknown) {
-      console.error('Erro ao salvar perfil', error);
-      if (isAxiosError(error)) {
-        const message = typeof error.response?.data === 'object' && error.response?.data !== null
-          ? (error.response.data as { message?: string }).message
-          : undefined;
-        toastError(message ?? 'Erro ao salvar perfil');
-      } else {
-        toastError('Erro ao salvar perfil');
-      }
-    }
+  const onSaveProfile: SubmitHandler<MyProfileFormData> = (data) => {
+    saveProfileAction(data);
   };
 
   const onChangePassword: SubmitHandler<PasswordFormInputs> = async (data) => {
@@ -384,7 +390,11 @@ const MyProfilePage = () => {
   return (
     <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
       <Box sx={{ padding: 3 }}>
-      <PageHeader title="Meu Perfil" subtitle="Visualize e edite suas informações pessoais" />
+      <PageHeader
+        title="Meu Perfil"
+        subtitle="Visualize e edite suas informações pessoais"
+        action={undefined}
+      />
 
       <form onSubmit={handleSubmit(onSaveProfile)}>
         <Grid container spacing={2}>
@@ -420,7 +430,6 @@ const MyProfilePage = () => {
                 <TextField
                   fullWidth
                   label="E-mail"
-                  autoComplete="email"
                   {...field}
                   error={!!errors.email}
                   helperText={errors.email?.message}
@@ -441,7 +450,6 @@ const MyProfilePage = () => {
                   fullWidth
                   label="Telefone"
                   mask="00 00000-0000"
-                  autoComplete="tel"
                   error={!!errors.telefone}
                   helperText={errors.telefone?.message}
                   required
@@ -552,7 +560,6 @@ const MyProfilePage = () => {
                   variant="outlined"
                   fullWidth
                   placeholder="00000-000"
-                  autoComplete="postal-code"
                   mask="00000-000"
                   error={!!errors.cep}
                   helperText={errors.cep?.message}
@@ -569,7 +576,6 @@ const MyProfilePage = () => {
               variant="outlined"
               fullWidth
               placeholder="Endereço"
-              autoComplete="address-line1"
               {...register('endereco')}
               error={!!errors.endereco}
               helperText={errors.endereco?.message}
@@ -584,7 +590,6 @@ const MyProfilePage = () => {
               variant="outlined"
               fullWidth
               placeholder="Bairro"
-              autoComplete="address-level3"
               {...register('bairro')}
               error={!!errors.bairro}
               helperText={errors.bairro?.message}
@@ -599,7 +604,6 @@ const MyProfilePage = () => {
               variant="outlined"
               fullWidth
               placeholder="Cidade"
-              autoComplete="address-level2"
               {...register('cidade')}
               error={!!errors.cidade}
               helperText={errors.cidade?.message}
@@ -614,7 +618,6 @@ const MyProfilePage = () => {
               variant="outlined"
               fullWidth
               placeholder="Estado"
-              autoComplete="address-level1"
               {...register('estado')}
               error={!!errors.estado}
               helperText={errors.estado?.message}
@@ -629,7 +632,6 @@ const MyProfilePage = () => {
               variant="outlined"
               fullWidth
               placeholder="Número"
-              autoComplete="off"
               {...register('numero')}
               error={!!errors.numero}
               helperText={errors.numero?.message}
@@ -638,14 +640,14 @@ const MyProfilePage = () => {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-            <TextField id="complemento" label="Complemento" variant="outlined" fullWidth placeholder="Complemento" autoComplete="address-line2" {...register('complemento')} InputLabelProps={{ shrink: !!watch('complemento') }} />
+            <TextField id="complemento" label="Complemento" variant="outlined" fullWidth placeholder="Complemento" {...register('complemento')} InputLabelProps={{ shrink: !!watch('complemento') }} />
           </Grid>
 
           <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
             <Button
               variant="contained"
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSavePending}
               sx={{
                 '&:focus-visible': {
                   outline: (theme) => `3px solid ${theme.palette.primary.light}`,
@@ -653,8 +655,13 @@ const MyProfilePage = () => {
                 },
               }}
             >
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
+              {isSavePending ? 'Salvando...' : 'Salvar'}
             </Button>
+            {saveResult.error && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {saveResult.error}
+              </Typography>
+            )}
           </Grid>
         </Grid>
       </form>

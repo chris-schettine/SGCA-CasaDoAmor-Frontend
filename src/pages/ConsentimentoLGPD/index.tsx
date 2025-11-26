@@ -127,7 +127,23 @@ const ConsentimentoLGPDPage = () => {
 
       <Paper elevation={2} sx={{ mt: 3 }}>
         {isLoading ? (
-          <TableSkeleton rows={8} />
+          isTablet ? (
+            <Box sx={{ p: 2 }}>
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <MobileCard
+                  key={idx}
+                  isLoading
+                  fields={[
+                    { label: 'Tipo', value: '' },
+                    { label: 'Versão', value: '' },
+                    { label: 'Data', value: '' },
+                  ]}
+                />
+              ))}
+            </Box>
+          ) : (
+            <TableSkeleton rows={8} />
+          )
         ) : error ? (
           <Box sx={{ p: 3 }}>
             <Alert severity="error">
@@ -150,6 +166,7 @@ const ConsentimentoLGPDPage = () => {
                 {consentimentosData.content.map((consentimento) => (
                   <MobileCard
                     key={consentimento.id}
+                    isLoading={false}
                     title={formatDateTime(consentimento.dataConsentimento)}
                     subtitle={`Versão ${consentimento.versaoTermo}`}
                     fields={[

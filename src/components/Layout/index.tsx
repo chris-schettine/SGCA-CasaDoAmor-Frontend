@@ -26,6 +26,7 @@ import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme, type Theme, alpha } from '@mui/material/styles';
 import type { CSSObject } from '@mui/system';
+import { useQueryClient } from '@tanstack/react-query';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp';
 import { useAuth } from '../../hooks/useAuth';
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
@@ -33,6 +34,10 @@ import { useConsent } from '../../consent/hooks/useConsent';
 import { useDesignTokens } from '../../design-tokens/utils';
 import Footer from '../Footer';
 import ThemeToggle from '../ThemeToggle';
+import { pacienteService } from '../../api/paciente.service';
+import { adminService } from '../../api/admin.service';
+import { authService } from '../../api/auth.service';
+import { OnboardingProvider, useOnboarding } from '../Onboarding/OnboardingProvider';
 
 const drawerWidth = 280;
 const closedDrawerWidth = 80;
@@ -133,9 +138,10 @@ interface NavItemProps {
     requiredRole?: string;
     onToggleDrawer: () => void;
     navigate: (path: string) => void;
+    onPrefetch?: (path: string) => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole, onToggleDrawer}) => {
+const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole, onToggleDrawer, onPrefetch }) => {
     const { user } = useAuth();
     const location = useLocation();
     const theme = useTheme();
@@ -152,14 +158,17 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
+        // Sempre fecha/encolhe a sidebar ao navegar para evitar overflow/responsividade quebrada
+        window.dispatchEvent(new CustomEvent('sgca:close-drawer', { detail: { reason: 'nav-click' } }));
         if (theme.breakpoints.values.md && window.innerWidth < theme.breakpoints.values.md) {
             navigate(to);
-            onToggleDrawer();
             return;
         }
-        if (open && isCurrentActive) { onToggleDrawer(); return; }
-        if (!open && isCurrentActive) { onToggleDrawer(); return; }
-        if (!isCurrentActive && !open) { onToggleDrawer(); }
+        if (!isCurrentActive && open) {
+            onToggleDrawer();
+        } else if (isCurrentActive && open) {
+            onToggleDrawer();
+        }
         navigate(to);
     };
 
@@ -167,11 +176,18 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
         return null;
     }
 
+    const handlePrefetch = () => {
+        onPrefetch?.(to);
+    };
+
     return (
         <ListItem disablePadding sx={{ display: 'block' }}>
             <Tooltip title={primary} placement="right" disableHoverListener={open}>
                 <ListItemButton
+                    data-tour-id={to === '/patients' ? 'nav-patients' : undefined}
                     onClick={handleNavigation}
+                    onMouseEnter={handlePrefetch}
+                    onFocus={handlePrefetch}
                     sx={{
                         minHeight: 56,
                         justifyContent: open ? 'initial' : 'center',
@@ -211,12 +227,75 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     );
 };
 
-export default function Layout() {
+function LayoutShell() {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
     const [shortcutsHelpOpen, setShortcutsHelpOpen] = React.useState(false);
+    const queryClient = useQueryClient();
+    const { startTour } = useOnboarding();
+
+    const prefetchNavTarget = React.useCallback(async (path: string) => {
+        try {
+            switch (path) {
+                case '/patients': {
+                    await Promise.all([
+                        import('../../pages/Patients'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['patients', 'prefetch', { page: 0 }],
+                            queryFn: () => pacienteService.listarPacientes(20, 0),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
+                case '/users': {
+                    await Promise.all([
+                        import('../../pages/Users'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['users', 'prefetch', { page: 0, size: 10 }],
+                            queryFn: () => adminService.listUsers({ page: 0, size: 10 }),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
+                case '/sessions': {
+                    await Promise.all([
+                        import('../../pages/Sessions'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['sessions', 'prefetch'],
+                            queryFn: () => authService.listSessions(),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
+                case '/companions': {
+                    await import('../../pages/Companions');
+                    break;
+                }
+                case '/auditoria': {
+                    await Promise.all([
+                        import('../../pages/AuditLogPage'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['audit', 'prefetch', 'sessions'],
+                            queryFn: () => adminService.getAuditSessions(),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
+                default:
+                    break;
+            }
+        } catch (error) {
+            if (import.meta.env.DEV) {
+                console.debug('[Layout] Prefetch falhou para', path, error);
+            }
+        }
+    }, [queryClient]);
 
     const handleDrawerToggle = React.useCallback(() => {
         setOpen(prev => !prev);
@@ -296,7 +375,14 @@ export default function Layout() {
                     </Box> 
                  
                     <Tooltip title="Atalhos de teclado (?)">
-                        <IconButton color="inherit" onClick={() => setShortcutsHelpOpen(true)} aria-label="atalhos de teclado" sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }} size="small">
+                        <IconButton
+                          color="inherit"
+                          onClick={() => setShortcutsHelpOpen(true)}
+                          aria-label="atalhos de teclado"
+                          data-tour-id="shortcut-help"
+                          sx={{ mr: { xs: 0.5, sm: 1 }, display: { xs: 'none', sm: 'inline-flex' }, minWidth: '48px', minHeight: '48px', '&:active': { transform: 'scale(0.95)', backgroundColor: 'rgba(255, 255, 255, 0.2)' }, transition: 'transform 150ms ease-in-out' }}
+                          size="small"
+                        >
                             <KeyboardIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
@@ -359,7 +445,7 @@ export default function Layout() {
                 </DrawerHeader>
                 <List sx={{ padding: '8px 0', paddingBottom: '16px' }}>
                     <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
-                    {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={true} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
+                    {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={true} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} onPrefetch={prefetchNavTarget} />))}
                 </List>
             </SwipeableDrawer>
 
@@ -454,7 +540,7 @@ export default function Layout() {
                     </DrawerHeader>
                     <List sx={{ padding: '0px' }}>
                         <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />
-                        {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={open} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} />))}
+                        {navItems.map((item) => (<NavItem key={item.to} to={item.to} primary={item.primary} Icon={item.Icon} open={open} requiredRole={item.requiredRole} onToggleDrawer={handleDrawerToggle} navigate={navigate} onPrefetch={prefetchNavTarget} />))}
                     </List>
                 </StyledDrawer>
 
@@ -494,7 +580,15 @@ export default function Layout() {
                 <Footer />
             </Box>
 
-            <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} />
+            <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} shortcuts={shortcuts} onStartTour={startTour} />
         </Box>
     );
+}
+
+export default function Layout() {
+  return (
+    <OnboardingProvider>
+      <LayoutShell />
+    </OnboardingProvider>
+  );
 }

@@ -61,15 +61,15 @@ const MedicalRecordPage = () => {
       <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Lesão de pele:
       </Typography>
-      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, width: "100%", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Alteração no nível de consciência" />
           <CustomCheckbox label="Déficit de mobilidade e atividade" />
           <CustomCheckbox label="Déficit nutricional" />
           <CustomCheckbox label="Pele úmida/molhada" />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Facção/Cisalhamento" />
           <CustomCheckbox label="Limitação da mobilidade" />
           <CustomCheckbox label="Fora de risco" />
@@ -79,15 +79,15 @@ const MedicalRecordPage = () => {
       <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Flebite
       </Typography>
-      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, width: "100%", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Criança/Idoso" />
           <CustomCheckbox label="Alteração do lugar da pele" />
           <CustomCheckbox label="Imunodepressão" />
           <CustomCheckbox label="Fragilidade capilar" />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Uso de quimioterapia" />
           <CustomCheckbox label="Medicações hiperosmolares" />
           <CustomCheckbox label="Fora de risco" />
@@ -97,15 +97,15 @@ const MedicalRecordPage = () => {
       <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Queda
       </Typography>
-      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, width: "100%", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Criança/Idoso/Gestante" />
           <CustomCheckbox label="Convulsões" />
           <CustomCheckbox label="Confusão mental/Delirium" />
           <CustomCheckbox label="Visão/audição diminuída" />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Hipotensão postural" />
           <CustomCheckbox label="Uso de álcool/drogas" />
           <CustomCheckbox label="Fora de risco" />
@@ -115,14 +115,14 @@ const MedicalRecordPage = () => {
       <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         SAE - Sistema de assistência de enfermagem
       </Typography>
-      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, width: "100%", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Dor caracterizada por relato verbal devido a presença de tumores" />
           <CustomCheckbox label="Risco para integridade da pele prejudicada" />
           <CustomCheckbox label="Déficit no autocuidado para banho e higiene" />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Náuseas e vômitos relacionados ao tratamento oncológico" />
           <CustomCheckbox label="Risco para infecção devido à imunossupressão" />
           <CustomCheckbox label="Ansiedade por incerteza relacionada a risco de morte" />
@@ -132,8 +132,8 @@ const MedicalRecordPage = () => {
       <Typography component="h3" sx={{ fontSize: "16px", color: 'text.primary', fontWeight: 600, m: 0, pt: "10px" }}>
         Histórico de saúde e doença
       </Typography>
-      <Box sx={{ display: "flex", width: "1000px", justifyContent: "space-between", m: 0 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, width: "100%", m: 0 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Tabagismo" />
           <CustomCheckbox label="Neoplasia" />
           <CustomCheckbox label="Doença autoimune" />
@@ -143,7 +143,7 @@ const MedicalRecordPage = () => {
           <CustomCheckbox label="Doença renal" />
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minWidth: { xs: '100%', sm: '240px' }, flex: 1 }}>
           <CustomCheckbox label="Dislipidemia" />
           <CustomCheckbox label="Etilismo" />
           <CustomCheckbox label="Hipertensão" />

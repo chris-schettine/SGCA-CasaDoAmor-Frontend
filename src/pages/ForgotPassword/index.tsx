@@ -55,7 +55,6 @@ const ForgotPasswordContent = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
-          autoComplete="email"
           required
         />
           <Button
@@ -76,7 +75,18 @@ const ForgotPasswordContent = () => {
           </Button>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-            <Button variant="text" size="small" onClick={() => navigate('/login')} sx={{ color: theme.palette.text.secondary }}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => navigate('/login')}
+              sx={{
+                color: theme.palette.text.secondary,
+                '&:focus-visible': {
+                  outline: (theme) => `3px solid ${theme.palette.primary.light}`,
+                  outlineOffset: '2px',
+                },
+              }}
+            >
               Voltar ao login
             </Button>
           </Box>

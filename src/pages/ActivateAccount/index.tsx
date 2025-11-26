@@ -126,7 +126,6 @@ const ActivateAccountContent = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
-          autoComplete="email"
           required
         />
         
@@ -137,7 +136,6 @@ const ActivateAccountContent = () => {
           value={senhaTemporaria}
           onChange={(e) => setSenhaTemporaria(e.target.value)}
           type="password"
-          autoComplete="current-password"
           required
         />
         
@@ -149,7 +147,6 @@ const ActivateAccountContent = () => {
             value={novaSenha}
             onChange={(e) => setNovaSenha(e.target.value)}
             type="password"
-            autoComplete="new-password"
             required
           />
           <PasswordStrengthIndicator password={novaSenha} />
@@ -162,7 +159,6 @@ const ActivateAccountContent = () => {
           value={confirmarSenha}
           onChange={(e) => setConfirmarSenha(e.target.value)}
           type="password"
-          autoComplete="new-password"
           required
         />
 

@@ -2,11 +2,14 @@ import { Breadcrumbs as MuiBreadcrumbs, Typography, Link as MuiLink } from '@mui
 import { Link } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeIcon from '@mui/icons-material/Home';
+import type { ReactNode } from 'react';
 
 export interface BreadcrumbItem {
   label: string;
   path?: string;
   state?: Record<string, unknown>;
+  icon?: ReactNode;
+  disabled?: boolean;
 }
 
 interface BreadcrumbsProps {
@@ -24,6 +27,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
       <MuiLink
         component={Link}
         to="/"
+        aria-label="Ir para início"
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -69,6 +73,9 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
             to={item.path}
             state={item.state}
             sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
               color: 'text.primary',
               textDecoration: 'none',
               '&:hover': {
@@ -77,6 +84,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
               },
             }}
           >
+            {item.icon}
             {item.label}
           </MuiLink>
         );

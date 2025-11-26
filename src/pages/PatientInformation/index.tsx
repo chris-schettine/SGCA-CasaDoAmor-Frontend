@@ -9,7 +9,6 @@ import { useAcompanhantesPorPaciente } from "../../hooks/useAcompanhantes";
 import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import { toastError, toastWarn } from "../../utils/toast";
-import LoadingState from '../../components/LoadingState';
 import { CardSkeleton } from '../../components/SuspenseWrapper';
 
 const PatientInformation = () => {
@@ -120,7 +119,7 @@ const PatientInformation = () => {
   };
 
   if (loading) {
-    return <LoadingState message="Carregando paciente..." />;
+    return <CardSkeleton />;
   }
 
   return (

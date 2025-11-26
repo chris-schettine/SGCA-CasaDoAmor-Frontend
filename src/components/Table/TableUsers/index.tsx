@@ -6,8 +6,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Menu, MenuItem, Box, useMediaQuery, useTheme } from "@mui/material"
 import StandardTooltip from '../../StandardTooltip';
-import { TableSkeleton } from '../../SuspenseWrapper';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import type { UserResponseDTO } from '../../../api/admin.dto';
 import EmptyState from "../../EmptyState";
@@ -36,7 +35,8 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isNarrowDesktop = useMediaQuery(theme.breakpoints.down('lg'));
-  const useCardLayout = isTablet; // Avoid horizontal scroll on tablets by switching to cards
+  // Usa cards em tablet/mobile; desktops estreitos permanecem em tabela
+  const useCardLayout = isTablet;
   const cellTextSx = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -69,7 +69,7 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const [userToToggle, setUserToToggle] = useState<UserResponseDTO | null>(null);
 
   // 🚀 TanStack Query - substitui useState + useEffect
-  const { data, isLoading } = useUsers({ page, size: rowsPerPage, searchText: debouncedSearch });
+  const { data } = useUsers({ page, size: rowsPerPage, searchText: debouncedSearch });
   const toggleStatusMutation = useToggleUserStatus();
 
   const rows = data?.content ?? [];
@@ -92,6 +92,29 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
   const openFilter = Boolean(anchorElFilter);
   const handleOpenFilter = (e: React.MouseEvent<HTMLElement>) => setAnchorElFilter(e.currentTarget);
   const handleCloseFilter = () => setAnchorElFilter(null);
+
+  // Se detectarmos overflow horizontal na tabela, pedimos para fechar o drawer lateral para ganhar espaço
+  const tableContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const target = tableContainerRef.current;
+    if (!target) return;
+
+    const checkOverflow = () => {
+      if (target.scrollWidth > target.clientWidth + 4) {
+        window.dispatchEvent(new CustomEvent('sgca:close-drawer', { detail: { reason: 'table-overflow-users' } }));
+      }
+    };
+
+    checkOverflow();
+    const resizeObserver = new ResizeObserver(checkOverflow);
+    resizeObserver.observe(target);
+    window.addEventListener('resize', checkOverflow);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, []);
 
   const handleToggleClick = (user: UserResponseDTO) => {
     setUserToToggle(user);
@@ -131,14 +154,15 @@ const TableUsers = ({ searchText }: TableUsersProps) => {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: 2 }}>
-      <TableContainer sx={{ 
-        maxHeight: useCardLayout ? 'none' : 440,
-        overflowX: useCardLayout ? 'visible' : 'auto',
-        WebkitOverflowScrolling: 'touch'
-      }} >
-        {isLoading ? (
-          <TableSkeleton rows={10} />
-        ) : useCardLayout ? (
+      <TableContainer
+        ref={tableContainerRef}
+        sx={{ 
+          maxHeight: useCardLayout ? 'none' : 440,
+          overflowX: useCardLayout ? 'visible' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        {useCardLayout ? (
           <Box sx={{ p: 2 }}>
             {displayRows.length === 0 ? (
               <EmptyState

@@ -93,7 +93,7 @@ const PatientDetailsForm = (
       {/* Condição de chegada */}
       <Grid size={{ xs: 12 }}>
         <FormControl component="fieldset" error={!!errors.condicaoChegada} required>
-          <FormLabel component="legend" required>Condição de chegada</FormLabel>
+          <FormLabel component="legend" required aria-describedby="condicao-chegada-help">Condição de chegada</FormLabel>
           <Controller
             name="condicaoChegada"
             control={control}
@@ -107,7 +107,7 @@ const PatientDetailsForm = (
             )}
           />
           <div style={{ marginTop: 6 }}>
-            <small style={{ color: '#666' }}>Selecione como o paciente chegou ao local.</small>
+            <small id="condicao-chegada-help" style={{ color: '#666' }}>Selecione como o paciente chegou ao local.</small>
           </div>
           {errors.condicaoChegada && (
             <span style={{ color: 'red', fontSize: '0.8em', marginTop: '4px' }}>
@@ -120,7 +120,7 @@ const PatientDetailsForm = (
       {/* Faz uso de sonda? */}
       <Grid size={{ xs: 12 }}>
         <FormControl component="fieldset" error={!!errors.usoSonda}>
-          <FormLabel component="legend">Faz uso de sonda? *</FormLabel>
+          <FormLabel component="legend" aria-describedby="uso-sonda-help">Faz uso de sonda? *</FormLabel>
           <Controller
             name="usoSonda"
             control={control}
@@ -132,7 +132,7 @@ const PatientDetailsForm = (
             )}
           />
           <div style={{ marginTop: 6 }}>
-            <small style={{ color: '#666' }}>Se "Sim", informe abaixo o(s) tipo(s) de sonda utilizados.</small>
+            <small id="uso-sonda-help" style={{ color: '#666' }}>Se "Sim", informe abaixo o(s) tipo(s) de sonda utilizados.</small>
           </div>
           {errors.usoSonda && (
             <span style={{ color: 'red', fontSize: '0.8em', marginTop: '4px' }}>

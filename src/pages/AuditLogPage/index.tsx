@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -21,13 +21,14 @@ import {
   Chip,
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { adminService } from '../../api/admin.service';
-import type { TentativaLoginDTO, AuditPerfisResponseDTO } from '../../api/admin.dto';
+import type { TentativaLoginDTO } from '../../api/admin.dto';
 import LoadingState from '../../components/LoadingState';
+import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from '../../components/PageHeader';
 import MobileCard from '../../components/Table/MobileCard';
-
-// --- 1. TIPAGEM E DADOS MOCKADOS ---
+import { auditKeys } from '../../api/queries';
 
 interface AuditLogEntry {
   id: number;
@@ -48,67 +49,39 @@ const columns = [
   { id: 'resultado', label: 'Resultado', minWidth: 80, align: 'center' as const },
 ];
 
-// --- 2. COMPONENTE PRINCIPAL ---
-
-export const AuditLogContent = () => {
+const AuditLogContent = () => {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<AuditLogEntry[]>([]);
-  
+
   // Estados dos Filtros
   const [filterUsuario, setFilterUsuario] = useState('');
   const [filterTipoAcao, setFilterTipoAcao] = useState('');
   const [filterResultado, setFilterResultado] = useState('');
 
-  // Simular carregamento inicial dos dados
-  useEffect(() => {
-    let mounted = true;
+  const { data } = useSuspenseQuery({
+    queryKey: auditKeys.logins(),
+    queryFn: () => adminService.getAuditPerfis(),
+    staleTime: 1000 * 60 * 5,
+  });
 
-    (async () => {
-      try {
-        const data: AuditPerfisResponseDTO = await adminService.getAuditPerfis();
+  const logs = useMemo<AuditLogEntry[]>(() => {
+    const tentativas: TentativaLoginDTO[] = data.relatorioLogins?.tentativas || [];
+    return tentativas.map((t) => ({
+      id: t.id,
+      dataHora: t.dataTentativa ? new Date(t.dataTentativa).toLocaleString() : '',
+      usuario: t.usuario?.nome || (t.cpf ? `CPF: ${t.cpf}` : 'Anônimo'),
+      tipoAcao: t.sucesso ? 'LOGIN' : 'FALHA_ACESSO',
+      objetoAfetado: t.ipOrigem || t.userAgent || 'N/A',
+      resultado: t.sucesso ? 'SUCESSO' : 'FALHA',
+      motivoFalha: t.motivoFalha ?? null,
+      ipOrigem: t.ipOrigem ?? null,
+    }));
+  }, [data]);
 
-        // Map backend 'tentativas' -> AuditLogEntry
-        const tentativas: TentativaLoginDTO[] = data.relatorioLogins?.tentativas || [];
-        const mapped: AuditLogEntry[] = tentativas.map((t) => ({
-          id: t.id,
-          dataHora: t.dataTentativa ? new Date(t.dataTentativa).toLocaleString() : '',
-          usuario: t.usuario?.nome || (t.cpf ? `CPF: ${t.cpf}` : 'Anônimo'),
-          tipoAcao: t.sucesso ? 'LOGIN' : 'FALHA_ACESSO',
-          objetoAfetado: t.ipOrigem || t.userAgent || 'N/A',
-          resultado: t.sucesso ? 'SUCESSO' : 'FALHA',
-          motivoFalha: t.motivoFalha ?? null,
-          ipOrigem: t.ipOrigem ?? null,
-        }));
-
-        if (!mounted) return;
-        setLogs(mapped);
-        setFilteredLogs(mapped);
-      } catch (err) {
-        console.error('Erro ao carregar auditoria:', err);
-        // keep UI usable — mostrar vazio
-        if (!mounted) return;
-        setLogs([]);
-        setFilteredLogs([]);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Lógica de Filtragem (Executada sempre que os filtros mudam)
-  useEffect(() => {
+  const filteredLogs = useMemo(() => {
     let result = logs;
-
     if (filterUsuario) {
       result = result.filter(log => log.usuario.toLowerCase().includes(filterUsuario.toLowerCase()));
     }
@@ -118,11 +91,10 @@ export const AuditLogContent = () => {
     if (filterResultado) {
       result = result.filter(log => log.resultado === filterResultado);
     }
-    
-    setFilteredLogs(result);
-    setPage(0);
+    return result;
   }, [logs, filterUsuario, filterTipoAcao, filterResultado]);
 
+  const currentLogs = filteredLogs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -170,220 +142,157 @@ export const AuditLogContent = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return <LoadingState message="Carregando logs de auditoria..." />;
-  }
-
-  const currentLogs = filteredLogs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-
   return (
-      <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
-        <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
-      <PageHeader 
-        title="📋 Logs de Auditoria do Sistema"
-      />
+    <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
+      <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
+        <PageHeader 
+          title="📋 Logs de Auditoria do Sistema"
+        />
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h2" gutterBottom>Filtros</Typography>
-        
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-end' }}>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h2" gutterBottom>Filtros</Typography>
+          
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-end' }}>
 
-          {/* Filtro por Usuário */}
-          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
-            <TextField
-              fullWidth
-              label="Buscar por Usuário"
-              value={filterUsuario}
-              onChange={(e) => setFilterUsuario(e.target.value)}
-              variant="outlined"
-            />
-          </Box>
+            {/* Filtro por Usuário */}
+            <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
+              <TextField
+                fullWidth
+                label="Buscar por Usuário"
+                value={filterUsuario}
+                onChange={(e) => setFilterUsuario(e.target.value)}
+                variant="outlined"
+              />
+            </Box>
 
-          {/* Filtro por Tipo de Ação - CORRIGIDO com InputLabel shrink */}
-          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
-            <FormControl
-              fullWidth
-              variant="outlined"
-              sx={{
-                backgroundColor: theme.palette.background.paper,
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: theme.palette.background.paper,
-                  color: theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme.palette.text.primary,
-                },
-              }}
-            >
-              {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
-              <InputLabel id="audit-tipo-label" shrink={filterTipoAcao !== ''}>Tipo de Ação</InputLabel>
-              <Select
-                labelId="audit-tipo-label"
-                value={filterTipoAcao}
-                onChange={(e) => setFilterTipoAcao(e.target.value)}
-                label="Tipo de Ação"
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="LOGIN">Login</MenuItem>
-                <MenuItem value="CRIACAO">Criação de Dado</MenuItem>
-                <MenuItem value="ALTERACAO">Alteração de Dado</MenuItem>
-                <MenuItem value="EXCLUSAO">Exclusão de Dado</MenuItem>
-                <MenuItem value="FALHA_ACESSO">Falha de Acesso</MenuItem>
-                <MenuItem value="PERMISSAO">Permissão Alterada</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+            {/* Filtro por Tipo de Ação */}
+            <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
+              <FormControl fullWidth>
+                <InputLabel id="tipo-acao-label">Tipo de Ação</InputLabel>
+                <Select
+                  labelId="tipo-acao-label"
+                  value={filterTipoAcao}
+                  label="Tipo de Ação"
+                  onChange={(e) => setFilterTipoAcao(e.target.value)}
+                >
+                  <MenuItem value="">Todas</MenuItem>
+                  <MenuItem value="LOGIN">Login</MenuItem>
+                  <MenuItem value="FALHA_ACESSO">Falha de Acesso</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
-          {/* Filtro por Resultado - CORRIGIDO com InputLabel shrink */}
-          <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
-            <FormControl
-              fullWidth
-              variant="outlined"
-              sx={{
-                backgroundColor: theme.palette.background.paper,
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: theme.palette.background.paper,
-                  color: theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme.palette.text.primary,
-                },
-              }}
-            >
-              {/* Força a label a se comportar como se o campo estivesse preenchido/focado */}
-              <InputLabel id="audit-resultado-label" shrink={filterResultado !== ''}>Resultado</InputLabel>
-              <Select
-                labelId="audit-resultado-label"
-                value={filterResultado}
-                onChange={(e) => setFilterResultado(e.target.value)}
-                label="Resultado"
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="SUCESSO">Sucesso</MenuItem>
-                <MenuItem value="FALHA">Falha</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+            {/* Filtro por Resultado */}
+            <Box sx={{ width: { xs: '100%', sm: '33.333%' } }}>
+              <FormControl fullWidth>
+                <InputLabel id="resultado-label">Resultado</InputLabel>
+                <Select
+                  labelId="resultado-label"
+                  value={filterResultado}
+                  label="Resultado"
+                  onChange={(e) => setFilterResultado(e.target.value)}
+                >
+                  <MenuItem value="">Todos</MenuItem>
+                  <MenuItem value="SUCESSO">Sucesso</MenuItem>
+                  <MenuItem value="FALHA">Falha</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
-          {/* Botão de Exportação */}
-          <Box sx={{ width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="contained"
-                startIcon={<FileDownloadIcon />}
-                onClick={handleExport}
-                disabled={filteredLogs.length === 0}
-              >
-                Exportar ({filteredLogs.length})
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={handleExport}>
+                Exportar CSV
+              </Button>
+              <Button variant="outlined" onClick={() => { setFilterUsuario(''); setFilterTipoAcao(''); setFilterResultado(''); }}>
+                Limpar Filtros
               </Button>
             </Box>
           </Box>
-        </Box>
-      </Paper>
+        </Paper>
 
-      {/* Tabela de Logs */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        {isTablet ? (
-          <Box sx={{ p: 2 }}>
-            {currentLogs.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography>Nenhum log encontrado com os filtros aplicados.</Typography>
-              </Box>
-            ) : (
-              currentLogs.map((log) => (
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+          {isTablet ? (
+            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {currentLogs.length === 0 ? (
+                <Typography variant="body1">Nenhum registro encontrado.</Typography>
+              ) : currentLogs.map((log) => (
                 <MobileCard
                   key={log.id}
                   title={log.usuario}
                   subtitle={log.dataHora}
                   fields={[
                     { label: 'Ação', value: log.tipoAcao },
+                    { label: 'Resultado', value: log.resultado },
                     { label: 'Objeto', value: log.objetoAfetado },
-                    { 
-                      label: 'Resultado', 
-                      value: log.resultado === 'SUCESSO' 
-                        ? <Chip label="Sucesso" color="success" size="small" /> 
-                        : <Chip label="Falha" color="error" size="small" />
-                    },
-                    ...(log.motivoFalha ? [{ label: 'Motivo', value: log.motivoFalha }] : []),
-                    ...(log.ipOrigem ? [{ label: 'IP', value: log.ipOrigem }] : []),
+                    { label: 'IP Origem', value: log.ipOrigem || '—' },
                   ]}
+                  actions={
+                    <Chip
+                      label={log.resultado}
+                      color={log.resultado === 'SUCESSO' ? 'success' : 'error'}
+                      size="small"
+                    />
+                  }
                 />
-              ))
-            )}
-          </Box>
-        ) : (
-          <TableContainer sx={{ maxHeight: 600 }}>
-            <Table stickyHeader aria-label="logs de auditoria">
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      style={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {currentLogs.length === 0 ? (
+              ))}
+            </Box>
+          ) : (
+            <TableContainer sx={{ maxHeight: 600 }}>
+              <Table stickyHeader aria-label="Tabela de Logs de Auditoria">
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={columns.length} align="center">
-                      Nenhum log encontrado com os filtros aplicados.
-                    </TableCell>
+                    {columns.map((column) => (
+                      <TableCell key={column.id} style={{ minWidth: column.minWidth }} align={column.align}>
+                        {column.label}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ) : (
-                  currentLogs.map((log) => (
-                    <TableRow hover tabIndex={-1} key={log.id}>
-                      {columns.map((column) => {
-                        const value = log[column.id as keyof AuditLogEntry];
-                        return (
-                          <TableCell key={column.id} align={column.align}>
-                            {value}
-                          </TableCell>
-                        );
-                      })}
+                </TableHead>
+                <TableBody>
+                  {currentLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} align="center">
+                        <Typography variant="body1">Nenhum registro encontrado.</Typography>
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-        
-        {/* Paginação */}
-        <TablePagination
-          rowsPerPageOptions={isTablet ? [10, 25] : [10, 25, 50]}
-          component="div"
-          count={filteredLogs.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage={isTablet ? "Por página:" : "Logs por página:"}
-          labelDisplayedRows={({ from, to, count }) =>
-            isTablet 
-              ? `${from}-${to} de ${count}`
-              : `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-          }
-          sx={{
-            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-            },
-            '.MuiTablePagination-select': {
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-            },
-          }}
-        />
-      </Paper>
-        </Box>
+                  ) : currentLogs.map((log) => (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={log.id}>
+                      <TableCell>{log.dataHora}</TableCell>
+                      <TableCell>{log.usuario}</TableCell>
+                      <TableCell>{log.tipoAcao}</TableCell>
+                      <TableCell>{log.objetoAfetado}</TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={log.resultado}
+                          color={log.resultado === 'SUCESSO' ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredLogs.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
       </Box>
+    </Box>
   );
 };
 
-export const AuditLogPage = () => <AuditLogContent />;
+const AuditLogPage = () => (
+  <Suspense fallback={<TableSkeleton rows={8} />}>
+    <AuditLogContent />
+  </Suspense>
+);
 
 export default AuditLogPage;

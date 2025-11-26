@@ -28,6 +28,7 @@ interface ConfirmationDialogProps {
   confirmButtonText?: string;
   cancelButtonText?: string;
   confirmButtonProps?: ButtonProps;
+  dialogTitleId?: string;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -39,16 +40,18 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   confirmButtonText = 'Confirmar', // Default text
   cancelButtonText = 'Cancelar',   // Default text
   confirmButtonProps,
+  dialogTitleId = 'confirmation-dialog-title',
 }) => {
   return (
     <BootstrapDialog
       onClose={onClose}
-      aria-labelledby="confirmation-dialog-title"
+      aria-labelledby={dialogTitleId}
       open={open}
       maxWidth="sm" // Ajuste o tamanho conforme necessário
       fullWidth
+      disableEnforceFocus={false}
     >
-      <DialogTitle sx={{ m: 0, p: 2 }} id="confirmation-dialog-title">
+      <DialogTitle sx={{ m: 0, p: 2 }} id={dialogTitleId}>
         {title}
       </DialogTitle>
       <IconButton
@@ -63,16 +66,23 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       >
         <CloseIcon />
       </IconButton>
-      <DialogContent dividers>
+      <DialogContent dividers aria-live="polite">
         <Typography gutterBottom>
           {message}
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button autoFocus onClick={onConfirm} variant="contained" color="primary" {...confirmButtonProps}>
+        <Button
+          autoFocus
+          onClick={onConfirm}
+          variant="contained"
+          color="primary"
+          data-testid="dialog-confirm"
+          {...confirmButtonProps}
+        >
           {confirmButtonText}
         </Button>
-        <Button onClick={onClose} color="error" variant="outlined">
+        <Button onClick={onClose} color="error" variant="outlined" data-testid="dialog-cancel">
           {cancelButtonText}
         </Button>
       </DialogActions>

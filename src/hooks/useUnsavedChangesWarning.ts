@@ -6,9 +6,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
  * @param isDirty - Indica se há mudanças não salvas no formulário (do react-hook-form)
  * @param message - Mensagem customizada (opcional)
  */
+interface UnsavedChangesOptions {
+  includeRouteGuard?: boolean;
+}
+
 export const useUnsavedChangesWarning = (
   isDirty: boolean,
-  message: string = 'Você tem alterações não salvas. Tem certeza que deseja sair?'
+  message: string = 'Você tem alterações não salvas. Tem certeza que deseja sair?',
+  options: UnsavedChangesOptions = {}
 ) => {
   useEffect(() => {
     // Alerta quando o usuário tenta fechar a aba/navegador
@@ -26,6 +31,23 @@ export const useUnsavedChangesWarning = (
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isDirty, message]);
+
+  useEffect(() => {
+    if (!options.includeRouteGuard) return;
+    const handlePopState = (event: PopStateEvent) => {
+      if (!isDirty) return;
+      const confirmLeave = window.confirm(message);
+      if (!confirmLeave) {
+        event.preventDefault?.();
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isDirty, message, options.includeRouteGuard]);
 };
 
 /**

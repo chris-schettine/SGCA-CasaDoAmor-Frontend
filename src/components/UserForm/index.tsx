@@ -167,6 +167,7 @@ const UserForm = (
                       onChange={handleTipoChange}
                       onBlur={field.onBlur}
                       name={field.name}
+                      aria-describedby="tipo-profissional-help"
                     >
                       <MenuItem value={"ADMINISTRADOR"}>Administrador</MenuItem>
                       <MenuItem value={"DENTISTA"}>Dentista</MenuItem>
@@ -177,6 +178,9 @@ const UserForm = (
                       <MenuItem value={"RECEPCIONISTA"}>Recepcionista</MenuItem>
                       <MenuItem value={"AUDITOR"}>Auditor</MenuItem>
                     </Select>
+                    <FormHelperText id="tipo-profissional-help">
+                      Selecione o tipo para habilitar campos específicos (registro/RQE) quando necessário.
+                    </FormHelperText>
                     {errors.tipo && <FormHelperText sx={{ maxHeight: 0, margin: '0 0.2em' }}>{errors.tipo.message}</FormHelperText>}
                   </FormControl>
 
@@ -205,7 +209,11 @@ const UserForm = (
                               InputLabelProps={{ shrink: !!watch('registro'), required: showRegistro }} 
                               required={showRegistro}
                               disabled={!!disabledFields?.registro} 
+                              aria-describedby="registro-profissional-help"
                             />
+                            <FormHelperText id="registro-profissional-help" sx={{ mt: 0.5 }}>
+                              Informe o registro profissional quando o tipo exigir (CRM, COREN, etc.).
+                            </FormHelperText>
                           </Box>
                         </Grid>
                       </Grid>
@@ -294,7 +302,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o email"
-            autoComplete="email"
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
@@ -318,16 +325,15 @@ const UserForm = (
                   <MaskedTextField
                     {...field}
                     id="telefone"
-                    label="Telefone"
-                    variant="outlined"
-                    fullWidth
-                    placeholder="00 00000-0000"
-                    autoComplete="tel"
-                    error={!!errors.telefone}
-                    helperText={errors.telefone?.message}
-                    mask="00 00000-0000"
-                    lazy={true}
-                    InputLabelProps={{ required: true }}
+                label="Telefone"
+                variant="outlined"
+                fullWidth
+                placeholder="00 00000-0000"
+                error={!!errors.telefone}
+                helperText={errors.telefone?.message}
+                mask="00 00000-0000"
+                lazy={true}
+                InputLabelProps={{ required: true }}
                     required
                   />
                 )}
@@ -342,7 +348,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Digite o nome completo"
-            autoComplete="name"
             {...register("nomeUsuario")}
             disabled={!!disabledFields?.nomeUsuario}
             error={!!errors.nomeUsuario}
@@ -372,7 +377,6 @@ const UserForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="000.000.000-00"
-                autoComplete="off"
                 error={!!errors.cpfUsuario}
                 helperText={errors.cpfUsuario?.message}
                 mask="000.000.000-00"
@@ -413,7 +417,7 @@ const UserForm = (
             placeholder="Naturalidade"
             {...register("naturalidade")}
             error={!!errors.naturalidade}
-            helperText={errors.naturalidade?.message}
+            helperText={errors.naturalidade?.message || 'Opcional'}
             InputLabelProps={{ shrink: !!watch('naturalidade') }}
           />
         </Grid>
@@ -426,7 +430,7 @@ const UserForm = (
             placeholder="Estado Civil"
             {...register("estadoCivil")}
             error={!!errors.estadoCivil}
-            helperText={errors.estadoCivil?.message}
+            helperText={errors.estadoCivil?.message || 'Opcional'}
             InputLabelProps={{ shrink: !!watch('estadoCivil') }}
           />
         </Grid>
@@ -445,7 +449,6 @@ const UserForm = (
                 variant="outlined"
                 fullWidth
                 placeholder="00000-000"
-                autoComplete="postal-code"
                 error={!!errors.cep}
                 helperText={errors.cep?.message}
                 mask="00000-000"
@@ -463,7 +466,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Endereço"
-            autoComplete="address-line1"
             {...register("endereco")}
             error={!!errors.endereco}
             helperText={errors.endereco?.message}
@@ -478,7 +480,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Bairro"
-            autoComplete="address-level3"
             {...register("bairro")}
             error={!!errors.bairro}
             helperText={errors.bairro?.message}
@@ -493,7 +494,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Cidade"
-            autoComplete="address-level2"
             {...register("cidade")}
             error={!!errors.cidade}
             helperText={errors.cidade?.message}
@@ -508,7 +508,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Estado"
-            autoComplete="address-level1"
             {...register("estado")}
             error={!!errors.estado}
             helperText={errors.estado?.message}
@@ -523,7 +522,6 @@ const UserForm = (
             variant="outlined"
             fullWidth
             placeholder="Número"
-            autoComplete="off"
             {...register("numero")}
             error={!!errors.numero}
             helperText={errors.numero?.message}
