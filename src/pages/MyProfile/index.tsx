@@ -696,7 +696,7 @@ const MyProfilePage = () => {
 
             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
               <Button
-                variant="outlined"
+                variant="contained" 
                 color="primary"
                 type="submit"
                 disabled={isPwSubmitting}
