@@ -3,6 +3,7 @@ import { Box, Typography, Link, Grid, Stack, alpha } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import PhoneIcon from '@mui/icons-material/Phone';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { ConsentManageLink } from '../../consent/components/ConsentManageLink/ConsentManageLink';
 import { useDesignTokens } from '../../design-tokens/utils';
 
@@ -62,6 +63,7 @@ const Footer = () => {
     const baseTextColor = '#ffffff';
     const mutedTextColor = 'rgba(255,255,255,0.8)';
 
+    
     return (
         <Box
             component="footer"
@@ -194,11 +196,44 @@ const Footer = () => {
                                     Instagram
                                 </FooterLink>
                                 <FooterLink href="tel:+557734219660" icon={<PhoneIcon sx={{ fontSize: 18 }} />}>
-                                    Telefone
+                                    (77) 3421-9660
                                 </FooterLink>
                                 <FooterLink href="https://wa.me/5577999463319" icon={<WhatsAppIcon sx={{ fontSize: 18 }} />} external>
                                     WhatsApp
                                 </FooterLink>
+                                <Box sx={{ mt: 2.5 }}> 
+                                    <Link
+                                        href="https://maps.app.goo.gl/kLbx8omaLYNBxww9A?g_st=aw" 
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        color="inherit"
+                                        underline="none"
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start', 
+                                            gap: 1,
+                                            opacity: 0.7,
+                                            fontSize: '0.85rem',
+                                            lineHeight: 1.5, 
+                                            transition: 'opacity 0.2s, color 0.2s',
+                                            '&:hover': {
+                                                opacity: 1,
+                                                color: (theme) => theme.custom.brandColors.secondary[500],
+                                            },
+                                        }}
+                                    >
+                                        <LocationOnIcon sx={{ fontSize: 18, mt: 0.3 }} />
+
+                                        <Box component="span">
+                                            R. O, 30 - Boa Vista,<br />
+                                            Vitória da Conquista - BA<br />
+                                            <Typography component="span" variant="caption" sx={{ opacity: 0.8 }}>
+                                                CEP 45055-315
+                                            </Typography>
+                                        </Box>
+                                    </Link>
+                                </Box>
+
                             </Stack>
                         </Grid>
 
