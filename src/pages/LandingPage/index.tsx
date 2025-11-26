@@ -75,17 +75,16 @@ const LandingPage = () => {
                         </Stack>
                         
                         <Button 
-                            variant="contained" 
+                            variant="text" 
                             startIcon={<LoginIcon />}
                             onClick={() => navigate('/login')}
                             aria-label="Acessar área restrita do sistema"
                             sx={{ 
                                 fontWeight: 600,
-                                backgroundColor: `${primaryBlue} !important`,
-                                color: `${theme.palette.getContrastText(primaryBlue)} !important`,
-                                WebkitTextFillColor: `${theme.palette.getContrastText(primaryBlue)} !important`,
-                                boxShadow: theme.shadows[1],
-                                '&:hover': { bgcolor: `${theme.palette.primary.dark} !important`, boxShadow: theme.shadows[3] } 
+                                color: primaryBlue, // Cor do texto igual à cor primária
+                                '&:hover': { 
+                                    bgcolor: alpha(primaryBlue, 0.08) // Fundo sutil apenas ao passar o mouse
+                                }
                             }}
                         >
                             Acessar Sistema
