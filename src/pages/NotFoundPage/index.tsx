@@ -1,90 +1,112 @@
-import { css } from "@emotion/react";
-
-const darkBlue = "#0D2E4D";
-const primaryBlue = "#65ACD6"; 
-
-const stylesLogo = css({
-  height: "60px", 
-  width: "auto",
-  marginBottom: "20px",
-});
-
-// Estilo do container principal: Centraliza verticalmente e adiciona sombra
-const stylesContainer = css({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "column",
-  padding: "40px 20px",
-  textAlign: "center",
-  minHeight: "80vh", 
-  backgroundColor: "#fff", 
-  // NOVO: Estilo para harmonizar com os cards do sistema
-  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.07)",
-  borderRadius: "12px",
-  margin: "50px auto", // Centraliza o bloco na tela
-  maxWidth: "500px",
-});
-
-// Estilo do número 404 (Visual de destaque)
-const styles404 = css({
-  fontSize: "6rem",
-  fontWeight: 900,
-  color: primaryBlue,
-  margin: "0 0 10px 0",
-  textShadow: `0 4px 10px ${primaryBlue}50`,
-  "@media (max-width: 600px)": {
-    fontSize: "4rem",
-  },
-});
-
-// Estilo do botão CTA
-const stylesButton = css({
-  backgroundColor: primaryBlue,
-  color: "#fff",
-  border: "none",
-  padding: "12px 30px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  marginTop: "25px",
-  fontSize: "1.1rem",
-  fontWeight: 700,
-  textDecoration: "none", 
-  transition: "background-color 0.3s, transform 0.2s",
-  "&:hover": {
-    backgroundColor: "#5697c1", 
-    transform: "translateY(-3px)", 
-  },
-});
-
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Button, 
+  useTheme, 
+  alpha 
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import HomeIcon from '@mui/icons-material/Home'; 
 
 const NotFoundPage = () => {
-  const homePath = "/patients"; 
+  const theme = useTheme();
+  const navigate = useNavigate();
+
+  const logoSrc = theme.palette.mode === 'dark' ? '/logo3branco.png' : '/logo3.png';
 
   return (
-    <div css={stylesContainer}>
-      
-      {/* 1. NOVO: Logo do Sistema para branding */}
-      <img src="/logo3.png" alt="Logo do Sistema SGCA" css={stylesLogo} />
-      
-      {/* 2. Número 404 */}
-      <h1 css={styles404}>404</h1>
-      
-      <h2 style={{ color: darkBlue, margin: "0 0 15px 0", fontWeight: 700, fontSize: "2rem" }}>
-        Página não encontrada
-      </h2>
-      
-      {/* 3. Mensagem instrutiva */}
-      <p style={{ color: darkBlue, fontSize: "1.1rem", maxWidth: "400px" }}>
-        Ops! Parece que você tentou acessar uma URL que não existe no sistema. Por favor, utilize o botão abaixo.
-      </p>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: theme.palette.background.default,
+        p: 2,
+      }}
+    >
+      <Container maxWidth="sm" sx={{ textAlign: "center" }}>
 
-      {/* 4. CTA para usabilidade */}
-      <a href={homePath} css={stylesButton} aria-label="Voltar para a página inicial">
-        Voltar para a Dashboard
-      </a>
-    </div>
-  )
-}
+        <Box
+          component="img"
+          src={logoSrc}
+          alt="Logo do Sistema SGCA"
+          sx={{
+            height: { xs: 50, md: 70 },
+            width: "auto",
+            mb: 4,
+          }}
+        />
+
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: { xs: "6rem", md: "9rem" },
+            fontWeight: 900,
+            lineHeight: 1,
+            mb: 1,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: `drop-shadow(0 4px 20px ${alpha(theme.palette.primary.main, 0.3)})`
+          }}
+        >
+          404
+        </Typography>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            color: theme.palette.text.primary, 
+            fontWeight: 700, 
+            mb: 2 
+          }}
+        >
+          Página não encontrada
+        </Typography>
+
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: theme.palette.text.secondary, 
+            fontSize: "1.1rem", 
+            maxWidth: "400px",
+            mx: "auto",
+            mb: 5
+          }}
+        >
+          Ops! Parece que você tentou acessar uma URL que não existe ou foi movida.
+        </Typography>
+
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<HomeIcon />}
+          onClick={() => navigate('/patients')} 
+          sx={{
+            bgcolor: theme.palette.primary.main,
+            color: '#fff',
+            fontWeight: 'bold',
+            px: 4,
+            py: 1.5,
+            borderRadius: 2,
+            boxShadow: theme.shadows[4],
+            textTransform: 'none',
+            fontSize: '1rem',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              bgcolor: theme.palette.primary.dark,
+              transform: 'translateY(-2px)',
+              boxShadow: theme.shadows[8],
+            },
+          }}
+        >
+          Voltar para a Dashboard
+        </Button>
+
+      </Container>
+    </Box>
+  );
+};
 
 export default NotFoundPage;
