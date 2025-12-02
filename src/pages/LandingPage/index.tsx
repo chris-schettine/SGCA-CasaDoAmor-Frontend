@@ -87,16 +87,18 @@ const LandingPage = () => {
                         </Stack>
                         
                         <Button 
-                            variant="text" 
+                            variant="contained" 
                             startIcon={<LoginIcon />}
                             onClick={() => navigate('/login')}
                             aria-label="Acessar área restrita do sistema"
                             sx={{ 
                                 fontWeight: 600,
-                                color: primaryBlue,
+                                bgcolor: primaryBlue,
+                                color: '#fff',
                                 '&:hover': { 
-                                    bgcolor: alpha(primaryBlue, 0.08)
-                                }
+                                    bgcolor: theme.palette.primary.dark
+                                },
+                                boxShadow: `0 2px 8px ${alpha(primaryBlue, 0.3)}`
                             }}
                         >
                             Acessar Sistema
@@ -165,15 +167,18 @@ const LandingPage = () => {
                             size="large"
                             onClick={() => navigate('/login')}
                             sx={{ 
-                                bgcolor: `${primaryBlue} !important`, 
-                                color: `${theme.palette.getContrastText(primaryBlue)} !important`,
-                                WebkitTextFillColor: `${theme.palette.getContrastText(primaryBlue)} !important`,
-                                '&:hover': { bgcolor: `${theme.palette.primary.dark} !important` },
+                                bgcolor: theme.palette.mode === 'dark' ? '#fff' : primaryBlue, 
+                                color: theme.palette.mode === 'dark' ? primaryBlue : '#fff',
+                                '&:hover': { 
+                                    bgcolor: theme.palette.mode === 'dark' ? alpha('#fff', 0.9) : theme.palette.primary.dark 
+                                },
                                 fontWeight: 'bold',
                                 px: 5,
                                 py: 1.5,
                                 fontSize: '1.1rem',
-                                boxShadow: `0 4px 14px 0 ${alpha(primaryBlue, 0.5)}`
+                                boxShadow: theme.palette.mode === 'dark' 
+                                    ? `0 4px 14px 0 ${alpha('#fff', 0.4)}`
+                                    : `0 4px 14px 0 ${alpha(primaryBlue, 0.5)}`
                             }}
                         >
                             Acessar Sistema

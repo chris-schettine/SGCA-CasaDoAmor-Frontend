@@ -331,10 +331,10 @@ function LayoutShell() {
     const handleLogout = async () => {
         try {
             await logout();
-            navigate("/login", { replace: true });
+            navigate("/", { replace: true });
         } catch (error) {
             console.error('[Layout] Erro ao fazer logout:', error);
-            navigate("/login", { replace: true });
+            navigate("/", { replace: true });
         }
     };
 

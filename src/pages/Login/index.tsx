@@ -289,7 +289,9 @@ const LoginContent = () => {
                 color: theme.palette.text.primary,
                 WebkitTextFillColor: theme.palette.text.primary,
                 opacity: 1,
-                '&.Mui-focused': { color: theme.palette.text.primary },
+                '&.Mui-focused': { 
+                  color: isDark ? tokens.brandColors.primary[300] : theme.palette.primary.main 
+                },
               },
             }}
             sx={{ 
@@ -299,7 +301,19 @@ const LoginContent = () => {
                 color: theme.palette.text.primary,
                 WebkitTextFillColor: theme.palette.text.primary,
                 opacity: 1,
-              }
+              },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: isDark ? alpha(tokens.brandColors.primary[300], 0.3) : 'rgba(0, 0, 0, 0.23)',
+                },
+                '&:hover fieldset': {
+                  borderColor: isDark ? alpha(tokens.brandColors.primary[300], 0.5) : 'rgba(0, 0, 0, 0.87)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: isDark ? tokens.brandColors.primary[300] : theme.palette.primary.main,
+                  borderWidth: 2,
+                },
+              },
             }}
           />
 
@@ -320,7 +334,9 @@ const LoginContent = () => {
                 color: theme.palette.text.primary,
                 WebkitTextFillColor: theme.palette.text.primary,
                 opacity: 1,
-                '&.Mui-focused': { color: theme.palette.text.primary },
+                '&.Mui-focused': { 
+                  color: isDark ? tokens.brandColors.primary[300] : theme.palette.primary.main 
+                },
               },
             }}
             sx={{ 
@@ -330,7 +346,19 @@ const LoginContent = () => {
                 color: theme.palette.text.primary,
                 WebkitTextFillColor: theme.palette.text.primary,
                 opacity: 1,
-              }
+              },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: isDark ? alpha(tokens.brandColors.primary[300], 0.3) : 'rgba(0, 0, 0, 0.23)',
+                },
+                '&:hover fieldset': {
+                  borderColor: isDark ? alpha(tokens.brandColors.primary[300], 0.5) : 'rgba(0, 0, 0, 0.87)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: isDark ? tokens.brandColors.primary[300] : theme.palette.primary.main,
+                  borderWidth: 2,
+                },
+              },
             }}
             InputProps={{ 
               endAdornment: (
