@@ -64,9 +64,9 @@ export default function AddressSection({ control, register, errors, watch, onCep
         <Controller
           name="endereco.numero"
           control={control}
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field: { value, onChange, onBlur, ref } }) => (
             <TextField
-              {...field}
+              inputRef={ref}
               id="endereco.numero"
               label="Número"
               variant="outlined"
@@ -75,8 +75,17 @@ export default function AddressSection({ control, register, errors, watch, onCep
               placeholder="000"
               value={value ?? ''}
               onChange={(e) => {
-                onChange(e);
+                const rawValue = e.target.value;
+                if (rawValue === '') {
+                  onChange(undefined);
+                } else {
+                  const numValue = parseInt(rawValue, 10);
+                  if (!isNaN(numValue)) {
+                    onChange(numValue);
+                  }
+                }
               }}
+              onBlur={onBlur}
             />
           )}
         />

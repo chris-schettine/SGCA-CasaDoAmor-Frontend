@@ -12,6 +12,9 @@ const dadoPessoalSchema = z.object({
   nome: requiredString,
   nomeMae: z.string().trim().optional(),
   dataNascimento: z.string().min(1, "Data de nascimento é obrigatória"),
+  sexo: z.enum(["MASCULINO", "FEMININO", "NAO_INFORMADO"], {
+    errorMap: () => ({ message: "Selecione o sexo." }),
+  }),
   cpf: cpfSchema,
   rg: rgSchema.optional(),
   naturalidade: z.string().trim().optional(),

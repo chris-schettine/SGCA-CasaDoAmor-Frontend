@@ -99,6 +99,32 @@ export default function PersonalInfo({ register, errors, watch, control }: Props
 
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <Controller
+          name="dadoPessoal.sexo"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              value={field.value ?? ''}
+              id="dadoPessoal.sexo"
+              label="Sexo *"
+              variant="outlined"
+              fullWidth
+              select
+              error={!!errors.dadoPessoal?.sexo}
+              helperText={errors.dadoPessoal?.sexo?.message}
+              slotProps={{ formHelperText: { sx: { minHeight: '1.25em', margin: '0 0.2em' } } }}
+            >
+              <MenuItem value="">Selecione</MenuItem>
+              <MenuItem value="MASCULINO">Masculino</MenuItem>
+              <MenuItem value="FEMININO">Feminino</MenuItem>
+              <MenuItem value="NAO_INFORMADO">Não Informado</MenuItem>
+            </TextField>
+          )}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Controller
           name="dadoPessoal.rg"
           control={control}
           render={({ field }) => (
