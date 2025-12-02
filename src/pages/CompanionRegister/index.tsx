@@ -42,6 +42,7 @@ const CompanionRegisterPage = () => {
       nome: "",
       nomeMae: "",
       dataNascimento: "",
+      sexo: "NAO_INFORMADO" as const,
       cpf: "",
       rg: "",
       naturalidade: "",
@@ -140,6 +141,7 @@ const CompanionRegisterPage = () => {
           nome: data.dadoPessoal.nome,
           nomeMae: data.dadoPessoal.nomeMae || "",
           dataNascimento: data.dadoPessoal.dataNascimento ? formatDateToISO(data.dadoPessoal.dataNascimento) : "",
+          sexo: data.dadoPessoal.sexo,
           cpf: data.dadoPessoal.cpf,
           rg: data.dadoPessoal.rg || "",
           naturalidade: data.dadoPessoal.naturalidade || "",
@@ -177,6 +179,9 @@ const CompanionRegisterPage = () => {
 
   const onError = (errors: FieldErrors<CompanionFormInputs>) => {
     console.log("Erros de validação do Acompanhante:", errors);
+    // Debug: ver o valor atual do campo numero
+    const currentNumero = watch('endereco.numero');
+    console.log('[Debug] Valor atual de endereco.numero:', currentNumero, 'tipo:', typeof currentNumero);
     toastError("Por favor, corrija os erros no formulário do acompanhante.");
     setOpenSaveDialog(false);
   };
