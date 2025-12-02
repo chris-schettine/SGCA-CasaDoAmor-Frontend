@@ -23,6 +23,11 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GroupsIcon from '@mui/icons-material/Groups';
 import Footer from '../../components/Footer';
+import maisaPhoto from '/developers/maisa.png';
+import christianPhoto from '/developers/christian.jpg';
+import cauePhoto from '/developers/caue.jpeg';
+import edsonPhoto from '/developers/edson.jpeg';
+import matheusPhoto from '/developers/matheus.jpeg';
 
 
 // Função para gerar cores dinâmicas para Avatares 
@@ -40,13 +45,13 @@ const stringToColor = (str: string) => {
 };
 
 const developers = [
-    { name: "Maísa Soares Dos Santos Lopes", role: "Orientadora", github: "#", linkedin: "https://www.linkedin.com/in/ma%C3%ADsa-soares-dos-santos-lopes-201192303/", photo: "maisa.png" },
-    { name: "Christian Rocha", role: "Scrum Master", github: "https://github.com/chris-schettine", linkedin: "#", photo: "" },
-    { name: "Cauê Rodrigue de Aguiar", role: "Frontend, Cloud e Testes", github: "https://github.com/CauAguiar", linkedin: "https://www.linkedin.com/in/cauaguiar/", photo: "caue.jpeg" },
-    { name: "Edson Araujo", role: "Backend", github: "https://github.com/edsonaraujobr", linkedin: "https://www.linkedin.com/in/edsonaraujobr/", photo: "edson.jpeg" },
+    { name: "Maísa Soares Dos Santos Lopes", role: "Orientadora", github: "#", linkedin: "https://www.linkedin.com/in/ma%C3%ADsa-soares-dos-santos-lopes-201192303/", photo: maisaPhoto },
+    { name: "Christian Rocha", role: "Scrum Master", github: "https://github.com/chris-schettine", linkedin: "#", photo: christianPhoto },
+    { name: "Cauê Rodrigue de Aguiar", role: "Frontend, Cloud e Testes", github: "https://github.com/CauAguiar", linkedin: "https://www.linkedin.com/in/cauaguiar/", photo: cauePhoto },
+    { name: "Edson Araujo", role: "Backend", github: "https://github.com/edsonaraujobr", linkedin: "https://www.linkedin.com/in/edsonaraujobr/", photo: edsonPhoto },
     { name: "João Henrique Silva Pinto", role: "Fullstack", github: "https://github.com/henriksson666", linkedin: "https://www.linkedin.com/in/joao-henrique-silva-pinto-0a539748/", photo: "" },
     { name: "Luís Eduardo", role: "Frontend", github: "https://github.com/Aleff0", linkedin: "#", photo: "" },
-    { name: "Matheus Lopes", role: "Frontend", github: "https://github.com/teteulopes", linkedin: "#", photo: "matheus.jpeg" },
+    { name: "Matheus Lopes", role: "Frontend", github: "https://github.com/teteulopes", linkedin: "#", photo: matheusPhoto },
     { name: "Pedro Lucca", role: "Frontend", github: "https://github.com/pedroluccabr", linkedin: "#", photo: "" },
 ];
 
@@ -131,8 +136,7 @@ const AboutPage = () => {
                         
                         <Typography variant="body1" paragraph sx={{ color: theme.palette.text.primary, lineHeight: 1.8 }}>
                             Desenvolvido por alunos de Ciência da Computação da UESB durante o semestre 2025.2, 
-                            o projeto foi realizado na disciplina Desenvolvimento de Software, 
-                            sob orientação da Profa. Dra. Maísa Soares dos Santos Lopes.
+                            o projeto foi realizado na disciplina Desenvolvimento de Software, sob orientação da Profa. Dra. Maísa Soares dos Santos Lopes.
                         </Typography>
 
 
