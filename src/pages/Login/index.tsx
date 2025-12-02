@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { isAxiosError } from 'axios';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../api/auth.service";
@@ -248,6 +249,21 @@ const LoginContent = () => {
         >
           Por favor, faça login para continuar.
         </Typography>
+
+        <Button
+          variant="text"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/')}
+          sx={{
+            mb: 2,
+            color: tokens.brandColors.primary[500],
+            '&:hover': {
+              bgcolor: alpha(tokens.brandColors.primary[500], 0.08)
+            }
+          }}
+        >
+          Voltar para a página inicial
+        </Button>
 
         <Box 
           component="form" 

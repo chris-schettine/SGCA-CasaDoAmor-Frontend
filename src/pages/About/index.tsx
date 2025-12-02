@@ -25,6 +25,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ApiIcon from '@mui/icons-material/Api'; 
 import Footer from '../../components/Footer';
 
+
 // Função para gerar cores dinâmicas para Avatares 
 const stringToColor = (str: string) => {
     let hash = 0;
@@ -55,7 +56,36 @@ const AboutPage = () => {
     const theme = useTheme();
     const darkBlue = theme.custom.brandColors.secondary[500];
 
-    const swaggerUrl = "https://api.casadoamorconquista.com.br/swagger-ui/index.html"; 
+    const swaggerUrl = "https://api.casadoamorconquista.com.br/swagger-ui/index.html";
+
+    // Estilo comum para os chips de tecnologia
+    const techChipStyle = {
+        borderRadius: 3,
+        height: 48,
+        fontSize: '1rem',
+        fontWeight: 600,
+        pl: 1,
+        bgcolor: alpha(theme.palette.primary.main, 0.08),
+        border: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+        '&:hover': { 
+            bgcolor: alpha(theme.palette.primary.main, 0.15),
+            borderColor: theme.palette.primary.main,
+            transform: 'scale(1.05)'
+        },
+        transition: 'all 0.2s ease'
+    };
+
+    const avatarStyle = {
+        bgcolor: '#fff !important',
+        width: 36,
+        height: 36,
+        '& img': { objectFit: 'contain' as const, p: 0.5 }
+    };
+
+    const technologies = [
+        'React', 'TypeScript', 'Java', 'Spring Boot', 'Vite', 'MySQL', 
+        'Docker', 'Material UI', 'Swagger', 'GitHub', 'Flyway', 'Oracle Cloud'
+    ]; 
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
@@ -108,33 +138,46 @@ const AboutPage = () => {
 
 
                         <Paper
-                            elevation={1}
+                            elevation={3}
                             sx={{
-                                p: 3,
+                                p: 4,
                                 mt: 4,
-                                bgcolor: alpha(theme.palette.background.paper, 0.9),
-                                borderRadius: 3,
-                                border: `1px solid ${theme.palette.divider}`,
+                                bgcolor: theme.palette.mode === 'dark' 
+                                    ? alpha(theme.palette.background.paper, 0.95)
+                                    : alpha(theme.palette.background.paper, 1),
+                                borderRadius: 4,
+                                border: `2px solid ${theme.palette.divider}`,
                                 transition: 'all 0.3s ease-in-out',
                                 '&:hover': {
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: `0px 8px 20px ${alpha(theme.palette.primary.main, 0.15)}`,
+                                    transform: 'translateY(-6px)',
+                                    boxShadow: `0px 12px 30px ${alpha(theme.palette.primary.main, 0.2)}`,
                                     borderColor: theme.palette.primary.main
                                 }
                             }}
                         >
-                            <Typography variant="subtitle2" gutterBottom fontWeight="bold" color="text.secondary" sx={{ letterSpacing: 1 }}>
+                            <Typography 
+                                variant="h6" 
+                                gutterBottom 
+                                fontWeight="bold" 
+                                color={darkBlue}
+                                sx={{ letterSpacing: 0.5, mb: 3 }}
+                            >
                                 TECNOLOGIAS UTILIZADAS
                             </Typography>
-                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                                <Chip label="React" avatar={<Avatar src="/icons/react.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="TypeScript" avatar={<Avatar src="/icons/typescript.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="Java 17" avatar={<Avatar src="/icons/java.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="Spring Boot" avatar={<Avatar src="/icons/springboot.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="MySQL" avatar={<Avatar src="/icons/mysql.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="Docker" avatar={<Avatar src="/icons/docker.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="Material UI" avatar={<Avatar src="/icons/mui.svg" />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
-                                <Chip label="Swagger" icon={<ApiIcon />} color="primary" variant="outlined" sx={{ borderRadius: 3 }} />
+                            <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
+                                {technologies.map((tech) => (
+                                    <Chip 
+                                        key={tech}
+                                        label={tech} 
+                                        avatar={
+                                            <Avatar 
+                                                src={`/icons/${tech.toLowerCase().replace(/ /g, '')}.svg`} 
+                                                sx={avatarStyle} 
+                                            />
+                                        } 
+                                        sx={techChipStyle} 
+                                    />
+                                ))}
                             </Stack>
                         </Paper>
                     </Grid>
