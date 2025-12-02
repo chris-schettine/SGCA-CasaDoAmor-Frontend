@@ -5,27 +5,148 @@
 [![Vite](https://img.shields.io/badge/Vite-6.3-646CFF)](https://vitejs.dev/)
 [![Material-UI](https://img.shields.io/badge/MUI-7.1-0081CB)](https://mui.com/)
 
-Interface web do Sistema de Gestão da Casa do Amor (SGCA), desenvolvido para gerenciar informações de pacientes e acompanhantes da instituição.
+Interface web do Sistema de Gestão da Casa do Amor (SGCA), desenvolvido para gerenciar informações de pacientes, acompanhantes, profissionais, hospedagens e agendamentos da instituição.
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades Principais
 
-- ✅ Gerenciamento de Pacientes
-- 👥 Cadastro de Acompanhantes
-- 🔒 Sistema de Autenticação
-- 📋 Prontuário Médico
-- 👤 Gerenciamento de Usuários
-- 📝 Validação de Formulários com Zod
+### 👤 Gestão de Pacientes
+- ✅ Listagem paginada com busca e filtros
+- ✅ Cadastro completo de pacientes
+- ✅ Edição de informações pessoais
+- ✅ Visualização detalhada com todas as informações
+- ✅ Prontuário médico integrado
+- ✅ Histórico de hospedagens
+- ✅ Validação completa de CPF, RG, telefone e CEP
+- ✅ Busca automática de endereço por CEP
+
+### 👥 Gestão de Acompanhantes
+- ✅ Listagem de acompanhantes por paciente
+- ✅ Cadastro vinculado ao paciente
+- ✅ Edição de dados pessoais e endereço
+- ✅ Visualização de informações completas
+- ✅ Campo "Pode ajudar na cozinha"
+- ✅ Validação de CPF, telefone e CEP
+- ✅ Campo obrigatório de sexo/gênero
+
+### 🏥 Gestão de Profissionais
+- ✅ Listagem de profissionais ativos
+- ✅ Cadastro de profissionais de saúde
+- ✅ Edição de informações profissionais
+- ✅ Visualização detalhada
+- ✅ Gerenciamento de especialidades
+- ✅ Registro profissional (CRM, COREN, etc.)
+
+### 🏠 Gestão de Hospedagens
+- ✅ Listagem de hospedagens ativas
+- ✅ Cadastro de nova hospedagem para paciente
+- ✅ Visualização de detalhes da hospedagem
+- ✅ Gerenciamento de quartos
+- ✅ Controle de vagas disponíveis
+- ✅ Histórico de hospedagens do paciente
+
+### 🛏️ Gestão de Quartos
+- ✅ Listagem de todos os quartos
+- ✅ Cadastro de novos quartos
+- ✅ Edição de informações do quarto
+- ✅ Visualização de ocupação
+- ✅ Controle de capacidade e vagas
+
+### 📅 Sistema de Agendamentos
+
+#### Agendamentos de Pacientes
+- ✅ Listagem de agendamentos com paginação
+- ✅ Criação de novos agendamentos
+- ✅ Edição de agendamentos existentes
+- ✅ Visualização completa de detalhes
+- ✅ Cancelamento com motivo obrigatório
+- ✅ Verificação de conflitos de horário
+- ✅ Seleção de profissional e tipo de serviço
+- ✅ Definição de prioridade e tipo de atendimento
+- ✅ Cálculo automático de duração
+- ✅ Status do agendamento (Agendado, Confirmado, Cancelado, Concluído)
+- ✅ Validação de data/hora
+
+#### Agendamentos de Acompanhantes
+- ✅ Listagem de agendamentos de acompanhantes
+- ✅ Criação de agendamentos
+- ✅ Edição e cancelamento
+- ✅ Visualização de detalhes completos
+- ✅ Seleção de acompanhante elegível
+- ✅ Vinculação com paciente
+- ✅ Todas as validações do agendamento de paciente
+
+### 👨‍💼 Gestão de Usuários
+- ✅ Listagem de usuários do sistema
+- ✅ Cadastro de novos usuários
+- ✅ Edição de perfil e permissões
+- ✅ Ativação/desativação de contas
+- ✅ Controle de funções (Admin, Profissional, Recepção)
+- ✅ Gerenciamento de sessões ativas
+
+### 🔐 Sistema de Autenticação e Segurança
+- ✅ Login com JWT
+- ✅ Autenticação de dois fatores (2FA)
+- ✅ Recuperação de senha
+- ✅ Verificação de email
+- ✅ Ativação de conta
+- ✅ Gerenciamento de sessões
+- ✅ Conformidade com LGPD
+- ✅ Termo de consentimento obrigatório
+- ✅ Controle de acesso baseado em funções
+- ✅ Timeout de sessão automático
+
+### 📊 Dashboard e Relatórios
+- ✅ Dashboard com métricas em tempo real
+- ✅ Gráficos de ocupação
+- ✅ Estatísticas de agendamentos
+- ✅ Indicadores de pacientes ativos
+- ✅ Log de auditoria
+
+### 🛠️ Funcionalidades Técnicas
+- ✅ Validação robusta com Zod
+- ✅ Máscaras de entrada (CPF, telefone, CEP, RG)
+- ✅ Busca de endereço por CEP (ViaCEP)
+- ✅ Mensagens de toast personalizadas
+- ✅ Confirmações de ações críticas
+- ✅ Loading states e feedback visual
+- ✅ Tratamento de erros da API
+- ✅ Rascunhos automáticos de formulários
+- ✅ Aviso de mudanças não salvas
+- ✅ Paginação client-side
+- ✅ Animações de transição entre rotas
 
 ## 🛠️ Tecnologias
 
-- **React** - Biblioteca para construção de interfaces
-- **TypeScript** - Superset JavaScript com tipagem estática
-- **Vite** - Build tool e dev server
-- **Material-UI** - Framework de componentes React
-- **React Router** - Roteamento da aplicação
-- **Axios** - Cliente HTTP
-- **Zod** - Validação de esquemas
-- **React Hook Form** - Gerenciamento de formulários
+### Core
+- **React 19.1** - Biblioteca para construção de interfaces
+- **TypeScript 5.8** - Superset JavaScript com tipagem estática
+- **Vite 6.3** - Build tool e dev server ultrarrápido
+
+### UI/UX
+- **Material-UI 7.1** - Framework de componentes React
+- **@mui/x-date-pickers** - Seletores de data/hora
+- **@mui/icons-material** - Ícones do Material Design
+- **React Router 7.1** - Roteamento da aplicação
+- **Framer Motion** - Animações fluidas
+
+### Formulários e Validação
+- **React Hook Form 7.54** - Gerenciamento de formulários performático
+- **Zod 3.24** - Validação de esquemas TypeScript-first
+- **IMask** - Máscaras de entrada (CPF, telefone, CEP)
+
+### Estado e Dados
+- **Axios 1.7** - Cliente HTTP
+- **React Query / TanStack Query** - Gerenciamento de estado servidor
+
+### Utilitários
+- **date-fns 4.1** - Manipulação de datas
+- **React Toastify 10.0** - Notificações toast
+- **ViaCEP** - API de busca de endereços
+
+### Desenvolvimento
+- **Vitest** - Framework de testes
+- **ESLint** - Linter
+- **Testing Library** - Testes de componentes
 
 ## 📋 Pré-requisitos
 
@@ -69,13 +190,58 @@ O aplicativo estará disponível em `http://localhost:5173`
 
 ```
 src/
-├── api/          # Configuração e serviços de API
-├── components/   # Componentes reutilizáveis
-├── contexts/     # Contextos React
-├── hooks/        # Custom hooks
-├── pages/        # Componentes de página
-├── schemas/      # Esquemas de validação
-└── utils/        # Funções utilitárias
+├── api/                    # Configuração e serviços de API
+│   ├── api.gateway.ts     # Interceptor Axios com auth
+│   ├── *.service.ts       # Serviços por domínio
+│   └── *.dto.ts           # TypeScript DTOs e tipos
+├── components/            # Componentes reutilizáveis
+│   ├── AgendamentoForm/   # Formulários de agendamento
+│   ├── CompanionForm/     # Formulário de acompanhante
+│   ├── PatientForm/       # Formulário de paciente
+│   ├── Table/             # Tabelas especializadas
+│   ├── Layout/            # Layout principal
+│   ├── PageHeader/        # Cabeçalho de páginas
+│   └── ...
+├── contexts/              # Contextos React
+│   └── AuthContext.tsx    # Autenticação e usuário
+├── consent/               # Sistema LGPD
+│   ├── config/            # Configuração de consentimentos
+│   ├── hooks/             # Hooks de consentimento
+│   ├── provider/          # Provider de contexto
+│   └── store/             # Estado de consentimento
+├── hooks/                 # Custom hooks
+│   ├── useAgendamentos.ts
+│   ├── useAcompanhantes.ts
+│   ├── usePacientes.ts
+│   ├── useFormDraft.ts    # Rascunhos automáticos
+│   └── ...
+├── pages/                 # Páginas da aplicação
+│   ├── Login/
+│   ├── Dashboard/
+│   ├── Patients/
+│   ├── PatientRegister/
+│   ├── PatientEdit/
+│   ├── PatientInformation/
+│   ├── Companions/
+│   ├── CompanionRegister/
+│   ├── AgendamentosPacientes/
+│   ├── AgendamentoPacienteRegister/
+│   ├── AgendamentoPacienteEdit/
+│   ├── AgendamentoPacienteView/
+│   ├── AgendamentosAcompanhantes/
+│   └── ...
+├── schemas/               # Esquemas de validação Zod
+│   ├── patientSchema.ts
+│   ├── companionSchema.ts
+│   ├── agendamentoSchema.ts
+│   └── commonValidation.ts
+├── utils/                 # Funções utilitárias
+│   ├── formatters.ts      # Formatação de dados
+│   ├── cepService.ts      # Integração ViaCEP
+│   ├── toast.ts           # Toast notifications
+│   └── dateCalculations.ts
+└── tests/                 # Testes unitários
+    └── setupTests.ts
 ```
 
 ## 🤝 Contribuindo
@@ -95,42 +261,249 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - Casa do Amor pela oportunidade de contribuir com a instituição
 - Todos os contribuidores que dedicaram tempo para melhorar este projeto
 
-## 🆕 Novas funcionalidades e melhorias (últimas alterações)
+## 🆕 Últimas Atualizações e Melhorias
 
-As mudanças recentes trazem funcionalidades e refatorações importantes para autenticação, consumo de API e usabilidade durante o desenvolvimento. Principais pontos adicionados até o momento:
+### Sistema de Agendamentos (Dezembro 2024)
+- ✅ **Módulo completo de agendamentos para pacientes e acompanhantes**
+  - Criação, edição, visualização e cancelamento
+  - Verificação automática de conflitos de horário
+  - Suporte a agendamentos gerados automaticamente
+  - Cálculo automático de duração
+  - Validação de horários e datas
+  - Sistema de prioridades e tipos de atendimento
+  
+- ✅ **Tabelas de agendamentos**
+  - Paginação client-side
+  - Ícones de visualização, edição e cancelamento
+  - Status coloridos (Agendado, Confirmado, Cancelado, Concluído)
+  - Indicador de geração automática
+  
+- ✅ **Integração com backend**
+  - Suporte a IDs mistos (UUID strings e numéricos)
+  - Formato de data compatível com Java LocalDateTime
+  - Paginação server-side (page/size)
+  - Tratamento robusto de erros
 
-- 🔐 Gestão de autenticação e tokens
-	- Implementado gerenciamento de tokens e tratamento de erros no `apiGateway` e no `AuthContext`.
-	- Melhor tratamento de respostas de login e mensagens de erro para o usuário.
+### Formulários e Validação
+- ✅ **Campo sexo/gênero obrigatório** em acompanhantes
+- ✅ **Validação de número de endereço** com conversão automática string→number
+- ✅ **Máscaras aprimoradas** para CPF, telefone, RG e CEP
+- ✅ **Busca automática de CEP** com preenchimento de endereço
+- ✅ **Rascunhos automáticos** com persistência em localStorage
 
-- 🧭 Serviço de Pacientes (refactor)
-	- Substituído `apiGateway` por um serviço focado (`pessoaFisicaService`) para manipular dados de pacientes (CRUD).
-	- Refatoração do gerenciamento de pacientes para consumir a nova API e suporte à edição de paciente.
+### Sistema de Autenticação e Segurança
+- ✅ **JWT com refresh token** automático
+- ✅ **2FA (Two-Factor Authentication)** completo
+- ✅ **Gerenciamento de sessões** ativas
+- ✅ **Conformidade LGPD** com sistema de consentimento versionado
+- ✅ **Guards de rota** com verificação de consentimento
+- ✅ **CSP (Content Security Policy)** configurado
 
-- 🔁 SPA & Deploy
-	- Adicionado `vercel.json` com rewrite para direcionar todas as rotas para `index.html` (suporte ao React Router em produção no Vercel).
+### Melhorias Técnicas
+- ✅ **Hooks customizados** para todas as entidades
+- ✅ **React Query** para cache e sincronização
+- ✅ **Type safety** completo com TypeScript
+- ✅ **Tratamento de erros** centralizado
+- ✅ **Logging** estruturado para debug
+- ✅ **Testes unitários** com Vitest
 
-- 🛡️ Content Security Policy (desenvolvimento)
-	- Configurações de CSP e headers de segurança adicionadas no `vite.config.ts` para proteger contra clickjacking e sniffing durante o desenvolvimento.
-	- CSP relaxada em modo dev para permitir HMR (várias portas localhost). Em produção, recomenda-se usar uma política mais restrita.
+### UX/UI
+- ✅ **Animações suaves** com Framer Motion
+- ✅ **Toast notifications** contextuais
+- ✅ **Confirmações** de ações críticas (cancelamento, exclusão)
+- ✅ **Loading states** em todas as operações assíncronas
+- ✅ **Aviso de mudanças não salvas** ao navegar
+- ✅ **Breadcrumbs** para navegação contextual
 
-- 🧾 Usuários e permissões
-	- Página de edição de usuário e rota de administração adicionadas.
-	- Filtros por função do usuário (ex.: profissionais) adicionados nas listagens.
+## ⚙️ Variáveis de Ambiente
 
-- 🔐 2FA e gerenciamento de sessões
-	- Implementado suporte inicial a 2FA (páginas de login/perfil) e página de gerenciamento de sessões.
+Crie um arquivo `.env` na raiz do projeto:
 
-- ✅ Testes e qualidade
-	- Adicionados testes unitários para `Login` e `PrivateRoute`.
+```env
+# API Backend
+VITE_API_BASE_URL=http://localhost:8090/api
 
-- 🐞 Ajustes de robustez
-	- Correções na criação/edição de usuário e normalização de respostas de API (evita crashes quando o backend retorna envelopes paginados em vez de arrays).
+# Ambiente
+NODE_ENV=development
+```
 
-## 🛠️ Notas de desenvolvimento importantes
+**Importante**: Reinicie o servidor Vite após modificar o `.env`.
 
-- Variável de ambiente para API: `VITE_API_BASE_URL` (ex.: `http://144.22.182.60:8888`). Certifique-se de reiniciar o servidor Vite após editar o `.env`.
-- Vite pode escolher uma porta diferente (ex.: `5174`) se a padrão (`5173`) estiver ocupada; o CSP de desenvolvimento já foi ajustado para permitir HMR em portas locais comuns.
-- Para deploy no Vercel, confirme que `vercel.json` está no root do projeto e que a build gera os arquivos estáticos esperados.
+## 🚦 Rotas da Aplicação
 
-Se quiser, eu posso gerar uma seção de changelog mais detalhada (por data e autor) a partir dos commits recentes ou extrair os diffs relevantes para cada funcionalidade listada.
+### Públicas
+- `/` - Landing page
+- `/login` - Autenticação
+- `/login/verify-2fa` - Verificação 2FA
+- `/forgot-password` - Recuperação de senha
+- `/reset-password` - Redefinir senha
+- `/verify-email/:token` - Verificação de email
+- `/activate-account` - Ativação de conta
+- `/about` - Sobre a aplicação
+
+### Protegidas (Requerem autenticação + consentimento LGPD)
+
+**Pacientes**
+- `/patients` - Lista
+- `/patient/register` - Cadastro
+- `/patient/edit/:id` - Edição
+- `/patient/information` - Visualização
+- `/patient/information/medical-record` - Prontuário
+
+**Acompanhantes**
+- `/companions` - Lista
+- `/patient/companion/register` - Cadastro
+- `/companion/edit/:id` - Edição
+- `/companion/information` - Visualização
+
+**Agendamentos - Pacientes**
+- `/agendamentos/pacientes` - Lista
+- `/agendamentos/pacientes/novo` - Novo
+- `/agendamentos/pacientes/:uuid` - Visualizar
+- `/agendamentos/pacientes/:uuid/editar` - Editar
+
+**Agendamentos - Acompanhantes**
+- `/agendamentos/acompanhantes` - Lista
+- `/agendamentos/acompanhantes/novo` - Novo
+- `/agendamentos/acompanhantes/:uuid` - Visualizar
+- `/agendamentos/acompanhantes/:uuid/editar` - Editar
+
+**Profissionais**
+- `/profissionais` - Lista
+- `/profissional/register` - Cadastro
+- `/profissional/edit/:uuid` - Edição
+- `/profissional/information/:uuid` - Visualização
+
+**Hospedagens**
+- `/hospedagens` - Lista
+- `/hospedagem/register` - Cadastro
+- `/hospedagem/information` - Visualização
+
+**Quartos**
+- `/quartos` - Lista
+- `/quarto/register` - Cadastro
+- `/quarto/edit/:id` - Edição
+- `/quarto/information/:id` - Visualização
+
+**Administração**
+- `/dashboard` - Dashboard com métricas
+- `/users` - Gerenciamento de usuários
+- `/user/register` - Cadastro de usuário
+- `/user/edit/:id` - Edição de usuário
+- `/sessions` - Sessões ativas
+- `/my-profile` - Perfil do usuário
+- `/audit-log` - Log de auditoria
+
+## 🔒 Níveis de Acesso
+
+- **Admin**: Acesso total ao sistema
+- **Profissional**: Acesso a pacientes, acompanhantes e agendamentos
+- **Recepção**: Acesso a cadastros e agendamentos
+
+## 🐛 Troubleshooting
+
+### Erro de CORS
+Certifique-se que o backend está configurado para aceitar requisições do frontend:
+```java
+@CrossOrigin(origins = "http://localhost:5173")
+```
+
+### Erro 401 (Não autorizado)
+- Verifique se o token JWT está válido
+- Faça logout e login novamente
+- Verifique se o backend está rodando
+
+### Erro 500 no agendamento
+- Verifique se todos os campos obrigatórios estão preenchidos
+- Confirme que o formato de data está correto
+- Verifique se não há conflitos de horário
+
+### Página branca após build
+- Verifique se o `vercel.json` está configurado
+- Confirme que o `base` no `vite.config.ts` está correto
+- Verifique o console do navegador para erros
+
+## 📝 Padrões de Código
+
+### Componentes
+```typescript
+// Sempre use TypeScript
+export default function ComponentName() {
+  // Hooks no topo
+  const [state, setState] = useState();
+  
+  // Efeitos
+  useEffect(() => {}, []);
+  
+  // Handlers
+  const handleAction = () => {};
+  
+  // Render
+  return <div>...</div>;
+}
+```
+
+### Serviços API
+```typescript
+// api/entity.service.ts
+export const entityService = {
+  listar: async (page = 0, size = 20) => {
+    const response = await api.get('/entities', { params: { page, size } });
+    return response.data;
+  },
+  
+  obterPorId: async (id: string) => {
+    const response = await api.get(`/entities/${id}`);
+    return response.data;
+  },
+  
+  criar: async (data: CreateDTO) => {
+    const response = await api.post('/entities', data);
+    return response.data;
+  },
+};
+```
+
+### Schemas Zod
+```typescript
+// schemas/entitySchema.ts
+export const entitySchema = z.object({
+  campo: z.string().min(1, 'Campo obrigatório'),
+  numero: z.number().min(0),
+  opcional: z.string().optional(),
+});
+
+export type EntityFormInputs = z.infer<typeof entitySchema>;
+```
+
+## 🎯 Roadmap
+
+- [ ] Relatórios em PDF
+- [ ] Exportação de dados (Excel, CSV)
+- [ ] Notificações push
+- [ ] Mensageria interna
+- [ ] Integração com WhatsApp
+- [ ] App mobile (React Native)
+- [ ] Módulo financeiro
+- [ ] Agenda visual (calendário)
+
+## 🛠️ Notas de Desenvolvimento
+
+### Backend Esperado
+- Base URL: `http://localhost:8090/api`
+- Autenticação: JWT via header `Authorization: Bearer <token>`
+- Paginação: Query params `?page=0&size=20`
+- Formato de data: `yyyy-MM-ddTHH:mm:ss` (sem timezone)
+- IDs: Suporta UUID (string) e Long (number)
+
+### Vite Dev Server
+- Porta padrão: `5173`
+- Porta alternativa: `5174` (se 5173 ocupada)
+- HMR habilitado
+- CSP relaxado em desenvolvimento
+
+### Deploy (Vercel)
+- Build command: `npm run build`
+- Output directory: `dist`
+- SPA rewrites: Configurado em `vercel.json`
+- Variáveis de ambiente: Configure no Vercel Dashboard
