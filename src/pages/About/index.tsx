@@ -22,7 +22,6 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GroupsIcon from '@mui/icons-material/Groups';
-import ApiIcon from '@mui/icons-material/Api'; 
 import Footer from '../../components/Footer';
 
 
@@ -67,7 +66,7 @@ const AboutPage = () => {
         pl: 1,
         bgcolor: alpha(theme.palette.primary.main, 0.08),
         border: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-        '&:hover': { 
+        '&:hover': {
             bgcolor: alpha(theme.palette.primary.main, 0.15),
             borderColor: theme.palette.primary.main,
             transform: 'scale(1.05)'
@@ -83,9 +82,9 @@ const AboutPage = () => {
     };
 
     const technologies = [
-        'React', 'TypeScript', 'Java', 'Spring Boot', 'Vite', 'MySQL', 
+        'React', 'TypeScript', 'Java', 'Spring Boot', 'Vite', 'MySQL',
         'Docker', 'Material UI', 'Swagger', 'GitHub', 'Flyway', 'Oracle Cloud'
-    ]; 
+    ];
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.background.default }}>
@@ -126,14 +125,14 @@ const AboutPage = () => {
                             Tecnologia a favor do acolhimento
                         </Typography>
                         <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: theme.palette.text.primary, lineHeight: 1.8 }}>
-                            O Sistema de Gerenciamento da Casa do Amor (SGCA) foi desenvolvido com um propósito claro:
-                            otimizar a rotina administrativa da instituição para que o foco principal permaneça
-                            onde realmente importa: <b>o cuidado com os pacientes.</b>
+                            O Sistema de Gerenciamento da Casa do Amor (SGCA) foi criado para otimizar a rotina administrativa da instituição, 
+                            permitindo que o foco permaneça no cuidado aos pacientes.
                         </Typography>
+                        
                         <Typography variant="body1" paragraph sx={{ color: theme.palette.text.primary, lineHeight: 1.8 }}>
-                            Este projeto é fruto do trabalho de alunos de Ciência da Computação
-                            da Universidade Estadual do Sudoeste da Bahia - UESB, realizado durante o semestre 2025.2
-                            na disciplina Desenvolvimento de Software, sob orientação da Profa. Dra Maísa Soares dos Santos Lopes.
+                            Desenvolvido por alunos de Ciência da Computação da UESB durante o semestre 2025.2, 
+                            o projeto foi realizado na disciplina Desenvolvimento de Software, 
+                            sob orientação da Profa. Dra. Maísa Soares dos Santos Lopes.
                         </Typography>
 
 
@@ -142,7 +141,7 @@ const AboutPage = () => {
                             sx={{
                                 p: 4,
                                 mt: 4,
-                                bgcolor: theme.palette.mode === 'dark' 
+                                bgcolor: theme.palette.mode === 'dark'
                                     ? alpha(theme.palette.background.paper, 0.95)
                                     : alpha(theme.palette.background.paper, 1),
                                 borderRadius: 4,
@@ -155,10 +154,10 @@ const AboutPage = () => {
                                 }
                             }}
                         >
-                            <Typography 
-                                variant="h6" 
-                                gutterBottom 
-                                fontWeight="bold" 
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                fontWeight="bold"
                                 color={darkBlue}
                                 sx={{ letterSpacing: 0.5, mb: 3 }}
                             >
@@ -166,16 +165,16 @@ const AboutPage = () => {
                             </Typography>
                             <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
                                 {technologies.map((tech) => (
-                                    <Chip 
+                                    <Chip
                                         key={tech}
-                                        label={tech} 
+                                        label={tech}
                                         avatar={
-                                            <Avatar 
-                                                src={`/icons/${tech.toLowerCase().replace(/ /g, '')}.svg`} 
-                                                sx={avatarStyle} 
+                                            <Avatar
+                                                src={`/icons/${tech.toLowerCase().replace(/ /g, '')}.svg`}
+                                                sx={avatarStyle}
                                             />
-                                        } 
-                                        sx={techChipStyle} 
+                                        }
+                                        sx={techChipStyle}
                                     />
                                 ))}
                             </Stack>
@@ -191,7 +190,7 @@ const AboutPage = () => {
                                         Documentação
                                     </Typography>
                                 </Stack>
-                                
+
                                 <Typography variant="body2" color="text.secondary">
                                     Recursos técnicos para desenvolvedores e auditores do sistema.
                                 </Typography>
@@ -200,7 +199,14 @@ const AboutPage = () => {
 
                                 <Button
                                     variant="outlined"
-                                    startIcon={<DescriptionIcon />}
+                                    startIcon={
+                                        <Box
+                                            component="img"
+                                            src="/icons/pdf.svg"
+                                            alt="PDF"
+                                            sx={{ width: 20, height: 20 }}
+                                        />
+                                    }
                                     href="/requisitos.pdf"
                                     target="_blank"
                                     fullWidth
@@ -213,14 +219,21 @@ const AboutPage = () => {
                                 <Tooltip title="Visualizar endpoints da API (Swagger UI)" arrow>
                                     <Button
                                         variant="outlined"
-                                        startIcon={<ApiIcon />}
+                                        startIcon={
+                                            <Box
+                                                component="img"
+                                                src="/icons/swagger.svg"
+                                                alt="Swagger"
+                                                sx={{ width: 20, height: 20 }}
+                                            />
+                                        }
                                         href={swaggerUrl}
                                         target="_blank"
                                         fullWidth
-                                        color="primary" 
-                                        sx={{ 
-                                            textTransform: 'none', 
-                                            fontWeight: 'bold', 
+                                        color="primary"
+                                        sx={{
+                                            textTransform: 'none',
+                                            fontWeight: 'bold',
                                             justifyContent: 'flex-start'
                                         }}
                                     >
@@ -237,7 +250,14 @@ const AboutPage = () => {
                                 <Stack spacing={1}>
                                     <Button
                                         variant="outlined"
-                                        startIcon={<GitHubIcon />}
+                                        startIcon={
+                                            <Box
+                                                component="img"
+                                                src="/icons/github.svg"
+                                                alt="GitHub"
+                                                sx={{ width: 20, height: 20 }}
+                                            />
+                                        }
                                         href="https://github.com/chris-schettine/SGCA-CasaDoAmor-Frontend"
                                         target="_blank"
                                         fullWidth
@@ -249,7 +269,14 @@ const AboutPage = () => {
 
                                     <Button
                                         variant="outlined"
-                                        startIcon={<GitHubIcon />}
+                                        startIcon={
+                                            <Box
+                                                component="img"
+                                                src="/icons/github.svg"
+                                                alt="GitHub"
+                                                sx={{ width: 20, height: 20 }}
+                                            />
+                                        }
                                         href="https://github.com/chris-schettine/SGCA-CasaDoAmor-Backend"
                                         target="_blank"
                                         fullWidth
