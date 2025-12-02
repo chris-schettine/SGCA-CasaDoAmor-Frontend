@@ -8,11 +8,12 @@ interface MaskedInputProps extends InputBaseComponentProps {
   definitions?: { [key: string]: RegExp };
   lazy?: boolean;
   overwrite?: boolean;
+  placeholderChar?: string;
 }
 
 const MaskedInput = React.forwardRef<HTMLElement, MaskedInputProps>(
   function MaskedInput(props, ref) {
-    const { onChange, mask, definitions, lazy, overwrite, ...other } = props;
+    const { onChange, mask, definitions, lazy, overwrite, placeholderChar, ...other } = props;
 
     return (
       <IMaskInput
@@ -21,6 +22,7 @@ const MaskedInput = React.forwardRef<HTMLElement, MaskedInputProps>(
         definitions={definitions}
         lazy={lazy}
         overwrite={overwrite}
+        placeholderChar={placeholderChar}
         inputRef={ref as React.Ref<HTMLInputElement>}
         onAccept={(value: string) => {
           onChange({
@@ -56,8 +58,8 @@ interface Props extends Omit<TextFieldProps, 'InputProps' | 'name'> { // Remova 
 const MaskedTextField: React.FC<Props> = ({
   mask,
   definitions,
-  lazy = false,
-  overwrite = true,
+  lazy = true,
+  overwrite = false,
   helperText,
   error,
   value,
@@ -77,7 +79,7 @@ const MaskedTextField: React.FC<Props> = ({
         inputComponent: MaskedInput,
         inputProps: {
           mask,
-          definitions,
+          definitions: definitions || { '9': /[0-9]/ },
           lazy,
           overwrite,
           // Ensure aria-label is always a string to satisfy strict typing

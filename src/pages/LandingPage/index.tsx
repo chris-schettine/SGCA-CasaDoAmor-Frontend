@@ -19,7 +19,8 @@ import LoginIcon from '@mui/icons-material/Login';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 
-import Footer from '../../components/Footer'; 
+import Footer from '../../components/Footer';
+import PartnerSection from '../../components/Partners';
 import { toastSuccess } from '../../utils/toast'; 
 
 const LandingPage = () => {
@@ -345,6 +346,8 @@ const LandingPage = () => {
                     </Box>
                 </Card>
             </Container>
+
+            <PartnerSection />
             <Footer />
         </Box>
     );

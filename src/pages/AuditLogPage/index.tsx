@@ -26,6 +26,9 @@ import { adminService } from '../../api/admin.service';
 import type { TentativaLoginDTO } from '../../api/admin.dto';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import PageHeader from '../../components/PageHeader';
+import PageContainer from '../../components/PageContainer';
+import Breadcrumbs from '../../components/Breadcrumbs';
+import { AnimatedPage } from '../../components/AnimatedPage';
 import MobileCard from '../../components/Table/MobileCard';
 import { auditKeys } from '../../api/queries';
 
@@ -142,10 +145,15 @@ const AuditLogContent = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh', p: 3, color: 'text.primary' }}>
-      <Box sx={{ width: '100%', margin: '0 auto', maxWidth: '1200px', p: 3 }}>
+    <AnimatedPage>
+      <PageContainer>
+        <Breadcrumbs items={[
+          { label: 'Auditoria' }
+        ]} />
+        
         <PageHeader 
-          title="📋 Logs de Auditoria do Sistema"
+          title="Logs de Auditoria"
+          subtitle="Registro de atividades e acessos ao sistema"
         />
 
         <Paper sx={{ p: 3, mb: 3 }}>
@@ -300,8 +308,8 @@ const AuditLogContent = () => {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Paper>
-      </Box>
-    </Box>
+      </PageContainer>
+    </AnimatedPage>
   );
 };
 

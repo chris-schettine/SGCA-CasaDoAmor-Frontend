@@ -7,6 +7,7 @@ import { Navigate } from 'react-router-dom';
 import { authService } from '../../api/auth.service';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
 import PageHeader from '../../components/PageHeader';
+import Breadcrumbs from '../../components/Breadcrumbs';
 import { TableSkeleton } from '../../components/SuspenseWrapper';
 import { formatISOToLocalDateTime } from '../../utils/formatters';
 import MobileCard from '../../components/Table/MobileCard';
@@ -15,7 +16,7 @@ import type { SessaoAuditDTO } from '../../api/auth.dto';
 import { sessionKeys } from '../../api/queries';
 import { usePermissions } from '../../hooks/usePermissions';
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const SessionsContent = () => {
   const { isAdmin } = usePermissions();
@@ -112,9 +113,13 @@ const SessionsContent = () => {
 
   return (
     <>
+      <Breadcrumbs items={[
+        { label: 'Sessões Ativas' }
+      ]} />
+      
       <PageHeader 
         title="Sessões Ativas"
-        subtitle="Gerencie as sessões ativas do sistema"
+        subtitle="Visualização e gerenciamento de sessões ativas no sistema"
       />
 
       <AnimatePresence mode="wait" initial={false}>

@@ -4,6 +4,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import TableUsers from "../../components/Table/TableUsers";
 import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
+import Breadcrumbs from "../../components/Breadcrumbs";
 import { FormControl, Input, InputAdornment, InputLabel, IconButton, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { Suspense, useState } from 'react';
@@ -120,11 +121,14 @@ const UsersContent = () => {
         }}>
         <AnimatedPage>
           <PageContainer>
+            <Breadcrumbs items={[{ label: 'Usuários Autorizados' }]} />
+            
             <PageHeader 
-          title="Usuários Autorizados"
-          searchComponent={searchComponent}
-          action={actionButton}
-        />
+              title="Usuários Autorizados"
+              subtitle="Gestão de usuários com acesso ao sistema"
+              searchComponent={searchComponent}
+              action={actionButton}
+            />
             <Suspense fallback={<TableSkeleton rows={10} />}>
               <TableUsers searchText={searchText} />
             </Suspense>

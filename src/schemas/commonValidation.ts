@@ -4,8 +4,8 @@ import { z } from 'zod';
 export const CPF_REGEX = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
 export const DATE_REGEX = /^\d{2}\/\d{2}\/\d{4}$/;
 export const RG_REGEX = /^\d{2}\.\d{3}\.\d{3}-\d{1}$/;
-// Allow formatted phone like '00 00000-0000' or digits-only '00000000000' or 10-digit '0000000000'
-export const PHONE_REGEX = /^(\d{2} \d{5}-\d{4}|\d{10,11})$/;
+// Allow formatted phone like '(00) 00000-0000', '00 00000-0000' or digits-only '00000000000' or 10-digit '0000000000'
+export const PHONE_REGEX = /^(\(\d{2}\)\s?\d{4,5}-\d{4}|\d{2}\s\d{4,5}-\d{4}|\d{10,11})$/;
 export const CEP_REGEX = /^\d{5}-\d{3}$/;
 
 // --- Mini-Schemas Zod Reusáveis ---

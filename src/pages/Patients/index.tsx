@@ -9,6 +9,7 @@ import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
 import { AnimatedPage } from "../../components/AnimatedPage";
 import SearchBar from "../../components/SearchBar";
+import Breadcrumbs from "../../components/Breadcrumbs";
 import { useTheme } from "@mui/material/styles";
 
 const LazyTablePatients = React.lazy(() => import('../../components/Table/TablePatients'));
@@ -116,8 +117,11 @@ const Patients = () => {
   return (
     <AnimatedPage>
       <PageContainer>
+        <Breadcrumbs items={[{ label: 'Pacientes' }]} />
+        
         <PageHeader 
           title="Pacientes"
+          subtitle="Gestão e consulta de pacientes cadastrados"
           tourId="page-header"
           searchTourId="page-search"
           actionTourId="page-action"

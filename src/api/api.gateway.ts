@@ -52,7 +52,14 @@ class ApiGateway {
           }
         }
         
-        if (import.meta.env.DEV) console.log('[API Gateway] Requisição:', config.method?.toUpperCase(), config.url);
+        if (import.meta.env.DEV) {
+          console.log('[API Gateway] Requisição:', config.method?.toUpperCase(), config.url);
+          
+          // Log payload for agendamento endpoints
+          if (config.url && config.url.includes('/agendamentos') && config.method?.toLowerCase() === 'post') {
+            console.log('[API Gateway] 📦 Payload enviado:', JSON.stringify(config.data, null, 2));
+          }
+        }
         return config;
       },
       (error) => {

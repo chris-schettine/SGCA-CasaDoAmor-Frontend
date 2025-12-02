@@ -82,6 +82,9 @@ export const acompanhanteService = {
     offset: number = 0
   ): Promise<ListaAcompanhantesDTO> => {
     console.log('[acompanhanteService] Buscando acompanhantes para pacienteId:', pacienteId);
+    console.log('[acompanhanteService] limit:', limit, 'offset:', offset);
+    console.log('[acompanhanteService] URL completa:', `/acompanhantes/paciente/${pacienteId}?limit=${limit}&offset=${offset}`);
+    
     const params = new URLSearchParams({
       limit: limit.toString(),
       offset: offset.toString(),

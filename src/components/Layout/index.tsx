@@ -7,6 +7,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import List from '@mui/material/List';
@@ -21,6 +22,12 @@ import HistoryIcon from '@mui/icons-material/History';
 import GavelIcon from '@mui/icons-material/Gavel';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import HotelIcon from '@mui/icons-material/Hotel';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Divider } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -135,7 +142,7 @@ interface NavItemProps {
     primary: string;
     Icon: React.ElementType;
     open: boolean;
-    requiredRole?: string;
+    requiredRole?: string | string[];
     onToggleDrawer: () => void;
     navigate: (path: string) => void;
     onPrefetch?: (path: string) => void;
@@ -158,24 +165,20 @@ const NavItem: React.FC<NavItemProps> = ({ to, primary, Icon, open, requiredRole
     
     const handleNavigation = (event: React.MouseEvent) => {
         event.preventDefault();
-        // Sempre fecha/encolhe a sidebar ao navegar para evitar overflow/responsividade quebrada
-        window.dispatchEvent(new CustomEvent('sgca:close-drawer', { detail: { reason: 'nav-click' } }));
+        // Close drawer only on mobile devices
         const isMobileView = theme.breakpoints.values.md && window.innerWidth < theme.breakpoints.values.md;
         if (isMobileView) {
-            navigate(to);
-            onToggleDrawer();
-            return;
-        }
-        if (!isCurrentActive && open) {
-            onToggleDrawer();
-        } else if (isCurrentActive && open) {
             onToggleDrawer();
         }
         navigate(to);
     };
 
-    if (requiredRole && user?.tipoUsuario !== requiredRole) {
-        return null;
+    // Check role-based access (supports single role string or array of roles)
+    if (requiredRole) {
+        const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        if (!user?.tipoUsuario || !allowedRoles.includes(user.tipoUsuario)) {
+            return null;
+        }
     }
 
     const handlePrefetch = () => {
@@ -233,7 +236,7 @@ function LayoutShell() {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const theme = useTheme();
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(true);
     const [shortcutsHelpOpen, setShortcutsHelpOpen] = React.useState(false);
     const queryClient = useQueryClient();
     const { startTour } = useOnboarding();
@@ -289,6 +292,28 @@ function LayoutShell() {
                     ]);
                     break;
                 }
+                case '/quartos': {
+                    await Promise.all([
+                        import('../../pages/Quartos'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['quartos', 'prefetch', { page: 0 }],
+                            queryFn: () => import('../../api/quarto.service').then(m => m.quartoService.listar({ page: 0, size: 20 })),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
+                case '/hospedagens': {
+                    await Promise.all([
+                        import('../../pages/Hospedagens'),
+                        queryClient.prefetchQuery({
+                            queryKey: ['hospedagens', 'prefetch', { page: 0 }],
+                            queryFn: () => import('../../api/hospedagem.service').then(m => m.hospedagemService.listar({ page: 0, size: 20 })),
+                            staleTime: 60_000,
+                        }),
+                    ]);
+                    break;
+                }
                 default:
                     break;
             }
@@ -328,6 +353,12 @@ function LayoutShell() {
     const navItems = [
         { to: "/patients", primary: "Pacientes", Icon: LocalHospitalIcon }, 
         { to: "/companions", primary: "Acompanhantes", Icon: AccessibilityNewIcon }, 
+        { to: "/dashboard", primary: "Dashboard", Icon: DashboardIcon, requiredRole: ['ADMINISTRADOR', 'RECEPCIONISTA'] },
+        { to: "/quartos", primary: "Quartos", Icon: MeetingRoomIcon, requiredRole: ['ADMINISTRADOR', 'RECEPCIONISTA', 'AUDITOR'] },
+        { to: "/hospedagens", primary: "Hospedagens", Icon: HotelIcon, requiredRole: ['ADMINISTRADOR', 'RECEPCIONISTA'] },
+        { to: "/agendamentos/pacientes", primary: "Agend. Pacientes", Icon: EventNoteIcon, requiredRole: ['ADMINISTRADOR', 'GERENTE', 'RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'] },
+        { to: "/agendamentos/acompanhantes", primary: "Agend. Acompanhantes", Icon: EventAvailableIcon, requiredRole: ['ADMINISTRADOR', 'GERENTE', 'RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'] },
+        { to: "/profissionais", primary: "Profissionais", Icon: MedicalServicesIcon }, 
         { to: "/users", primary: "Usuários", Icon: ManageAccountsIcon, requiredRole: 'ADMINISTRADOR' }, 
         { to: "/sessions", primary: "Sessões Ativas", Icon: HistoryIcon, requiredRole: 'ADMINISTRADOR' },
         { to: "/auditoria", primary: "Auditoria", Icon: GavelIcon, requiredRole: 'ADMINISTRADOR' },
@@ -482,20 +513,20 @@ function LayoutShell() {
                    
                     <DrawerHeader sx={{ 
                         display: 'flex', 
-                        justifyContent: 'flex-start', 
+                        flexDirection: 'column',
+                        justifyContent: 'center', 
                         alignItems: 'center', 
-                    
-                        padding: theme.spacing(0, open ? 1 : 0), 
-                        minHeight: '64px' 
+                        padding: theme.spacing(1, 0.5), 
+                        minHeight: '64px',
+                        gap: 0.5
                     }}>
                         
                         <Box sx={{ 
-                            flexGrow: 1, 
                             display: 'flex', 
                             justifyContent: 'center', 
                             alignItems: 'center',
-                            minWidth: open ? 'auto' : closedDrawerWidth, 
-                            padding: theme.spacing(0, open ? 2 : 0) 
+                            width: '100%',
+                            padding: theme.spacing(0, 1)
                         }}>
                          
                             {(() => {
@@ -507,38 +538,41 @@ function LayoutShell() {
                                         alt="Icone Casa do Amor"
                                         onClick={() => navigate('/patients')}
                                         sx={{
-                                            width: open ? "120px" : "60px", 
+                                            width: open ? "120px" : "50px", 
                                             height: "auto",
                                             objectFit: 'contain',
                                             flexShrink: 0,
                                             display: { xs: 'none', sm: 'block' },
                                             cursor: 'pointer',
-                                            transition: 'all 150ms ease-in-out',
+                                            transition: 'width 150ms ease-in-out',
                                             WebkitTapHighlightColor: 'transparent',
-                                            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-                                            '&:active': { backgroundColor: 'rgba(255, 255, 255, 0.2)', transform: 'scale(0.98)' },
+                                            '&:hover': { opacity: 0.8 },
+                                            '&:active': { transform: 'scale(0.95)' },
                                         }}
                                     />
                                 );
                             })()}
                         </Box>
 
-                        {open && ( 
-                            <IconButton 
-                                color="inherit" 
-                                aria-label="fechar drawer" 
-                                onClick={handleDrawerToggle} 
-                                sx={{ 
-                                    color: theme.palette.mode === 'dark' 
-                                        ? theme.palette.text.primary 
-                                        : theme.palette.text.primary, 
-                                    flexShrink: 0,
-                                    marginRight: theme.spacing(1)
-                                }}
-                            >
-                                <ChevronLeftIcon />
-                            </IconButton>
-                        )}
+                        <IconButton 
+                            color="inherit" 
+                            aria-label={open ? "fechar drawer" : "abrir drawer"}
+                            onClick={handleDrawerToggle} 
+                            sx={{ 
+                                color: theme.palette.mode === 'dark' 
+                                    ? theme.palette.text.primary 
+                                    : theme.palette.text.primary, 
+                                width: '100%',
+                                minWidth: '48px',
+                                minHeight: '48px',
+                                borderRadius: '4px',
+                                '&:hover': {
+                                    backgroundColor: theme.palette.action.hover
+                                }
+                            }}
+                        >
+                            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                        </IconButton>
                     </DrawerHeader>
                     <List sx={{ padding: '0px' }}>
                         <Divider sx={{ maxWidth: '90%', margin: '0 auto' }} />

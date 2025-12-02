@@ -21,6 +21,11 @@ class PacienteService {
     return response.data;
   }
 
+  async searchPacienteByCpf(cpf: string): Promise<PacienteDTO | null> {
+    const response = await this.listarPacientes(1, 0, cpf);
+    return response.nodes && response.nodes.length > 0 ? response.nodes[0] : null;
+  }
+
   // Nota: não há endpoint GET /pacientes/{id} disponível no backend.
 
   async registrarPaciente(data: RegistrarPacienteDTO): Promise<PacienteDTO> {

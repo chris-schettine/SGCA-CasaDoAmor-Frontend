@@ -4,6 +4,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import TableCompanions from "../../components/Table/TableCompanions";
 import PageHeader from "../../components/PageHeader";
 import PageContainer from "../../components/PageContainer";
+import Breadcrumbs from "../../components/Breadcrumbs";
 import { AnimatedPage } from "../../components/AnimatedPage";
 import SearchBar from "../../components/SearchBar";
 import { acompanhanteService } from '../../api/acompanhante.service';
@@ -98,8 +99,11 @@ const Companions = () => {
   return (
     <AnimatedPage>
       <PageContainer>
+        <Breadcrumbs items={[{ label: 'Acompanhantes' }]} />
+        
         <PageHeader 
           title="Acompanhantes"
+          subtitle="Gestão de acompanhantes dos pacientes"
           searchComponent={searchComponent}
           action={actionButton}
         />
