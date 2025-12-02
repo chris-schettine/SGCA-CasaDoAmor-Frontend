@@ -15,7 +15,7 @@ const Partners: React.FC = () => {
     <Box 
       component="section" 
       sx={{ 
-        py: { xs: 5, md: 6 }, 
+        py: { xs: 3, md: 4 }, 
         bgcolor: theme.palette.mode === 'dark' 
           ? alpha(theme.palette.background.paper, 0.4)
           : alpha(theme.palette.primary.main, 0.02),
@@ -25,13 +25,13 @@ const Partners: React.FC = () => {
       aria-labelledby="partners-title"
     >
       <Container maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.5} mb={4}>
-          <HandshakeIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.5} mb={3}>
+          <HandshakeIcon sx={{ fontSize: 28, color: theme.palette.primary.main }} />
           <Typography 
             id="partners-title" 
-            variant="h4" 
+            variant="h5" 
             sx={{ 
-              fontWeight: 800, 
+              fontWeight: 700, 
               textAlign: 'center',
               color: theme.palette.text.primary,
               letterSpacing: -0.5
@@ -41,14 +41,14 @@ const Partners: React.FC = () => {
           </Typography>
         </Stack>
 
-        <Grid container spacing={4} alignItems="center" justifyContent="center">
+        <Grid container spacing={3} alignItems="center" justifyContent="center">
           {partners.map((p) => (
             <Grid key={p.name} size={{ xs: 6, sm: 4, md: 4 }}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 3,
-                  borderRadius: 3,
+                  p: 2,
+                  borderRadius: 2,
                   bgcolor: theme.palette.background.paper,
                   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
                   transition: 'all 0.3s ease',
@@ -61,25 +61,25 @@ const Partners: React.FC = () => {
                   }
                 }}
               >
-                <Stack alignItems="center" spacing={2}>
+                <Stack alignItems="center" spacing={1.5}>
                   <Box 
                     component="img" 
                     src={p.src} 
                     alt={p.name} 
                     sx={{ 
-                      width: 96, 
-                      height: 96, 
+                      width: 72, 
+                      height: 72, 
                       objectFit: 'contain',
                       filter: theme.palette.mode === 'dark' ? 'brightness(0.95)' : 'none'
                     }} 
                   />
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       textAlign: 'center',
                       color: theme.palette.text.primary,
                       fontWeight: 600,
-                      fontSize: '1rem'
+                      fontSize: '0.9rem'
                     }}
                   >
                     {p.name}

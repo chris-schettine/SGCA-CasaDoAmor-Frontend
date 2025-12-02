@@ -127,7 +127,7 @@ const AboutPage = () => {
 
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" fontWeight="bold" gutterBottom color={darkBlue}>
-                            Tecnologia a favor do acolhimento
+                            Computação a favor do acolhimento
                         </Typography>
                         <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: theme.palette.text.primary, lineHeight: 1.8 }}>
                             O Sistema de Gerenciamento da Casa do Amor (SGCA) foi criado para otimizar a rotina administrativa da instituição, 
@@ -185,9 +185,9 @@ const AboutPage = () => {
                         </Paper>
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
-                        <Paper elevation={4} sx={{ p: 3, borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
-                            <Stack spacing={2}>
+                    <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex' }}>
+                        <Paper elevation={4} sx={{ p: 3, borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, display: 'flex', flexDirection: 'column', width: '100%' }}>
+                            <Stack spacing={2} sx={{ height: '100%', justifyContent: 'space-between' }}>
                                 <Stack direction="row" alignItems="center" gap={1}>
                                     <DescriptionIcon color="primary" />
                                     <Typography variant="h6" fontWeight="bold" color={darkBlue}>
