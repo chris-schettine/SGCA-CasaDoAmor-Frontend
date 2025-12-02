@@ -31,6 +31,7 @@ import {
   Cancel,
   Schedule,
   AccessTime,
+  FamilyRestroom,
 } from '@mui/icons-material';
 import { AnimatedPage } from '../../components/AnimatedPage';
 import PageContainer from '../../components/PageContainer';
@@ -44,6 +45,7 @@ import { hospedagemService } from '../../api/hospedagem.service';
 import type { HospedagemStatsDTO } from '../../api/hospedagem.dto';
 import { agendamentoEstatisticasService } from '../../api/agendamentoEstatisticas.service';
 import type { EstatisticasAgendamentoDTO } from '../../api/agendamentoEstatisticas.dto';
+import { dashboardStatsService, type EstatisticasPacienteAcompanhanteDTO } from '../../api/dashboardStats.service';
 import { toastError } from '../../utils/toast';
 
 interface StatCardProps {
@@ -198,6 +200,7 @@ const Dashboard = () => {
   const [quartoStats, setQuartoStats] = useState<QuartoStatsDTO | null>(null);
   const [hospedagemStats, setHospedagemStats] = useState<HospedagemStatsDTO | null>(null);
   const [agendamentoStats, setAgendamentoStats] = useState<EstatisticasAgendamentoDTO | null>(null);
+  const [pacienteStats, setPacienteStats] = useState<EstatisticasPacienteAcompanhanteDTO | null>(null);
   const [tabErrors, setTabErrors] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
@@ -224,6 +227,9 @@ const Dashboard = () => {
         } else if (tabValue === 3) {
           const data = await agendamentoEstatisticasService.obterEstatisticas();
           setAgendamentoStats(data);
+        } else if (tabValue === 4) {
+          const data = await dashboardStatsService.getDashboardStatistics();
+          setPacienteStats(data);
         }
       } catch (err: any) {
         console.error('Erro ao carregar estatísticas:', err);
@@ -310,6 +316,7 @@ const Dashboard = () => {
             <Tab icon={<MeetingRoom />} label="Quartos" iconPosition="start" />
             <Tab icon={<Hotel />} label="Hospedagens" iconPosition="start" />
             <Tab icon={<EventNote />} label="Agendamentos" iconPosition="start" />
+            <Tab icon={<FamilyRestroom />} label="Pacientes & Acompanhantes" iconPosition="start" />
           </Tabs>
         </Paper>
 
@@ -1269,6 +1276,127 @@ const Dashboard = () => {
                 icon={<AccessTime />}
               />
             </Box>
+              </>
+            )}
+          </>
+        )}
+
+        {/* Pacientes & Acompanhantes Tab */}
+        {tabValue === 4 && (
+          <>
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <CircularProgress />
+              </Box>
+            )}
+
+            {!loading && tabErrors[4] && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {tabErrors[4]}
+              </Alert>
+            )}
+
+            {!loading && !tabErrors[4] && pacienteStats && (
+              <>
+                {/* Main Stats Grid */}
+                <Box 
+                  sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { 
+                      xs: '1fr',
+                      sm: 'repeat(2, 1fr)',
+                      md: 'repeat(4, 1fr)'
+                    }, 
+                    gap: 3,
+                    mb: 3 
+                  }}
+                >
+                  <StatCard
+                    title="Total de Pacientes"
+                    value={pacienteStats.totalPacientes}
+                    icon={<People />}
+                    color={theme.palette.primary.main}
+                    subtitle={`${pacienteStats.pacientesAtivos} ativos`}
+                  />
+                  <StatCard
+                    title="Total de Acompanhantes"
+                    value={pacienteStats.totalAcompanhantes}
+                    icon={<FamilyRestroom />}
+                    color={theme.palette.secondary.main}
+                    subtitle={`${pacienteStats.acompanhantesAtivos} ativos`}
+                  />
+                  <StatCard
+                    title="Registros Hoje"
+                    value={pacienteStats.pacientesRegistradosHoje + pacienteStats.acompanhantesRegistradosHoje}
+                    icon={<TrendingUp />}
+                    color={theme.palette.success.main}
+                    subtitle={`${pacienteStats.pacientesRegistradosHoje} pac., ${pacienteStats.acompanhantesRegistradosHoje} acomp.`}
+                  />
+                  <StatCard
+                    title="Média Acompanhantes"
+                    value={pacienteStats.mediaAcompanhantesPorPaciente.toFixed(2)}
+                    icon={<People />}
+                    color={theme.palette.info.main}
+                    subtitle="Por paciente"
+                  />
+                </Box>
+
+                {/* Status Distribution */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3, mb: 3 }}>
+                  <CategoryList
+                    title="Pacientes por Status"
+                    items={[
+                      { label: 'Em Tratamento', count: pacienteStats.pacientesEmTratamento },
+                      { label: 'Curados', count: pacienteStats.pacientesCurados },
+                      { label: 'Em Observação', count: pacienteStats.pacientesEmObservacao },
+                      { label: 'Falecidos', count: pacienteStats.pacientesFalecidos },
+                    ]}
+                    icon={<Category />}
+                  />
+                  <CategoryList
+                    title="Acompanhantes por Parentesco (Top 5)"
+                    items={Object.entries(pacienteStats.acompanhantesPorParentesco || {})
+                      .map(([label, count]) => ({ label, count: count as number }))
+                      .sort((a, b) => b.count - a.count)
+                      .slice(0, 5)}
+                    icon={<FamilyRestroom />}
+                  />
+                </Box>
+
+                {/* Clinical Data */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 3 }}>
+                  <StatCard
+                    title="Com Dados Clínicos"
+                    value={pacienteStats.pacientesComDadosClinicos}
+                    icon={<Work />}
+                    color={theme.palette.success.main}
+                    subtitle={`${pacienteStats.taxaPacientesComDadosClinicos.toFixed(1)}% do total`}
+                  />
+                  <StatCard
+                    title="Com Sonda"
+                    value={pacienteStats.pacientesComSonda}
+                    icon={<Work />}
+                    color={theme.palette.warning.main}
+                  />
+                  <StatCard
+                    title="Com Curativo"
+                    value={pacienteStats.pacientesComCurativo}
+                    icon={<Work />}
+                    color={theme.palette.info.main}
+                  />
+                </Box>
+
+                {/* Geographic Distribution */}
+                <Box sx={{ mt: 3 }}>
+                  <CategoryList
+                    title="Top 5 Cidades"
+                    items={(pacienteStats.topCidadesComMaisPacientes || []).slice(0, 5).map((cidade: { cidade: string; totalPacientes: number }) => ({
+                      label: cidade.cidade,
+                      count: cidade.totalPacientes,
+                    }))}
+                    icon={<Home />}
+                  />
+                </Box>
               </>
             )}
           </>
