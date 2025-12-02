@@ -44,6 +44,34 @@ const UserEditPage = lazy(() => import('./pages/UserEdit'));
 const MyProfilePage = lazy(() => import('./pages/MyProfile'));
 const ConsentimentoLGPDPage = lazy(() => import('./pages/ConsentimentoLGPD'));
 
+// Gestao de Profissionais
+const Profissionais = lazy(() => import('./pages/Profissionais'));
+const ProfissionalRegisterPage = lazy(() => import('./pages/ProfissionalRegister'));
+const ProfissionalEditPage = lazy(() => import('./pages/ProfissionalEdit'));
+const ProfissionalInformationPage = lazy(() => import('./pages/ProfissionalInformation'));
+const DashboardPage = lazy(() => import('./pages/Dashboard'));
+
+// Gestao de Quartos
+const Quartos = lazy(() => import('./pages/Quartos'));
+const QuartoRegisterPage = lazy(() => import('./pages/QuartoRegister'));
+const QuartoEditPage = lazy(() => import('./pages/QuartoEdit'));
+const QuartoInformationPage = lazy(() => import('./pages/QuartoInformation'));
+
+// Gestao de Hospedagens
+const Hospedagens = lazy(() => import('./pages/Hospedagens'));
+const HospedagemRegisterPage = lazy(() => import('./pages/HospedagemRegister'));
+const HospedagemInformationPage = lazy(() => import('./pages/HospedagemInformation'));
+
+// Gestao de Agendamentos
+const AgendamentosPacientesPage = lazy(() => import('./pages/AgendamentosPacientes'));
+const AgendamentosAcompanhantesPage = lazy(() => import('./pages/AgendamentosAcompanhantes'));
+const AgendamentoPacienteRegisterPage = lazy(() => import('./pages/AgendamentoPacienteRegister'));
+const AgendamentoPacienteEditPage = lazy(() => import('./pages/AgendamentoPacienteEdit'));
+const AgendamentoPacienteViewPage = lazy(() => import('./pages/AgendamentoPacienteView'));
+const AgendamentoAcompanhanteRegisterPage = lazy(() => import('./pages/AgendamentoAcompanhanteRegister'));
+const AgendamentoAcompanhanteEditPage = lazy(() => import('./pages/AgendamentoAcompanhanteEdit'));
+const AgendamentoAcompanhanteViewPage = lazy(() => import('./pages/AgendamentoAcompanhanteView'));
+
 // Funcao para pre-carregar rotas criticas em segundo plano
 // Melhora a percepcao de performance apos o carregamento inicial
 // Usa requestIdleCallback para não bloquear o thread principal
@@ -172,6 +200,65 @@ const AppRoutes = () => {
         <Route path="companion/information" element={<RouteTransition><CompanionInformation /></RouteTransition>} />
         <Route path="companion/edit/:id" element={<RouteTransition><CompanionEditPage /></RouteTransition>} />
         <Route path="patient/companion/register" element={<RouteTransition><CompanionRegisterPage /></RouteTransition>} />
+        
+        {/* Gestao de Profissionais de Saude */}
+        <Route path="profissionais" element={<RouteTransition><Profissionais /></RouteTransition>} />
+        <Route path="dashboard" element={<RouteTransition><DashboardPage /></RouteTransition>} />
+        <Route path="profissional/information/:uuid" element={<RouteTransition><ProfissionalInformationPage /></RouteTransition>} />
+        <Route path="profissional/register" element={
+          <AdminRoute>
+            <RouteTransition>
+              <ProfissionalRegisterPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
+        <Route path="profissional/edit/:uuid" element={
+          <AdminRoute>
+            <RouteTransition>
+              <ProfissionalEditPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
+        
+        {/* Gestao de Quartos */}
+        <Route path="quartos" element={<RouteTransition><Quartos /></RouteTransition>} />
+        <Route path="quartos/:uuid" element={<RouteTransition><QuartoInformationPage /></RouteTransition>} />
+        <Route path="quartos/cadastrar" element={
+          <AdminRoute>
+            <RouteTransition>
+              <QuartoRegisterPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
+        <Route path="quartos/:uuid/editar" element={
+          <AdminRoute>
+            <RouteTransition>
+              <QuartoEditPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
+        
+        {/* Gestao de Hospedagens */}
+        <Route path="hospedagens" element={<RouteTransition><Hospedagens /></RouteTransition>} />
+        <Route path="hospedagens/:uuid" element={<RouteTransition><HospedagemInformationPage /></RouteTransition>} />
+        <Route path="hospedagens/cadastrar" element={
+          <AdminRoute>
+            <RouteTransition>
+              <HospedagemRegisterPage />
+            </RouteTransition>
+          </AdminRoute>
+        } />
+        
+        {/* Gestao de Agendamentos */}
+        <Route path="agendamentos/pacientes" element={<RouteTransition><AgendamentosPacientesPage /></RouteTransition>} />
+        <Route path="agendamentos/pacientes/novo" element={<RouteTransition><AgendamentoPacienteRegisterPage /></RouteTransition>} />
+        <Route path="agendamentos/pacientes/:uuid" element={<RouteTransition><AgendamentoPacienteViewPage /></RouteTransition>} />
+        <Route path="agendamentos/pacientes/:uuid/editar" element={<RouteTransition><AgendamentoPacienteEditPage /></RouteTransition>} />
+        
+        <Route path="agendamentos/acompanhantes" element={<RouteTransition><AgendamentosAcompanhantesPage /></RouteTransition>} />
+        <Route path="agendamentos/acompanhantes/novo" element={<RouteTransition><AgendamentoAcompanhanteRegisterPage /></RouteTransition>} />
+        <Route path="agendamentos/acompanhantes/:uuid" element={<RouteTransition><AgendamentoAcompanhanteViewPage /></RouteTransition>} />
+        <Route path="agendamentos/acompanhantes/:uuid/editar" element={<RouteTransition><AgendamentoAcompanhanteEditPage /></RouteTransition>} />
         
         {/* Auditoria e Logs (Requer permissao de Administrador) */}
         <Route path="/auditoria" element={
