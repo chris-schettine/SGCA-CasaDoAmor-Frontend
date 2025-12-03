@@ -282,14 +282,22 @@ const PrivacyPolicyPage: React.FC = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mt: 3 }}>
             <Chip
               icon={<ContactMailIcon />}
-              label="contato@casadoamor.org"
+              label="casadoamoremconquista@gmail.com"
+              variant="outlined"
               color="primary"
-              sx={{ fontSize: '1rem', py: 3, px: 2 }}
+              sx={{ 
+                fontSize: '1rem', 
+                py: 3, 
+                px: 2,
+                borderWidth: 2,
+                fontWeight: 600
+              }}
             />
             <Button
               component={RouterLink}
               to="/consentimentos-lgpd"
               variant="contained"
+              color="primary"
               size="large"
               startIcon={<SecurityIcon />}
               sx={{
