@@ -16,6 +16,7 @@ const PublicRoute = lazy(() => import('./components/PublicRoute'));
 // Acessiveis por qualquer usuario, logado ou nao (com excecao daquelas protegidas por PublicRoute)
 const LandingPage = lazy(() => import('./pages/LandingPage')); 
 const AboutPage = lazy(() => import('./pages/About')); 
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicy'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
@@ -157,6 +158,7 @@ const AppRoutes = () => {
 
       {/* Pagina Sobre/Institucional */}
       <Route path="/about" element={<RouteTransition><AboutPage /></RouteTransition>} />
+      <Route path="/privacy-policy" element={<RouteTransition><PrivacyPolicyPage /></RouteTransition>} />
 
       {/* Pagina de Login */}
       {/* Tambem protegida por PublicRoute para evitar acesso de usuarios ja autenticados */}
