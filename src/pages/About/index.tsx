@@ -28,6 +28,7 @@ import christianPhoto from '/developers/christian.jpg';
 import cauePhoto from '/developers/caue.jpeg';
 import edsonPhoto from '/developers/edson.jpeg';
 import matheusPhoto from '/developers/matheus.jpeg';
+import luisEduardoPhoto from '/developers/luisEduardo.jpg';
 
 
 // Função para gerar cores dinâmicas para Avatares 
@@ -50,7 +51,7 @@ const developers = [
     { name: "Cauê Rodrigue de Aguiar", role: "Frontend, Cloud e Testes", github: "https://github.com/CauAguiar", linkedin: "https://www.linkedin.com/in/cauaguiar/", photo: cauePhoto },
     { name: "Edson Araujo", role: "Backend", github: "https://github.com/edsonaraujobr", linkedin: "https://www.linkedin.com/in/edsonaraujobr/", photo: edsonPhoto },
     { name: "João Henrique Silva Pinto", role: "Fullstack", github: "https://github.com/henriksson666", linkedin: "https://www.linkedin.com/in/joao-henrique-silva-pinto-0a539748/", photo: "" },
-    { name: "Luís Eduardo", role: "Frontend", github: "https://github.com/Aleff0", linkedin: "#", photo: "" },
+    { name: "Luis Eduardo", role: "Frontend", github: "https://github.com/Aleff0", linkedin: "https://www.linkedin.com/in/luis-eduardo-da-silva-santos-109456249/", photo: luisEduardoPhoto },
     { name: "Matheus Lopes", role: "Frontend", github: "https://github.com/teteulopes", linkedin: "#", photo: matheusPhoto },
     { name: "Pedro Lucca", role: "Frontend", github: "https://github.com/pedroluccabr", linkedin: "#", photo: "" },
 ];

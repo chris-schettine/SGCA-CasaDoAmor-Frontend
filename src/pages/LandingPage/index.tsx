@@ -269,10 +269,10 @@ const LandingPage = () => {
                     }}>
                         <Box
                             component="img"
-                            src={theme.palette.mode === 'dark' ? '/logo3branco.png' : '/casadoamor.png'}
+                            src={theme.palette.mode === 'dark' ? '/logo3branco.png' : '/logo3.png'}
                             alt="Logo Casa do Amor"
                             sx={{
-                                maxWidth: { xs: 200, md: 240 },
+                                maxWidth: { xs: 80, md: 100 },
                                 height: 'auto'
                             }}
                         />
