@@ -120,7 +120,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <Typography variant="body2">
           Os titulares têm direitos previstos na LGPD, tais como acesso, correção, eliminação, portabilidade, anonimização,
           oposição e revogação de consentimento. Para exercer seus direitos, entre em contato com o Encarregado pelo tratamento
-          de dados no e-mail: <b>contato@casadoamor.org</b>.
+          de dados no e-mail: <b>casadoamoremconquista@gmail.com</b>.
         </Typography>
       )
     },
